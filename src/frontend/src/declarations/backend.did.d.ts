@@ -89,9 +89,18 @@ export interface ProductPatch {
 }
 export type PublishState = { 'published' : null } |
   { 'draft' : null };
+export type RecordViewResult = { 'recorded' : RouteViews } |
+  { 'ignored' : null };
 export interface Result { 'hasMore' : boolean, 'rows' : Array<Array<Cell>> }
 export type Result__1 = { 'ok' : null } |
   { 'err' : Error };
+export type RoutePath = string;
+export interface RouteViews {
+  'lastSeenAt' : Timestamp,
+  'views' : bigint,
+  'firstSeenAt' : Timestamp,
+  'path' : RoutePath,
+}
 export interface SiteContent {
   'contactBody' : [] | [string],
   'privacyBody' : [] | [string],
@@ -250,6 +259,11 @@ export interface _SERVICE {
    */
   'getFaq' : ActorMethod<[bigint], [] | [Faq]>,
   /**
+   * / Returns the aggregate view total for a single route, or `null` when the
+   * / route has never been recorded.
+   */
+  'getPageViews' : ActorMethod<[string], [] | [RouteViews]>,
+  /**
    * / A single product by id. Admin only.
    */
   'getProduct' : ActorMethod<[bigint], [] | [Product]>,
@@ -284,6 +298,10 @@ export interface _SERVICE {
    */
   'listAllProducts' : ActorMethod<[], Array<Product>>,
   /**
+   * / Returns every recorded route with its aggregate total, ordered by path.
+   */
+  'listPageViews' : ActorMethod<[], Array<RouteViews>>,
+  /**
    * / Up to `limit` published FAQs in admin-defined order.
    */
   'listPublishedFaqs' : ActorMethod<[bigint], Array<Faq>>,
@@ -295,6 +313,17 @@ export interface _SERVICE {
    * / Submissions matching `filter`, newest first. Admin only.
    */
   'listSubmissions' : ActorMethod<[SubmissionFilter], Array<Submission>>,
+  /**
+   * / Records one view of a public route. Callable by anyone, including
+   * / anonymous callers, because the frontend only calls it after the visitor
+   * / has consented to analytics.
+   * /
+   * / The path is normalized and validated by the backend; an invalid path or an
+   * / admin route is ignored and stores nothing. The counter is additive and
+   * / stores only an aggregate total — no IP, user agent, principal, or session
+   * / identifier is ever read or stored.
+   */
+  'recordPageView' : ActorMethod<[string], RecordViewResult>,
   /**
    * / Revokes admin access from `principal`. Owner only; the owner cannot be
    * / removed.

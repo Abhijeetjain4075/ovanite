@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { OvaniteWordmark } from "@/components/brand/OvaniteMark";
 import { Container } from "@/components/layout/Container";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { clearConsent } from "@/lib/consent";
 
 const FOOTER_NAV = [
   { label: "Products", to: "/products" },
@@ -102,17 +103,27 @@ export function Footer() {
           <p className="font-mono uppercase tracking-[0.16em]">
             © {year} Ovanite. All rights reserved.
           </p>
-          <p>
-            © {year}. Built with love using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-sm underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <button
+              type="button"
+              data-ocid="footer.cookie_preferences_button"
+              onClick={() => clearConsent()}
+              className="self-start rounded-sm text-left underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:self-auto"
             >
-              caffeine.ai
-            </a>
-          </p>
+              Cookie preferences
+            </button>
+            <p>
+              © {year}. Built with love using{" "}
+              <a
+                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-sm underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+              >
+                caffeine.ai
+              </a>
+            </p>
+          </div>
         </div>
       </Container>
     </footer>

@@ -58,6 +58,8 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
             alt={`${product.name} product logo`}
             loading="lazy"
             decoding="async"
+            width={56}
+            height={56}
             className="mb-6 h-14 w-14 shrink-0 rounded-sm border border-border object-cover"
           />
         ) : (

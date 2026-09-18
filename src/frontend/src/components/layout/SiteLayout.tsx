@@ -1,13 +1,17 @@
 import { Outlet } from "react-router-dom";
 
+import { ConsentBanner } from "@/components/layout/ConsentBanner";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
 /**
  * The public site shell: skip link, sticky navbar, routed content, footer.
  * Every public route renders inside this layout.
  */
 export function SiteLayout() {
+  usePageViewTracking();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <a
@@ -21,6 +25,7 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <Footer />
+      <ConsentBanner />
     </div>
   );
 }

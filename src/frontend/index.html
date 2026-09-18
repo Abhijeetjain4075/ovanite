@@ -19,6 +19,22 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://caffeine.ai/imgs/share-logo.jpeg" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <!-- Preload the brand fonts used above the fold so the first paint uses the
+         real typefaces instead of a fallback swap. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/assets/fonts/SpaceGrotesk.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/assets/fonts/GeneralSans.woff2"
+      crossorigin
+    />
   </head>
   <body>
     <div id="root"></div>

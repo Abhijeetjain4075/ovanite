@@ -26,6 +26,11 @@
       "sourceType": "github",
       "computedHash": "f66ab619cc13f86cd8e66ac007df1257494abc75189f2ef18c5e1157e718c414"
     },
+    "connector-weatherapi": {
+      "source": "caffeinelabs/skills",
+      "sourceType": "github",
+      "computedHash": "a4508dceae76b760810ba2117f8088b7b1077a1e0784bbbb891b8ed03ff5731b"
+    },
     "connector-x": {
       "source": "caffeinelabs/skills",
       "sourceType": "github",

@@ -1,3 +1,4 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/Home-KCxhQM2j.js","assets/Section-CHXUaDCD.js","assets/arrow-right-icfR0l-3.js","assets/index-eq1rYzWb.js","assets/index-DEJoxP4m.js","assets/chevron-down-HjXZtePm.js","assets/skeleton-BTXYXnLQ.js","assets/siteCopy-yL4ekaS-.js","assets/useProducts-BE45W7cN.js","assets/format-CdAHKqJe.js","assets/PageMeta-BLn8XJz2.js","assets/Products-BosFE1oB.js","assets/Breadcrumbs-C4_qKhBm.js","assets/mail-C5X0p1tP.js","assets/About-B91MdynM.js","assets/Contact-BWXBHapd.js","assets/textarea-TnSsLILx.js","assets/validation-D1I7ai0A.js","assets/Waitlist-BdcDZhSv.js","assets/ThankYou-Daz_owFK.js","assets/Privacy-LgqKYeK7.js","assets/Terms-DBx6IygE.js","assets/NotFound-BT3xv7uj.js","assets/AdminDashboard-XfC3KKaf.js","assets/AdminLayout-CNQakB_G.js","assets/useAdminFaqs-DvZVyMrv.js","assets/useAdminProducts-DMOkphpd.js","assets/useAdminSubmissions-CMn0QApc.js","assets/AdminFaqs-Dwg3-mjo.js","assets/plus-BPvc-N_4.js","assets/trash-2-7l5MbcQX.js","assets/AdminProducts-B9YDAugK.js","assets/AdminSiteCopy-BzT8hia-.js","assets/AdminSubmissions-BL7e9-JU.js","assets/index-BbcBv9K7.js","assets/AdminTeam-Dwzc-El8.js"])))=>i.map(i=>d[i]);
 var __defProp = Object.defineProperty;
 var __typeError = (msg) => {
   throw TypeError(msg);
@@ -528,9 +529,9 @@ function aexists(instance, checkFinished = true) {
 }
 function aoutput(out, instance) {
   abytes(out);
-  const min2 = instance.outputLen;
-  if (out.length < min2) {
-    throw new Error("digestInto() expects output buffer of length at least " + min2);
+  const min = instance.outputLen;
+  if (out.length < min) {
+    throw new Error("digestInto() expects output buffer of length at least " + min);
   }
 }
 function clean(...arrays) {
@@ -541,8 +542,8 @@ function clean(...arrays) {
 function createView(arr) {
   return new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
 }
-function rotr(word, shift2) {
-  return word << 32 - shift2 | word >>> shift2;
+function rotr(word, shift) {
+  return word << 32 - shift | word >>> shift;
 }
 const hasHexBuiltin = /* @__PURE__ */ (() => (
   // @ts-ignore
@@ -908,9 +909,9 @@ class SHA256 extends HashMD {
     this.G = G2 | 0;
     this.H = H2 | 0;
   }
-  process(view, offset2) {
-    for (let i = 0; i < 16; i++, offset2 += 4)
-      SHA256_W[i] = view.getUint32(offset2, false);
+  process(view, offset) {
+    for (let i = 0; i < 16; i++, offset += 4)
+      SHA256_W[i] = view.getUint32(offset, false);
     for (let i = 16; i < 64; i++) {
       const W15 = SHA256_W[i - 15];
       const W2 = SHA256_W[i - 2];
@@ -1094,10 +1095,10 @@ class SHA512 extends HashMD {
     this.Hh = Hh | 0;
     this.Hl = Hl | 0;
   }
-  process(view, offset2) {
-    for (let i = 0; i < 16; i++, offset2 += 4) {
-      SHA512_W_H[i] = view.getUint32(offset2);
-      SHA512_W_L[i] = view.getUint32(offset2 += 4);
+  process(view, offset) {
+    for (let i = 0; i < 16; i++, offset += 4) {
+      SHA512_W_H[i] = view.getUint32(offset);
+      SHA512_W_L[i] = view.getUint32(offset += 4);
     }
     for (let i = 16; i < 80; i++) {
       const W15h = SHA512_W_H[i - 15] | 0;
@@ -2051,13 +2052,13 @@ class PipeArrayBuffer {
     if (!(buf instanceof Uint8Array)) {
       throw new Error("Buffer must be a Uint8Array");
     }
-    const offset2 = this._view.byteLength;
+    const offset = this._view.byteLength;
     if (this._view.byteOffset + this._view.byteLength + buf.byteLength >= this._buffer.byteLength) {
       this.alloc(buf.byteLength);
     } else {
       this._view = new Uint8Array(this._buffer.buffer, this._view.byteOffset, this._view.byteLength + buf.byteLength);
     }
-    this._view.set(buf, offset2);
+    this._view.set(buf, offset);
   }
   /**
    * Whether or not there is more data to read from the buffer
@@ -2866,15 +2867,15 @@ class FixedIntClass extends PrimitiveType {
     return v2.visitFixedInt(this, d2);
   }
   covariant(x2) {
-    const min2 = iexp2(this._bits - 1) * BigInt(-1);
-    const max2 = iexp2(this._bits - 1) - BigInt(1);
+    const min = iexp2(this._bits - 1) * BigInt(-1);
+    const max = iexp2(this._bits - 1) - BigInt(1);
     if (typeof x2 === "bigint") {
-      if (x2 >= min2 && x2 <= max2) {
+      if (x2 >= min && x2 <= max) {
         return true;
       }
     } else if (Number.isInteger(x2)) {
       const v2 = BigInt(x2);
-      if (v2 >= min2 && v2 <= max2) {
+      if (v2 >= min && v2 <= max) {
         return true;
       }
     }
@@ -2884,8 +2885,8 @@ class FixedIntClass extends PrimitiveType {
     return writeIntLE(x2, this._bits / 8);
   }
   encodeType() {
-    const offset2 = Math.log2(this._bits) - 3;
-    return slebEncode(-9 - offset2);
+    const offset = Math.log2(this._bits) - 3;
+    return slebEncode(-9 - offset);
   }
   decodeValue(b2, t) {
     this.checkType(t);
@@ -2917,14 +2918,14 @@ class FixedNatClass extends PrimitiveType {
     return v2.visitFixedNat(this, d2);
   }
   covariant(x2) {
-    const max2 = iexp2(this._bits);
+    const max = iexp2(this._bits);
     if (typeof x2 === "bigint" && x2 >= BigInt(0)) {
-      if (x2 < max2) {
+      if (x2 < max) {
         return true;
       }
     } else if (Number.isInteger(x2) && x2 >= 0) {
       const v2 = BigInt(x2);
-      if (v2 < max2) {
+      if (v2 < max) {
         return true;
       }
     }
@@ -2934,8 +2935,8 @@ class FixedNatClass extends PrimitiveType {
     return writeUIntLE(x2, this._bits / 8);
   }
   encodeType() {
-    const offset2 = Math.log2(this._bits) - 3;
-    return slebEncode(-5 - offset2);
+    const offset = Math.log2(this._bits) - 3;
+    return slebEncode(-5 - offset);
   }
   decodeValue(b2, t) {
     this.checkType(t);
@@ -4967,12 +4968,12 @@ function copyBytes(bytes) {
   return Uint8Array.from(bytes);
 }
 const isPosBig = (n) => typeof n === "bigint" && _0n$7 <= n;
-function inRange(n, min2, max2) {
-  return isPosBig(n) && isPosBig(min2) && isPosBig(max2) && min2 <= n && n < max2;
+function inRange(n, min, max) {
+  return isPosBig(n) && isPosBig(min) && isPosBig(max) && min <= n && n < max;
 }
-function aInRange(title, n, min2, max2) {
-  if (!inRange(n, min2, max2))
-    throw new Error("expected valid " + title + ": " + min2 + " <= n < " + max2 + ", got " + n);
+function aInRange(title, n, min, max) {
+  if (!inRange(n, min, max))
+    throw new Error("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
 }
 function bitLen(n) {
   let len;
@@ -5071,7 +5072,7 @@ function sqrt5mod8(Fp3, n) {
   return root2;
 }
 function sqrt9mod16(P2) {
-  const Fp_ = Field$1(P2);
+  const Fp_ = Field(P2);
   const tn = tonelliShanks(P2);
   const c1 = tn(Fp_, Fp_.neg(Fp_.ONE));
   const c2 = tn(Fp_, c1);
@@ -5102,7 +5103,7 @@ function tonelliShanks(P2) {
     S2++;
   }
   let Z2 = _2n$6;
-  const _Fp = Field$1(P2);
+  const _Fp = Field(P2);
   while (FpLegendre(_Fp, Z2) === 1) {
     if (Z2++ > 1e3)
       throw new Error("Cannot find square root: probably non-prime P");
@@ -5235,7 +5236,7 @@ function nLength(n, nBitLength) {
   const nByteLength = Math.ceil(_nBitLength / 8);
   return { nBitLength: _nBitLength, nByteLength };
 }
-function Field$1(ORDER, bitLenOrOpts, isLE = false, opts = {}) {
+function Field(ORDER, bitLenOrOpts, isLE = false, opts = {}) {
   if (ORDER <= _0n$6)
     throw new Error("invalid field: expected ORDER > 0, got " + ORDER);
   let _nbitLength = void 0;
@@ -5385,12 +5386,12 @@ function calcOffsets(n, window2, wOpts) {
     nextN += _1n$6;
   }
   const offsetStart = window2 * windowSize;
-  const offset2 = offsetStart + Math.abs(wbits) - 1;
+  const offset = offsetStart + Math.abs(wbits) - 1;
   const isZero = wbits === 0;
   const isNeg = wbits < 0;
   const isNegF = window2 % 2 !== 0;
   const offsetF = offsetStart;
-  return { nextN, offset: offset2, isZero, isNeg, isNegF, offsetF };
+  return { nextN, offset, isZero, isNeg, isNegF, offsetF };
 }
 function validateMSMPoints(points, c2) {
   if (!Array.isArray(points))
@@ -5477,12 +5478,12 @@ class wNAF {
     let f2 = this.BASE;
     const wo = calcWOpts(W2, this.bits);
     for (let window2 = 0; window2 < wo.windows; window2++) {
-      const { nextN, offset: offset2, isZero, isNeg, isNegF, offsetF } = calcOffsets(n, window2, wo);
+      const { nextN, offset, isZero, isNeg, isNegF, offsetF } = calcOffsets(n, window2, wo);
       n = nextN;
       if (isZero) {
         f2 = f2.add(negateCt(isNegF, precomputes[offsetF]));
       } else {
-        p2 = p2.add(negateCt(isNeg, precomputes[offset2]));
+        p2 = p2.add(negateCt(isNeg, precomputes[offset]));
       }
     }
     assert0(n);
@@ -5498,12 +5499,12 @@ class wNAF {
     for (let window2 = 0; window2 < wo.windows; window2++) {
       if (n === _0n$5)
         break;
-      const { nextN, offset: offset2, isZero, isNeg } = calcOffsets(n, window2, wo);
+      const { nextN, offset, isZero, isNeg } = calcOffsets(n, window2, wo);
       n = nextN;
       if (isZero) {
         continue;
       } else {
-        const item = precomputes[offset2];
+        const item = precomputes[offset];
         acc = acc.add(isNeg ? item.negate() : item);
       }
     }
@@ -5605,7 +5606,7 @@ function createField(order, field, isLE) {
     validateField(field);
     return field;
   } else {
-    return Field$1(order, { isLE });
+    return Field(order, { isLE });
   }
 }
 function _createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
@@ -5693,7 +5694,7 @@ function expand_message_xof(msg, DST, lenInBytes, k2, H2) {
     throw new Error("expand_message_xof: invalid lenInBytes");
   return H2.create({ dkLen: lenInBytes }).update(msg).update(i2osp(lenInBytes, 2)).update(DST).update(i2osp(DST.length, 1)).digest();
 }
-function hash_to_field(msg, count2, options) {
+function hash_to_field(msg, count, options) {
   _validateObject(options, {
     p: "bigint",
     m: "number",
@@ -5704,10 +5705,10 @@ function hash_to_field(msg, count2, options) {
   if (!isHash(options.hash))
     throw new Error("expected valid hash");
   abytes(msg);
-  anum(count2);
+  anum(count);
   const log2p = p2.toString(2).length;
   const L2 = Math.ceil((log2p + k2) / 8);
-  const len_in_bytes = count2 * m2 * L2;
+  const len_in_bytes = count * m2 * L2;
   let prb;
   if (expand === "xmd") {
     prb = expand_message_xmd(msg, DST, len_in_bytes, hash);
@@ -5718,8 +5719,8 @@ function hash_to_field(msg, count2, options) {
   } else {
     throw new Error('expand must be "xmd" or "xof"');
   }
-  const u2 = new Array(count2);
-  for (let i = 0; i < count2; i++) {
+  const u2 = new Array(count);
+  for (let i = 0; i < count; i++) {
     const e = new Array(m2);
     for (let j2 = 0; j2 < m2; j2++) {
       const elm_offset = L2 * (j2 + i * m2);
@@ -6402,7 +6403,7 @@ function _weierstrass_legacy_opts_to_new(c2) {
   };
   const Fp3 = c2.Fp;
   let allowedLengths = c2.allowedPrivateKeyLengths ? Array.from(new Set(c2.allowedPrivateKeyLengths.map((l2) => Math.ceil(l2 / 2)))) : void 0;
-  const Fn = Field$1(CURVE.n, {
+  const Fn = Field(CURVE.n, {
     BITS: c2.nBitLength,
     allowedLengths,
     modFromBytes: c2.wrapPrivateKey
@@ -7459,7 +7460,7 @@ class _Field12 {
   }
 }
 function tower12(opts) {
-  const Fp3 = Field$1(opts.ORDER);
+  const Fp3 = Field(opts.ORDER);
   const Fp22 = new _Field2(Fp3, opts);
   const Fp62 = new _Field6(Fp22);
   const Fp122 = new _Field12(Fp62, opts);
@@ -7478,7 +7479,7 @@ const bls12_381_CURVE_G1 = {
   Gx: BigInt("0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"),
   Gy: BigInt("0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1")
 };
-const bls12_381_Fr = Field$1(bls12_381_CURVE_G1.n, {
+const bls12_381_Fr = Field(bls12_381_CURVE_G1.n, {
   modFromBytes: true,
   isLE: true
 });
@@ -8848,8 +8849,8 @@ function edwards(params, extraOpts = {}) {
   if (!isEdValidXY(Fp3, CURVE, CURVE.Gx, CURVE.Gy))
     throw new Error("bad curve params: generator point");
   function acoord(title, n, banZero = false) {
-    const min2 = banZero ? _1n$1 : _0n;
-    aInRange("coordinate " + title, n, min2, MASK);
+    const min = banZero ? _1n$1 : _0n;
+    aInRange("coordinate " + title, n, min, MASK);
     return n;
   }
   function aextpoint(other) {
@@ -8919,8 +8920,8 @@ function edwards(params, extraOpts = {}) {
       const lastByte = bytes[len - 1];
       normed[len - 1] = lastByte & -129;
       const y2 = bytesToNumberLE(normed);
-      const max2 = zip215 ? MASK : Fp3.ORDER;
-      aInRange("point.y", y2, _0n, max2);
+      const max = zip215 ? MASK : Fp3.ORDER;
+      aInRange("point.y", y2, _0n, max);
       const y22 = modP(y2 * y2);
       const u2 = modP(y22 - _1n$1);
       const v2 = modP(d2 * y22 - a2);
@@ -9233,18 +9234,18 @@ function eddsa(Point, cHash, eddsaOpts = {}) {
      */
     toMontgomery(publicKey) {
       const { y: y2 } = Point.fromBytes(publicKey);
-      const size2 = lengths.publicKey;
-      const is25519 = size2 === 32;
-      if (!is25519 && size2 !== 57)
+      const size = lengths.publicKey;
+      const is25519 = size === 32;
+      if (!is25519 && size !== 57)
         throw new Error("only defined for 25519 and 448");
       const u2 = is25519 ? Fp3.div(_1n$1 + y2, _1n$1 - y2) : Fp3.div(y2 - _1n$1, y2 + _1n$1);
       return Fp3.toBytes(u2);
     },
     toMontgomerySecret(secretKey) {
-      const size2 = lengths.secretKey;
-      _abytes2(secretKey, size2);
-      const hashed = cHash(secretKey.subarray(0, size2));
-      return adjustScalarBytes2(hashed).subarray(0, size2);
+      const size = lengths.secretKey;
+      _abytes2(secretKey, size);
+      const hashed = cHash(secretKey.subarray(0, size));
+      return adjustScalarBytes2(hashed).subarray(0, size);
     },
     /** @deprecated */
     randomPrivateKey: randomSecretKey,
@@ -9274,7 +9275,7 @@ function _eddsa_legacy_opts_to_new(c2) {
     Gy: c2.Gy
   };
   const Fp3 = c2.Fp;
-  const Fn = Field$1(CURVE.n, c2.nBitLength, true);
+  const Fn = Field(CURVE.n, c2.nBitLength, true);
   const curveOpts = { Fp: Fp3, Fn, uvRatio: c2.uvRatio };
   const eddsaOpts = {
     randomBytes: c2.randomBytes,
@@ -9359,7 +9360,7 @@ function uvRatio(u2, v2) {
     x2 = mod(-x2, P2);
   return { isValid: useRoot1 || useRoot2, value: x2 };
 }
-const Fp = /* @__PURE__ */ (() => Field$1(ed25519_CURVE.p, { isLE: true }))();
+const Fp = /* @__PURE__ */ (() => Field(ed25519_CURVE.p, { isLE: true }))();
 const ed25519Defaults = /* @__PURE__ */ (() => ({
   ...ed25519_CURVE,
   Fp,
@@ -9563,62 +9564,62 @@ const encodeLenBytes = (len) => {
   }
   throw InputError.fromCode(new DerEncodeErrorCode("Length too long (> 4 bytes)"));
 };
-const encodeLen = (buf, offset2, len) => {
+const encodeLen = (buf, offset, len) => {
   if (len <= 127) {
-    buf[offset2] = len;
+    buf[offset] = len;
     return 1;
   }
   if (len <= 255) {
-    buf[offset2] = 129;
-    buf[offset2 + 1] = len;
+    buf[offset] = 129;
+    buf[offset + 1] = len;
     return 2;
   }
   if (len <= 65535) {
-    buf[offset2] = 130;
-    buf[offset2 + 1] = len >> 8;
-    buf[offset2 + 2] = len;
+    buf[offset] = 130;
+    buf[offset + 1] = len >> 8;
+    buf[offset + 2] = len;
     return 3;
   }
   if (len <= 16777215) {
-    buf[offset2] = 131;
-    buf[offset2 + 1] = len >> 16;
-    buf[offset2 + 2] = len >> 8;
-    buf[offset2 + 3] = len;
+    buf[offset] = 131;
+    buf[offset + 1] = len >> 16;
+    buf[offset + 2] = len >> 8;
+    buf[offset + 3] = len;
     return 4;
   }
   throw InputError.fromCode(new DerEncodeErrorCode("Length too long (> 4 bytes)"));
 };
-const decodeLenBytes = (buf, offset2) => {
-  if (buf[offset2] < 128) {
+const decodeLenBytes = (buf, offset) => {
+  if (buf[offset] < 128) {
     return 1;
   }
-  if (buf[offset2] === 128) {
+  if (buf[offset] === 128) {
     throw InputError.fromCode(new DerDecodeErrorCode("Invalid length 0"));
   }
-  if (buf[offset2] === 129) {
+  if (buf[offset] === 129) {
     return 2;
   }
-  if (buf[offset2] === 130) {
+  if (buf[offset] === 130) {
     return 3;
   }
-  if (buf[offset2] === 131) {
+  if (buf[offset] === 131) {
     return 4;
   }
   throw InputError.fromCode(new DerDecodeErrorCode("Length too long (> 4 bytes)"));
 };
-const decodeLen = (buf, offset2) => {
-  const lenBytes = decodeLenBytes(buf, offset2);
+const decodeLen = (buf, offset) => {
+  const lenBytes = decodeLenBytes(buf, offset);
   if (lenBytes === 1) {
-    return buf[offset2];
+    return buf[offset];
   }
   if (lenBytes === 2) {
-    return buf[offset2 + 1];
+    return buf[offset + 1];
   }
   if (lenBytes === 3) {
-    return (buf[offset2 + 1] << 8) + buf[offset2 + 2];
+    return (buf[offset + 1] << 8) + buf[offset + 2];
   }
   if (lenBytes === 4) {
-    return (buf[offset2 + 1] << 16) + (buf[offset2 + 2] << 8) + buf[offset2 + 3];
+    return (buf[offset + 1] << 16) + (buf[offset + 2] << 8) + buf[offset + 3];
   }
   throw InputError.fromCode(new DerDecodeErrorCode("Length too long (> 4 bytes)"));
 };
@@ -9663,37 +9664,37 @@ Uint8Array.from([
 function wrapDER(payload, oid) {
   const bitStringHeaderLength = 2 + encodeLenBytes(payload.byteLength + 1);
   const len = oid.byteLength + bitStringHeaderLength + payload.byteLength;
-  let offset2 = 0;
+  let offset = 0;
   const buf = new Uint8Array(1 + encodeLenBytes(len) + len);
-  buf[offset2++] = 48;
-  offset2 += encodeLen(buf, offset2, len);
-  buf.set(oid, offset2);
-  offset2 += oid.byteLength;
-  buf[offset2++] = 3;
-  offset2 += encodeLen(buf, offset2, payload.byteLength + 1);
-  buf[offset2++] = 0;
-  buf.set(new Uint8Array(payload), offset2);
+  buf[offset++] = 48;
+  offset += encodeLen(buf, offset, len);
+  buf.set(oid, offset);
+  offset += oid.byteLength;
+  buf[offset++] = 3;
+  offset += encodeLen(buf, offset, payload.byteLength + 1);
+  buf[offset++] = 0;
+  buf.set(new Uint8Array(payload), offset);
   return buf;
 }
 const unwrapDER = (derEncoded, oid) => {
-  let offset2 = 0;
+  let offset = 0;
   const expect = (n, msg) => {
-    if (buf[offset2++] !== n) {
-      throw InputError.fromCode(new DerDecodeErrorCode(`Expected ${msg} at offset ${offset2}`));
+    if (buf[offset++] !== n) {
+      throw InputError.fromCode(new DerDecodeErrorCode(`Expected ${msg} at offset ${offset}`));
     }
   };
   const buf = new Uint8Array(derEncoded);
   expect(48, "sequence");
-  offset2 += decodeLenBytes(buf, offset2);
-  if (!uint8Equals(buf.slice(offset2, offset2 + oid.byteLength), oid)) {
+  offset += decodeLenBytes(buf, offset);
+  if (!uint8Equals(buf.slice(offset, offset + oid.byteLength), oid)) {
     throw InputError.fromCode(new DerDecodeErrorCode("Not the expected OID."));
   }
-  offset2 += oid.byteLength;
+  offset += oid.byteLength;
   expect(3, "bit string");
-  const payloadLen = decodeLen(buf, offset2) - 1;
-  offset2 += decodeLenBytes(buf, offset2);
+  const payloadLen = decodeLen(buf, offset) - 1;
+  offset += decodeLenBytes(buf, offset);
   expect(0, "0 padding");
-  const result = buf.slice(offset2);
+  const result = buf.slice(offset);
   if (payloadLen !== result.length) {
     throw InputError.fromCode(new DerDecodeLengthMismatchErrorCode(payloadLen, result.length));
   }
@@ -9808,9 +9809,9 @@ const _ExponentialBackoff = class _ExponentialBackoff {
   }
   get randomValueFromInterval() {
     const delta = __privateGet(this, _randomizationFactor) * __privateGet(this, _currentInterval);
-    const min2 = __privateGet(this, _currentInterval) - delta;
-    const max2 = __privateGet(this, _currentInterval) + delta;
-    return Math.random() * (max2 - min2) + min2;
+    const min = __privateGet(this, _currentInterval) - delta;
+    const max = __privateGet(this, _currentInterval) + delta;
+    return Math.random() * (max - min) + min;
   }
   incrementCurrentInterval() {
     __privateSet(this, _currentInterval, Math.min(__privateGet(this, _currentInterval) * __privateGet(this, _multiplier), __privateGet(this, _maxInterval)));
@@ -10983,8 +10984,8 @@ readStateInner_fn = async function(url, principal, transformedRequest, requestId
   }
 };
 setTimeDiffMsecs_fn = function(callTime, replicaTimes) {
-  const maxReplicaTime = replicaTimes.reduce((max2, current) => {
-    return typeof current === "number" && current > max2 ? current : max2;
+  const maxReplicaTime = replicaTimes.reduce((max, current) => {
+    return typeof current === "number" && current > max ? current : max;
   }, 0);
   if (maxReplicaTime > 0) {
     __privateSet(this, _timeDiffMsecs, maxReplicaTime - callTime);
@@ -11576,72 +11577,72 @@ function dv(array) {
 }
 const UINT8 = {
   len: 1,
-  get(array, offset2) {
-    return dv(array).getUint8(offset2);
+  get(array, offset) {
+    return dv(array).getUint8(offset);
   },
-  put(array, offset2, value) {
-    dv(array).setUint8(offset2, value);
-    return offset2 + 1;
+  put(array, offset, value) {
+    dv(array).setUint8(offset, value);
+    return offset + 1;
   }
 };
 const UINT16_LE = {
   len: 2,
-  get(array, offset2) {
-    return dv(array).getUint16(offset2, true);
+  get(array, offset) {
+    return dv(array).getUint16(offset, true);
   },
-  put(array, offset2, value) {
-    dv(array).setUint16(offset2, value, true);
-    return offset2 + 2;
+  put(array, offset, value) {
+    dv(array).setUint16(offset, value, true);
+    return offset + 2;
   }
 };
 const UINT16_BE = {
   len: 2,
-  get(array, offset2) {
-    return dv(array).getUint16(offset2);
+  get(array, offset) {
+    return dv(array).getUint16(offset);
   },
-  put(array, offset2, value) {
-    dv(array).setUint16(offset2, value);
-    return offset2 + 2;
+  put(array, offset, value) {
+    dv(array).setUint16(offset, value);
+    return offset + 2;
   }
 };
 const UINT32_LE = {
   len: 4,
-  get(array, offset2) {
-    return dv(array).getUint32(offset2, true);
+  get(array, offset) {
+    return dv(array).getUint32(offset, true);
   },
-  put(array, offset2, value) {
-    dv(array).setUint32(offset2, value, true);
-    return offset2 + 4;
+  put(array, offset, value) {
+    dv(array).setUint32(offset, value, true);
+    return offset + 4;
   }
 };
 const UINT32_BE = {
   len: 4,
-  get(array, offset2) {
-    return dv(array).getUint32(offset2);
+  get(array, offset) {
+    return dv(array).getUint32(offset);
   },
-  put(array, offset2, value) {
-    dv(array).setUint32(offset2, value);
-    return offset2 + 4;
+  put(array, offset, value) {
+    dv(array).setUint32(offset, value);
+    return offset + 4;
   }
 };
 const INT32_BE = {
   len: 4,
-  get(array, offset2) {
-    return dv(array).getInt32(offset2);
+  get(array, offset) {
+    return dv(array).getInt32(offset);
   },
-  put(array, offset2, value) {
-    dv(array).setInt32(offset2, value);
-    return offset2 + 4;
+  put(array, offset, value) {
+    dv(array).setInt32(offset, value);
+    return offset + 4;
   }
 };
 const UINT64_LE = {
   len: 8,
-  get(array, offset2) {
-    return dv(array).getBigUint64(offset2, true);
+  get(array, offset) {
+    return dv(array).getBigUint64(offset, true);
   },
-  put(array, offset2, value) {
-    dv(array).setBigUint64(offset2, value, true);
-    return offset2 + 8;
+  put(array, offset, value) {
+    dv(array).setBigUint64(offset, value, true);
+    return offset + 8;
   }
 };
 class StringType {
@@ -11649,8 +11650,8 @@ class StringType {
     this.len = len;
     this.encoding = encoding;
   }
-  get(data, offset2 = 0) {
-    const bytes = data.subarray(offset2, offset2 + this.len);
+  get(data, offset = 0) {
+    const bytes = data.subarray(offset, offset + this.len);
     return textDecode(bytes, this.encoding);
   }
 }
@@ -12178,7 +12179,7 @@ function requireMs() {
     options = options || {};
     var type = typeof val;
     if (type === "string" && val.length > 0) {
-      return parse2(val);
+      return parse(val);
     } else if (type === "number" && isFinite(val)) {
       return options.long ? fmtLong(val) : fmtShort(val);
     }
@@ -12186,7 +12187,7 @@ function requireMs() {
       "val is not a non-empty string or a valid number. val=" + JSON.stringify(val)
     );
   };
-  function parse2(str) {
+  function parse(str) {
     str = String(str);
     if (str.length > 100) {
       return;
@@ -12726,10 +12727,10 @@ class ZipHandler {
     }
     debug("Reading central-directory...");
     const pos = this.tokenizer.position;
-    const offset2 = await this.findEndOfCentralDirectoryLocator();
-    if (offset2 > 0) {
+    const offset = await this.findEndOfCentralDirectoryLocator();
+    if (offset > 0) {
       debug("Central-directory 32-bit signature found");
-      const eocdHeader = await this.tokenizer.readToken(EndOfCentralDirectoryRecordToken, offset2);
+      const eocdHeader = await this.tokenizer.readToken(EndOfCentralDirectoryRecordToken, offset);
       const files = [];
       this.tokenizer.setPosition(eocdHeader.offsetOfStartOfCd);
       for (let n = 0; n < eocdHeader.nrOfEntriesOfSize; ++n) {
@@ -12770,13 +12771,13 @@ class ZipHandler {
         while (nextHeaderIndex < 0 && len === syncBufferSize) {
           len = await this.tokenizer.peekBuffer(this.syncBuffer, { mayBeLess: true });
           nextHeaderIndex = indexOf(this.syncBuffer.subarray(0, len), ddSignatureArray);
-          const size2 = nextHeaderIndex >= 0 ? nextHeaderIndex : len;
+          const size = nextHeaderIndex >= 0 ? nextHeaderIndex : len;
           if (next.handler) {
-            const data = new Uint8Array(size2);
+            const data = new Uint8Array(size);
             await this.tokenizer.readBuffer(data);
             chunks.push(data);
           } else {
-            await this.tokenizer.ignore(size2);
+            await this.tokenizer.ignore(size);
           }
         }
         debug(`Found data-descriptor-signature at pos=${this.tokenizer.position}`);
@@ -12887,10 +12888,10 @@ function indexOf(buffer, portion) {
 function mergeArrays(chunks) {
   const totalLength = chunks.reduce((acc, curr) => acc + curr.length, 0);
   const mergedArray = new Uint8Array(totalLength);
-  let offset2 = 0;
+  let offset = 0;
   for (const chunk of chunks) {
-    mergedArray.set(chunk, offset2);
-    offset2 += chunk.length;
+    mergedArray.set(chunk, offset);
+    offset += chunk.length;
   }
   return mergedArray;
 }
@@ -12903,12 +12904,12 @@ class GzipHandler {
     return new ReadableStream({
       async pull(controller) {
         const buffer = new Uint8Array(1024);
-        const size2 = await tokenizer.readBuffer(buffer, { mayBeLess: true });
-        if (size2 === 0) {
+        const size = await tokenizer.readBuffer(buffer, { mayBeLess: true });
+        if (size === 0) {
           controller.close();
           return;
         }
-        controller.enqueue(buffer.subarray(0, size2));
+        controller.enqueue(buffer.subarray(0, size));
       }
     }).pipeThrough(new DecompressionStream("gzip"));
   }
@@ -12958,22 +12959,22 @@ function stringToBytes(string, encoding) {
   }
   return [...string].map((character) => character.charCodeAt(0));
 }
-function tarHeaderChecksumMatches(arrayBuffer, offset2 = 0) {
+function tarHeaderChecksumMatches(arrayBuffer, offset = 0) {
   const readSum = Number.parseInt(new StringType(6).get(arrayBuffer, 148).replace(/\0.*$/, "").trim(), 8);
   if (Number.isNaN(readSum)) {
     return false;
   }
   let sum = 8 * 32;
-  for (let index2 = offset2; index2 < offset2 + 148; index2++) {
+  for (let index2 = offset; index2 < offset + 148; index2++) {
     sum += arrayBuffer[index2];
   }
-  for (let index2 = offset2 + 156; index2 < offset2 + 512; index2++) {
+  for (let index2 = offset + 156; index2 < offset + 512; index2++) {
     sum += arrayBuffer[index2];
   }
   return readSum === sum;
 }
 const uint32SyncSafeToken = {
-  get: (buffer, offset2) => buffer[offset2 + 3] & 127 | buffer[offset2 + 2] << 7 | buffer[offset2 + 1] << 14 | buffer[offset2] << 21,
+  get: (buffer, offset) => buffer[offset + 3] & 127 | buffer[offset + 2] << 7 | buffer[offset + 1] << 14 | buffer[offset] << 21,
   len: 4
 };
 const extensions = [
@@ -13449,10 +13450,10 @@ async function decompressDeflateRawWithLimit(data, { maximumLength = maximumZipE
     reader.releaseLock();
   }
   const uncompressedData = new Uint8Array(totalLength);
-  let offset2 = 0;
+  let offset = 0;
   for (const chunk of chunks) {
-    uncompressedData.set(chunk, offset2);
-    offset2 += chunk.length;
+    uncompressedData.set(chunk, offset);
+    offset += chunk.length;
   }
   return uncompressedData;
 }
@@ -13476,10 +13477,10 @@ function isPngAncillaryChunk(type) {
 }
 function mergeByteChunks(chunks, totalLength) {
   const merged = new Uint8Array(totalLength);
-  let offset2 = 0;
+  let offset = 0;
   for (const chunk of chunks) {
-    merged.set(chunk, offset2);
-    offset2 += chunk.length;
+    merged.set(chunk, offset);
+    offset += chunk.length;
   }
   return merged;
 }
@@ -13874,8 +13875,8 @@ function isRecoverableZipError(error) {
 }
 function canReadZipEntryForDetection(zipHeader, maximumSize = maximumZipEntrySizeInBytes) {
   const sizes = [zipHeader.compressedSize, zipHeader.uncompressedSize];
-  for (const size2 of sizes) {
-    if (!Number.isFinite(size2) || size2 < 0 || size2 > maximumSize) {
+  for (const size of sizes) {
+    if (!Number.isFinite(size) || size < 0 || size > maximumSize) {
       return false;
     }
   }
@@ -15513,10 +15514,10 @@ class FileTypeParser {
   	@param offset - Offset to scan for sync-preamble.
   	@returns {{ext: string, mime: string}}
   	*/
-  scanMpeg(offset2) {
-    if (this.check([255, 224], { offset: offset2, mask: [255, 224] })) {
-      if (this.check([16], { offset: offset2 + 1, mask: [22] })) {
-        if (this.check([8], { offset: offset2 + 1, mask: [8] })) {
+  scanMpeg(offset) {
+    if (this.check([255, 224], { offset, mask: [255, 224] })) {
+      if (this.check([16], { offset: offset + 1, mask: [22] })) {
+        if (this.check([8], { offset: offset + 1, mask: [8] })) {
           return {
             ext: "aac",
             mime: "audio/aac"
@@ -15527,19 +15528,19 @@ class FileTypeParser {
           mime: "audio/aac"
         };
       }
-      if (this.check([2], { offset: offset2 + 1, mask: [6] })) {
+      if (this.check([2], { offset: offset + 1, mask: [6] })) {
         return {
           ext: "mp3",
           mime: "audio/mpeg"
         };
       }
-      if (this.check([4], { offset: offset2 + 1, mask: [6] })) {
+      if (this.check([4], { offset: offset + 1, mask: [6] })) {
         return {
           ext: "mp2",
           mime: "audio/mpeg"
         };
       }
-      if (this.check([6], { offset: offset2 + 1, mask: [6] })) {
+      if (this.check([6], { offset: offset + 1, mask: [6] })) {
         return {
           ext: "mp1",
           mime: "audio/mpeg"
@@ -15644,10 +15645,10 @@ class YHash {
     const rightBytes = right instanceof YHash ? right.bytes : new TextEncoder().encode("UNBALANCED");
     const combined = new Uint8Array(DOMAIN_SEPARATOR_FOR_NODES.length + leftBytes.length + rightBytes.length);
     const arrays = [DOMAIN_SEPARATOR_FOR_NODES, leftBytes, rightBytes];
-    let offset2 = 0;
+    let offset = 0;
     for (const data of arrays) {
-      combined.set(data, offset2);
-      offset2 += data.length;
+      combined.set(data, offset);
+      offset += data.length;
     }
     const hashBuffer = await crypto.subtle.digest(HASH_ALGORITHM, combined);
     return new YHash(new Uint8Array(hashBuffer));
@@ -15795,8 +15796,8 @@ class StorageGatewayClient {
         body: params.chunkData
       });
       if (!response.ok) {
-        const errorText2 = await response.text();
-        const error = new Error(`Failed to upload chunk ${params.chunkIndex}: ${response.status} ${response.statusText} - ${errorText2}`);
+        const errorText = await response.text();
+        const error = new Error(`Failed to upload chunk ${params.chunkIndex}: ${response.status} ${response.statusText} - ${errorText}`);
         error.response = { status: response.status };
         throw error;
       }
@@ -15834,8 +15835,8 @@ class StorageGatewayClient {
         body: JSON.stringify(requestBody)
       });
       if (!response.ok) {
-        const errorText2 = await response.text();
-        const error = new Error(`Failed to upload blob tree: ${response.status} ${response.statusText} - ${errorText2}`);
+        const errorText = await response.text();
+        const error = new Error(`Failed to upload blob tree: ${response.status} ${response.statusText} - ${errorText}`);
         error.response = { status: response.status };
         throw error;
       }
@@ -16207,7 +16208,7 @@ function systemSetTimeoutZero(callback) {
   setTimeout(callback, 0);
 }
 var isServer = typeof window === "undefined" || "Deno" in globalThis;
-function noop$7() {
+function noop$6() {
 }
 function functionalUpdate(updater, input) {
   return typeof updater === "function" ? updater(input) : updater;
@@ -16392,13 +16393,13 @@ function replaceData(prevData, data, options) {
   }
   return data;
 }
-function addToEnd(items, item, max2 = 0) {
+function addToEnd(items, item, max = 0) {
   const newItems = [...items, item];
-  return max2 && newItems.length > max2 ? newItems.slice(1) : newItems;
+  return max && newItems.length > max ? newItems.slice(1) : newItems;
 }
-function addToStart(items, item, max2 = 0) {
+function addToStart(items, item, max = 0) {
   const newItems = [item, ...items];
-  return max2 && newItems.length > max2 ? newItems.slice(0, -1) : newItems;
+  return max && newItems.length > max ? newItems.slice(0, -1) : newItems;
 }
 var skipToken = /* @__PURE__ */ Symbol();
 function ensureQueryFn(options, fetchOptions) {
@@ -16830,7 +16831,7 @@ var Query = (_f = class extends Removable {
     var _a2, _b2;
     const promise = (_a2 = __privateGet(this, _retryer)) == null ? void 0 : _a2.promise;
     (_b2 = __privateGet(this, _retryer)) == null ? void 0 : _b2.cancel(options);
-    return promise ? promise.then(noop$7).catch(noop$7) : Promise.resolve();
+    return promise ? promise.then(noop$6).catch(noop$6) : Promise.resolve();
   }
   destroy() {
     super.destroy();
@@ -17535,7 +17536,7 @@ var QueryObserver = (_g = class extends Subscribable {
     fetchOptions
   );
   if (!(fetchOptions == null ? void 0 : fetchOptions.throwOnError)) {
-    promise = promise.catch(noop$7);
+    promise = promise.catch(noop$6);
   }
   return promise;
 }, updateStaleTimeout_fn = function() {
@@ -18124,7 +18125,7 @@ var MutationCache = (_i = class extends Subscribable {
     const pausedMutations = this.getAll().filter((x2) => x2.state.isPaused);
     return notifyManager.batch(
       () => Promise.all(
-        pausedMutations.map((mutation) => mutation.continue().catch(noop$7))
+        pausedMutations.map((mutation) => mutation.continue().catch(noop$6))
       )
     );
   }
@@ -18494,7 +18495,7 @@ var QueryClient = (_l = class {
     const promises = notifyManager.batch(
       () => __privateGet(this, _queryCache).findAll(filters).map((query) => query.cancel(defaultedCancelOptions))
     );
-    return Promise.all(promises).then(noop$7).catch(noop$7);
+    return Promise.all(promises).then(noop$6).catch(noop$6);
   }
   invalidateQueries(filters, options = {}) {
     return notifyManager.batch(() => {
@@ -18522,12 +18523,12 @@ var QueryClient = (_l = class {
       () => __privateGet(this, _queryCache).findAll(filters).filter((query) => !query.isDisabled() && !query.isStatic()).map((query) => {
         let promise = query.fetch(void 0, fetchOptions);
         if (!fetchOptions.throwOnError) {
-          promise = promise.catch(noop$7);
+          promise = promise.catch(noop$6);
         }
         return query.state.fetchStatus === "paused" ? Promise.resolve() : promise;
       })
     );
-    return Promise.all(promises).then(noop$7);
+    return Promise.all(promises).then(noop$6);
   }
   fetchQuery(options) {
     const defaultedOptions = this.defaultQueryOptions(options);
@@ -18540,14 +18541,14 @@ var QueryClient = (_l = class {
     ) ? query.fetch(defaultedOptions) : Promise.resolve(query.state.data);
   }
   prefetchQuery(options) {
-    return this.fetchQuery(options).then(noop$7).catch(noop$7);
+    return this.fetchQuery(options).then(noop$6).catch(noop$6);
   }
   fetchInfiniteQuery(options) {
     options.behavior = infiniteQueryBehavior(options.pages);
     return this.fetchQuery(options);
   }
   prefetchInfiniteQuery(options) {
-    return this.fetchInfiniteQuery(options).then(noop$7).catch(noop$7);
+    return this.fetchInfiniteQuery(options).then(noop$6).catch(noop$6);
   }
   ensureInfiniteQueryData(options) {
     options.behavior = infiniteQueryBehavior(options.pages);
@@ -18842,9 +18843,9 @@ function mapIntoArray(children, array, escapedPrefix, nameSoFar, callback) {
 }
 function mapChildren(children, func, context) {
   if (null == children) return children;
-  var result = [], count2 = 0;
+  var result = [], count = 0;
   mapIntoArray(children, result, "", "", function(child) {
-    return func.call(context, child, count2++);
+    return func.call(context, child, count++);
   });
   return result;
 }
@@ -18882,7 +18883,7 @@ var reportGlobalError$1 = "function" === typeof reportError ? reportError : func
   }
   console.error(error);
 };
-function noop$6() {
+function noop$5() {
 }
 react_production.Children = {
   map: mapChildren,
@@ -18924,8 +18925,8 @@ react_production.Suspense = REACT_SUSPENSE_TYPE$1;
 react_production.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = ReactSharedInternals$2;
 react_production.__COMPILER_RUNTIME = {
   __proto__: null,
-  c: function(size2) {
-    return ReactSharedInternals$2.H.useMemoCache(size2);
+  c: function(size) {
+    return ReactSharedInternals$2.H.useMemoCache(size);
   }
 };
 react_production.cache = function(fn) {
@@ -19011,7 +19012,7 @@ react_production.startTransition = function(scope) {
   try {
     var returnValue = scope(), onStartTransitionFinish = ReactSharedInternals$2.S;
     null !== onStartTransitionFinish && onStartTransitionFinish(currentTransition, returnValue);
-    "object" === typeof returnValue && null !== returnValue && "function" === typeof returnValue.then && returnValue.then(noop$6, reportGlobalError$1);
+    "object" === typeof returnValue && null !== returnValue && "function" === typeof returnValue.then && returnValue.then(noop$5, reportGlobalError$1);
   } catch (error) {
     reportGlobalError$1(error);
   } finally {
@@ -19159,9 +19160,9 @@ var getHasError = ({
 var ensureSuspenseTimers = (defaultedOptions) => {
   if (defaultedOptions.suspense) {
     const MIN_SUSPENSE_TIME_MS = 1e3;
-    const clamp2 = (value) => value === "static" ? value : Math.max(value ?? MIN_SUSPENSE_TIME_MS, MIN_SUSPENSE_TIME_MS);
+    const clamp = (value) => value === "static" ? value : Math.max(value ?? MIN_SUSPENSE_TIME_MS, MIN_SUSPENSE_TIME_MS);
     const originalStaleTime = defaultedOptions.staleTime;
-    defaultedOptions.staleTime = typeof originalStaleTime === "function" ? (...args) => clamp2(originalStaleTime(...args)) : clamp2(originalStaleTime);
+    defaultedOptions.staleTime = typeof originalStaleTime === "function" ? (...args) => clamp(originalStaleTime(...args)) : clamp(originalStaleTime);
     if (typeof defaultedOptions.gcTime === "number") {
       defaultedOptions.gcTime = Math.max(
         defaultedOptions.gcTime,
@@ -19202,7 +19203,7 @@ function useBaseQuery(options, Observer, queryClient2) {
   reactExports.useSyncExternalStore(
     reactExports.useCallback(
       (onStoreChange) => {
-        const unsubscribe = shouldSubscribe ? observer.subscribe(notifyManager.batchCalls(onStoreChange)) : noop$7;
+        const unsubscribe = shouldSubscribe ? observer.subscribe(notifyManager.batchCalls(onStoreChange)) : noop$6;
         observer.updateResult();
         return unsubscribe;
       },
@@ -19239,7 +19240,7 @@ function useBaseQuery(options, Observer, queryClient2) {
       // subscribe to the "cache promise" so that we can finalize the currentThenable once data comes in
       query == null ? void 0 : query.promise
     );
-    promise == null ? void 0 : promise.catch(noop$7).finally(() => {
+    promise == null ? void 0 : promise.catch(noop$6).finally(() => {
       observer.updateResult();
     });
   }
@@ -19269,7 +19270,7 @@ function useMutation(options, queryClient2) {
   );
   const mutate = reactExports.useCallback(
     (variables, mutateOptions) => {
-      observer.mutate(variables, mutateOptions).catch(noop$7);
+      observer.mutate(variables, mutateOptions).catch(noop$6);
     },
     [observer]
   );
@@ -21314,17 +21315,17 @@ async function persistKey(storage, key) {
   await storage.set(KEY_STORAGE_KEY, serializeKey(key));
 }
 async function restoreKey(storage, keyType) {
-  let stored2 = await storage.get(KEY_STORAGE_KEY);
-  if (!stored2) {
-    stored2 = await migrateFromLocalStorage(storage, keyType);
+  let stored = await storage.get(KEY_STORAGE_KEY);
+  if (!stored) {
+    stored = await migrateFromLocalStorage(storage, keyType);
   }
-  if (!stored2)
+  if (!stored)
     return null;
   try {
-    if (typeof stored2 === "object") {
-      return await ECDSAKeyIdentity.fromKeyPair(stored2);
+    if (typeof stored === "object") {
+      return await ECDSAKeyIdentity.fromKeyPair(stored);
     }
-    return Ed25519KeyIdentity.fromJSON(stored2);
+    return Ed25519KeyIdentity.fromJSON(stored);
   } catch {
     return null;
   }
@@ -21971,21 +21972,21 @@ function formatProdErrorMessage$1(code) {
   }
   return "Minified React error #" + code + "; visit " + url + " for the full message or use the non-minified dev environment for full errors and additional helpful warnings.";
 }
-function noop$5() {
+function noop$4() {
 }
 var Internals = {
   d: {
-    f: noop$5,
+    f: noop$4,
     r: function() {
       throw Error(formatProdErrorMessage$1(522));
     },
-    D: noop$5,
-    C: noop$5,
-    L: noop$5,
-    m: noop$5,
-    X: noop$5,
-    S: noop$5,
-    M: noop$5
+    D: noop$4,
+    C: noop$4,
+    L: noop$4,
+    m: noop$4,
+    X: noop$4,
+    S: noop$4,
+    M: noop$4
   },
   p: 0,
   findDOMNode: null
@@ -22300,16 +22301,16 @@ var isArrayImpl = Array.isArray, ReactSharedInternals = React.__CLIENT_INTERNALS
   data: null,
   method: null,
   action: null
-}, valueStack = [], index$1 = -1;
+}, valueStack = [], index = -1;
 function createCursor(defaultValue) {
   return { current: defaultValue };
 }
 function pop(cursor) {
-  0 > index$1 || (cursor.current = valueStack[index$1], valueStack[index$1] = null, index$1--);
+  0 > index || (cursor.current = valueStack[index], valueStack[index] = null, index--);
 }
 function push(cursor, value) {
-  index$1++;
-  valueStack[index$1] = cursor.current;
+  index++;
+  valueStack[index] = cursor.current;
   cursor.current = value;
 }
 var contextStackCursor = createCursor(null), contextFiberStackCursor = createCursor(null), rootInstanceStackCursor = createCursor(null), hostTransitionProviderCursor = createCursor(null);
@@ -23255,14 +23256,14 @@ function getListener(inst, registrationName) {
 var canUseDOM = !("undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement), passiveBrowserEventsSupported = false;
 if (canUseDOM)
   try {
-    var options$1 = {};
-    Object.defineProperty(options$1, "passive", {
+    var options = {};
+    Object.defineProperty(options, "passive", {
       get: function() {
         passiveBrowserEventsSupported = true;
       }
     });
-    window.addEventListener("test", options$1, options$1);
-    window.removeEventListener("test", options$1, options$1);
+    window.addEventListener("test", options, options);
+    window.removeEventListener("test", options, options);
   } catch (e) {
     passiveBrowserEventsSupported = false;
   }
@@ -23646,14 +23647,14 @@ function getLeafNode(node) {
   for (; node && node.firstChild; ) node = node.firstChild;
   return node;
 }
-function getNodeForCharacterOffset(root2, offset2) {
+function getNodeForCharacterOffset(root2, offset) {
   var node = getLeafNode(root2);
   root2 = 0;
   for (var nodeEnd; node; ) {
     if (3 === node.nodeType) {
       nodeEnd = root2 + node.textContent.length;
-      if (root2 <= offset2 && nodeEnd >= offset2)
-        return { node, offset: offset2 - root2 };
+      if (root2 <= offset && nodeEnd >= offset)
+        return { node, offset: offset - root2 };
       root2 = nodeEnd;
     }
     a: {
@@ -23800,9 +23801,9 @@ function markUpdateLaneFromFiberToRoot(sourceFiber, update, lane) {
   sourceFiber.lanes |= lane;
   var alternate = sourceFiber.alternate;
   null !== alternate && (alternate.lanes |= lane);
-  for (var isHidden2 = false, parent = sourceFiber.return; null !== parent; )
-    parent.childLanes |= lane, alternate = parent.alternate, null !== alternate && (alternate.childLanes |= lane), 22 === parent.tag && (sourceFiber = parent.stateNode, null === sourceFiber || sourceFiber._visibility & 1 || (isHidden2 = true)), sourceFiber = parent, parent = parent.return;
-  return 3 === sourceFiber.tag ? (parent = sourceFiber.stateNode, isHidden2 && null !== update && (isHidden2 = 31 - clz32(lane), sourceFiber = parent.hiddenUpdates, alternate = sourceFiber[isHidden2], null === alternate ? sourceFiber[isHidden2] = [update] : alternate.push(update), update.lane = lane | 536870912), parent) : null;
+  for (var isHidden = false, parent = sourceFiber.return; null !== parent; )
+    parent.childLanes |= lane, alternate = parent.alternate, null !== alternate && (alternate.childLanes |= lane), 22 === parent.tag && (sourceFiber = parent.stateNode, null === sourceFiber || sourceFiber._visibility & 1 || (isHidden = true)), sourceFiber = parent, parent = parent.return;
+  return 3 === sourceFiber.tag ? (parent = sourceFiber.stateNode, isHidden && null !== update && (isHidden = 31 - clz32(lane), sourceFiber = parent.hiddenUpdates, alternate = sourceFiber[isHidden], null === alternate ? sourceFiber[isHidden] = [update] : alternate.push(update), update.lane = lane | 536870912), parent) : null;
 }
 function getRootForUpdatedFiber(sourceFiber) {
   if (50 < nestedUpdateCount)
@@ -24759,7 +24760,7 @@ function use$1(usable) {
   }
   throw Error(formatProdErrorMessage(438, String(usable)));
 }
-function useMemoCache(size2) {
+function useMemoCache(size) {
   var memoCache = null, updateQueue = currentlyRenderingFiber.updateQueue;
   null !== updateQueue && (memoCache = updateQueue.memoCache);
   if (null == memoCache) {
@@ -24776,7 +24777,7 @@ function useMemoCache(size2) {
   updateQueue.memoCache = memoCache;
   updateQueue = memoCache.data[memoCache.index];
   if (void 0 === updateQueue)
-    for (updateQueue = memoCache.data[memoCache.index] = Array(size2), current = 0; current < size2; current++)
+    for (updateQueue = memoCache.data[memoCache.index] = Array(size), current = 0; current < size; current++)
       updateQueue[current] = REACT_MEMO_CACHE_SENTINEL;
   memoCache.index++;
   return updateQueue;
@@ -29577,7 +29578,7 @@ function commitRootWhenReady(root2, finishedWork, recoverableErrors, transitions
   root2.timeoutHandle = -1;
   suspendedCommitReason = finishedWork.subtreeFlags;
   if (suspendedCommitReason & 8192 || 16785408 === (suspendedCommitReason & 16785408)) {
-    if (suspendedState = { stylesheets: null, count: 0, unsuspend: noop$4 }, accumulateSuspenseyCommitOnFiber(finishedWork), suspendedCommitReason = waitForCommitToBeReady(), null !== suspendedCommitReason) {
+    if (suspendedState = { stylesheets: null, count: 0, unsuspend: noop }, accumulateSuspenseyCommitOnFiber(finishedWork), suspendedCommitReason = waitForCommitToBeReady(), null !== suspendedCommitReason) {
       root2.cancelPendingCommit = suspendedCommitReason(
         commitRoot.bind(
           null,
@@ -32429,7 +32430,7 @@ function preloadResource(resource) {
   return "stylesheet" === resource.type && 0 === (resource.state.loading & 3) ? false : true;
 }
 var suspendedState = null;
-function noop$4() {
+function noop() {
 }
 function suspendResource(hoistableRoot, resource, props) {
   if (null === suspendedState) throw Error(formatProdErrorMessage(475));
@@ -33192,6 +33193,70 @@ function checkDCE() {
 }
 var clientExports = client.exports;
 const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
+const scriptRel = "modulepreload";
+const assetsURL = function(dep) {
+  return "/" + dep;
+};
+const seen = {};
+const __vitePreload = function preload2(baseModule, deps, importerUrl) {
+  let promise = Promise.resolve();
+  if (deps && deps.length > 0) {
+    document.getElementsByTagName("link");
+    const cspNonceMeta = document.querySelector(
+      "meta[property=csp-nonce]"
+    );
+    const cspNonce = (cspNonceMeta == null ? void 0 : cspNonceMeta.nonce) || (cspNonceMeta == null ? void 0 : cspNonceMeta.getAttribute("nonce"));
+    promise = Promise.allSettled(
+      deps.map((dep) => {
+        dep = assetsURL(dep);
+        if (dep in seen) return;
+        seen[dep] = true;
+        const isCss = dep.endsWith(".css");
+        const cssSelector = isCss ? '[rel="stylesheet"]' : "";
+        if (document.querySelector(`link[href="${dep}"]${cssSelector}`)) {
+          return;
+        }
+        const link = document.createElement("link");
+        link.rel = isCss ? "stylesheet" : scriptRel;
+        if (!isCss) {
+          link.as = "script";
+        }
+        link.crossOrigin = "";
+        link.href = dep;
+        if (cspNonce) {
+          link.setAttribute("nonce", cspNonce);
+        }
+        document.head.appendChild(link);
+        if (isCss) {
+          return new Promise((res, rej) => {
+            link.addEventListener("load", res);
+            link.addEventListener(
+              "error",
+              () => rej(new Error(`Unable to preload CSS for ${dep}`))
+            );
+          });
+        }
+      })
+    );
+  }
+  function handlePreloadError(err) {
+    const e = new Event("vite:preloadError", {
+      cancelable: true
+    });
+    e.payload = err;
+    window.dispatchEvent(e);
+    if (!e.defaultPrevented) {
+      throw err;
+    }
+  }
+  return promise.then((res) => {
+    for (const item of res || []) {
+      if (item.status !== "rejected") continue;
+      handlePreloadError(item.reason);
+    }
+    return baseModule().catch(handlePreloadError);
+  });
+};
 /**
  * react-router v7.18.4
  *
@@ -34062,7 +34127,7 @@ function useLocation() {
   return reactExports.useContext(LocationContext).location;
 }
 var navigateEffectWarning = `You should call navigate() in a React.useEffect(), not when your component is first rendered.`;
-function useIsomorphicLayoutEffect$1(cb) {
+function useIsomorphicLayoutEffect(cb) {
   let isStatic = reactExports.useContext(NavigationContext).static;
   if (!isStatic) {
     reactExports.useLayoutEffect(cb);
@@ -34085,7 +34150,7 @@ function useNavigateUnstable() {
   let { pathname: locationPathname } = useLocation();
   let routePathnamesJson = JSON.stringify(getResolveToMatches(matches));
   let activeRef = reactExports.useRef(false);
-  useIsomorphicLayoutEffect$1(() => {
+  useIsomorphicLayoutEffect(() => {
     activeRef.current = true;
   });
   let navigate = reactExports.useCallback(
@@ -34581,7 +34646,7 @@ function useNavigateStable() {
     /* UseNavigateStable */
   );
   let activeRef = reactExports.useRef(false);
-  useIsomorphicLayoutEffect$1(() => {
+  useIsomorphicLayoutEffect(() => {
     activeRef.current = true;
   });
   let navigate = reactExports.useCallback(
@@ -35101,15 +35166,15 @@ function usePrefetchBehavior(prefetch, theirElementProps) {
     shouldPrefetch,
     ref,
     {
-      onFocus: composeEventHandlers$1(onFocus, setIntent),
-      onBlur: composeEventHandlers$1(onBlur, cancelIntent),
-      onMouseEnter: composeEventHandlers$1(onMouseEnter, setIntent),
-      onMouseLeave: composeEventHandlers$1(onMouseLeave, cancelIntent),
-      onTouchStart: composeEventHandlers$1(onTouchStart, setIntent)
+      onFocus: composeEventHandlers(onFocus, setIntent),
+      onBlur: composeEventHandlers(onBlur, cancelIntent),
+      onMouseEnter: composeEventHandlers(onMouseEnter, setIntent),
+      onMouseLeave: composeEventHandlers(onMouseLeave, cancelIntent),
+      onTouchStart: composeEventHandlers(onTouchStart, setIntent)
     }
   ];
 }
-function composeEventHandlers$1(theirHandler, ourHandler) {
+function composeEventHandlers(theirHandler, ourHandler) {
   return (event) => {
     theirHandler && theirHandler(event);
     if (!event.defaultPrevented) {
@@ -35751,10 +35816,10 @@ var defaultAttributes = {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Icon$1 = reactExports.forwardRef(
+const Icon = reactExports.forwardRef(
   ({
     color = "currentColor",
-    size: size2 = 24,
+    size = 24,
     strokeWidth = 2,
     absoluteStrokeWidth,
     className = "",
@@ -35766,10 +35831,10 @@ const Icon$1 = reactExports.forwardRef(
     {
       ref,
       ...defaultAttributes,
-      width: size2,
-      height: size2,
+      width: size,
+      height: size,
       stroke: color,
-      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size2) : strokeWidth,
+      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
       className: mergeClasses("lucide", className),
       ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
       ...rest
@@ -35788,7 +35853,7 @@ const Icon$1 = reactExports.forwardRef(
  */
 const createLucideIcon = (iconName, iconNode) => {
   const Component2 = reactExports.forwardRef(
-    ({ className, ...props }, ref) => reactExports.createElement(Icon$1, {
+    ({ className, ...props }, ref) => reactExports.createElement(Icon, {
       ref,
       iconNode,
       className: mergeClasses(
@@ -35808,193 +35873,27 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$k = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "m12 5 7 7-7 7", key: "xquz4c" }]
-];
-const ArrowRight = createLucideIcon("arrow-right", __iconNode$k);
+const __iconNode$3 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+const LoaderCircle = createLucideIcon("loader-circle", __iconNode$3);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$j = [
-  ["path", { d: "M7 7h10v10", key: "1tivn9" }],
-  ["path", { d: "M7 17 17 7", key: "1vkiza" }]
-];
-const ArrowUpRight = createLucideIcon("arrow-up-right", __iconNode$j);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$i = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-const Check = createLucideIcon("check", __iconNode$i);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$h = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-const ChevronDown = createLucideIcon("chevron-down", __iconNode$h);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$g = [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]];
-const ChevronRight = createLucideIcon("chevron-right", __iconNode$g);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$f = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-const ChevronUp = createLucideIcon("chevron-up", __iconNode$f);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$e = [
-  [
-    "path",
-    {
-      d: "m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z",
-      key: "9ktpf1"
-    }
-  ],
-  ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }]
-];
-const Compass = createLucideIcon("compass", __iconNode$e);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$d = [
-  ["path", { d: "M15 3h6v6", key: "1q9fwt" }],
-  ["path", { d: "M10 14 21 3", key: "gplh6r" }],
-  ["path", { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6", key: "a6xqqp" }]
-];
-const ExternalLink = createLucideIcon("external-link", __iconNode$d);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$c = [
-  ["path", { d: "M16 5h6", key: "1vod17" }],
-  ["path", { d: "M19 2v6", key: "4bpg5p" }],
-  ["path", { d: "M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5", key: "1ue2ih" }],
-  ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }],
-  ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }]
-];
-const ImagePlus = createLucideIcon("image-plus", __iconNode$c);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$b = [
-  ["polyline", { points: "22 12 16 12 14 15 10 15 8 12 2 12", key: "o97t9d" }],
-  [
-    "path",
-    {
-      d: "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z",
-      key: "oot6mr"
-    }
-  ]
-];
-const Inbox = createLucideIcon("inbox", __iconNode$b);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$a = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-const LoaderCircle = createLucideIcon("loader-circle", __iconNode$a);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$9 = [
-  ["path", { d: "m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7", key: "132q7q" }],
-  ["rect", { x: "2", y: "4", width: "20", height: "16", rx: "2", key: "izxlao" }]
-];
-const Mail = createLucideIcon("mail", __iconNode$9);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$8 = [
+const __iconNode$2 = [
   ["path", { d: "M4 12h16", key: "1lakjw" }],
   ["path", { d: "M4 18h16", key: "19g7jn" }],
   ["path", { d: "M4 6h16", key: "1o0s65" }]
 ];
-const Menu = createLucideIcon("menu", __iconNode$8);
+const Menu = createLucideIcon("menu", __iconNode$2);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$7 = [
-  [
-    "path",
-    {
-      d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-      key: "1a8usu"
-    }
-  ],
-  ["path", { d: "m15 5 4 4", key: "1mk7zo" }]
-];
-const Pencil = createLucideIcon("pencil", __iconNode$7);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$6 = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "M12 5v14", key: "s699le" }]
-];
-const Plus = createLucideIcon("plus", __iconNode$6);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$5 = [
-  ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
-  ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
-  ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
-  ["path", { d: "M8 16H3v5", key: "1cv678" }]
-];
-const RefreshCw = createLucideIcon("refresh-cw", __iconNode$5);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$4 = [
+const __iconNode$1 = [
   [
     "path",
     {
@@ -36004,47 +35903,7 @@ const __iconNode$4 = [
   ],
   ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
 ];
-const ShieldCheck = createLucideIcon("shield-check", __iconNode$4);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$3 = [
-  ["path", { d: "M3 6h18", key: "d0wm0j" }],
-  ["path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", key: "4alrt4" }],
-  ["path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", key: "v07s0e" }],
-  ["line", { x1: "10", x2: "10", y1: "11", y2: "17", key: "1uufr5" }],
-  ["line", { x1: "14", x2: "14", y1: "11", y2: "17", key: "xtxkd" }]
-];
-const Trash2 = createLucideIcon("trash-2", __iconNode$3);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$2 = [
-  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
-  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }],
-  ["line", { x1: "19", x2: "19", y1: "8", y2: "14", key: "1bvyxn" }],
-  ["line", { x1: "22", x2: "16", y1: "11", y2: "11", key: "1shjgl" }]
-];
-const UserPlus = createLucideIcon("user-plus", __iconNode$2);
-/**
- * @license lucide-react v0.511.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$1 = [
-  ["path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", key: "1yyitq" }],
-  ["path", { d: "M16 3.128a4 4 0 0 1 0 7.744", key: "16gr8j" }],
-  ["path", { d: "M22 21v-2a4 4 0 0 0-3-3.87", key: "kshegd" }],
-  ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
-];
-const Users = createLucideIcon("users", __iconNode$1);
+const ShieldCheck = createLucideIcon("shield-check", __iconNode$1);
 /**
  * @license lucide-react v0.511.0 - ISC
  *
@@ -38586,15 +38445,15 @@ function isLazyComponent(element) {
   return element != null && typeof element === "object" && "$$typeof" in element && element.$$typeof === REACT_LAZY_TYPE && "_payload" in element && isPromiseLike(element._payload);
 }
 // @__NO_SIDE_EFFECTS__
-function createSlot$1(ownerName) {
-  const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
+function createSlot(ownerName) {
+  const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
   const Slot2 = reactExports.forwardRef((props, forwardedRef) => {
     let { children, ...slotProps } = props;
     if (isLazyComponent(children) && typeof use === "function") {
       children = use(children._payload);
     }
     const childrenArray = reactExports.Children.toArray(children);
-    const slottable = childrenArray.find(isSlottable$1);
+    const slottable = childrenArray.find(isSlottable);
     if (slottable) {
       const newElement = slottable.props.children;
       const newChildren = childrenArray.map((child) => {
@@ -38612,17 +38471,17 @@ function createSlot$1(ownerName) {
   Slot2.displayName = `${ownerName}.Slot`;
   return Slot2;
 }
-var Slot$1 = /* @__PURE__ */ createSlot$1("Slot");
+var Slot = /* @__PURE__ */ createSlot("Slot");
 // @__NO_SIDE_EFFECTS__
-function createSlotClone$1(ownerName) {
+function createSlotClone(ownerName) {
   const SlotClone = reactExports.forwardRef((props, forwardedRef) => {
     let { children, ...slotProps } = props;
     if (isLazyComponent(children) && typeof use === "function") {
       children = use(children._payload);
     }
     if (reactExports.isValidElement(children)) {
-      const childrenRef = getElementRef$2(children);
-      const props2 = mergeProps$1(slotProps, children.props);
+      const childrenRef = getElementRef(children);
+      const props2 = mergeProps(slotProps, children.props);
       if (children.type !== reactExports.Fragment) {
         props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
       }
@@ -38633,11 +38492,11 @@ function createSlotClone$1(ownerName) {
   SlotClone.displayName = `${ownerName}.SlotClone`;
   return SlotClone;
 }
-var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
-function isSlottable$1(child) {
-  return reactExports.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
+var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
+function isSlottable(child) {
+  return reactExports.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
 }
-function mergeProps$1(slotProps, childProps) {
+function mergeProps(slotProps, childProps) {
   const overrideProps = { ...childProps };
   for (const propName in childProps) {
     const slotPropValue = slotProps[propName];
@@ -38661,7 +38520,7 @@ function mergeProps$1(slotProps, childProps) {
   }
   return { ...slotProps, ...overrideProps };
 }
-function getElementRef$2(element) {
+function getElementRef(element) {
   var _a2, _b2;
   let getter = (_a2 = Object.getOwnPropertyDescriptor(element.props, "ref")) == null ? void 0 : _a2.get;
   let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
@@ -38737,7 +38596,7 @@ function Badge({
   asChild = false,
   ...props
 }) {
-  const Comp = asChild ? Slot$1 : "span";
+  const Comp = asChild ? Slot : "span";
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     Comp,
     {
@@ -38775,16 +38634,16 @@ const buttonVariants = cva(
 function Button({
   className,
   variant,
-  size: size2,
+  size,
   asChild = false,
   ...props
 }) {
-  const Comp = asChild ? Slot$1 : "button";
+  const Comp = asChild ? Slot : "button";
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     Comp,
     {
       "data-slot": "button",
-      className: cn(buttonVariants({ variant, size: size2, className })),
+      className: cn(buttonVariants({ variant, size, className })),
       ...props
     }
   );
@@ -38882,7 +38741,7 @@ function Input({ className, type, ...props }) {
     }
   );
 }
-var NODES$1 = [
+var NODES = [
   "a",
   "button",
   "div",
@@ -38901,9 +38760,9 @@ var NODES$1 = [
   "svg",
   "ul"
 ];
-var Primitive$1 = NODES$1.reduce((primitive, node) => {
-  const Slot2 = /* @__PURE__ */ createSlot$1(`Primitive.${node}`);
-  const Node2 = reactExports.forwardRef((props, forwardedRef) => {
+var Primitive = NODES.reduce((primitive, node) => {
+  const Slot2 = /* @__PURE__ */ createSlot(`Primitive.${node}`);
+  const Node = reactExports.forwardRef((props, forwardedRef) => {
     const { asChild, ...primitiveProps } = props;
     const Comp = asChild ? Slot2 : node;
     if (typeof window !== "undefined") {
@@ -38911,13 +38770,13 @@ var Primitive$1 = NODES$1.reduce((primitive, node) => {
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
   });
-  Node2.displayName = `Primitive.${node}`;
-  return { ...primitive, [node]: Node2 };
+  Node.displayName = `Primitive.${node}`;
+  return { ...primitive, [node]: Node };
 }, {});
-var NAME$2 = "Label";
+var NAME = "Label";
 var Label$1 = reactExports.forwardRef((props, forwardedRef) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive$1.label,
+    Primitive.label,
     {
       ...props,
       ref: forwardedRef,
@@ -38931,14 +38790,14 @@ var Label$1 = reactExports.forwardRef((props, forwardedRef) => {
     }
   );
 });
-Label$1.displayName = NAME$2;
-var Root$3 = Label$1;
+Label$1.displayName = NAME;
+var Root = Label$1;
 function Label({
   className,
   ...props
 }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Root$3,
+    Root,
     {
       "data-slot": "label",
       className: cn(
@@ -39031,7 +38890,7 @@ const Product = Record({
   "state": PublishState$1,
   "imageKey": Opt(ExternalBlob2)
 });
-const Value$1 = Variant({
+const Value = Variant({
   "int": Int,
   "nat": Nat,
   "float": Float64,
@@ -39039,7 +38898,7 @@ const Value$1 = Variant({
   "null": Null,
   "text": Text
 });
-const Cell = Record({ "value": Value$1, "name": Text });
+const Cell = Record({ "value": Value, "name": Text });
 const Result = Record({
   "hasMore": Bool,
   "rows": Vec(Vec(Cell))
@@ -39050,6 +38909,13 @@ const Admin = Record({
   "email": Opt(Text),
   "addedAt": Timestamp,
   "isOwner": Bool
+});
+const RoutePath = Text;
+const RouteViews = Record({
+  "lastSeenAt": Timestamp,
+  "views": Nat,
+  "firstSeenAt": Timestamp,
+  "path": RoutePath
 });
 const SiteContent = Record({
   "contactBody": Opt(Text),
@@ -39095,6 +38961,10 @@ const Submission = Record({
 const SubmissionFilter = Record({
   "status": Opt(SubmissionStatus$1),
   "kind": Opt(SubmissionKind$1)
+});
+const RecordViewResult = Variant({
+  "recorded": RouteViews,
+  "ignored": Null
 });
 const ContactInput = Record({
   "name": Text,
@@ -39186,6 +39056,7 @@ Service({
   "getCallerAdmin": Func([], [Opt(Admin)], ["query"]),
   "getCallerUserRole": Func([], [UserRole], ["query"]),
   "getFaq": Func([Nat], [Opt(Faq)], ["query"]),
+  "getPageViews": Func([Text], [Opt(RouteViews)], ["query"]),
   "getProduct": Func([Nat], [Opt(Product)], ["query"]),
   "getSiteContent": Func([], [SiteContent], ["query"]),
   "getSubmission": Func([Nat], [Opt(Submission)], ["query"]),
@@ -39195,6 +39066,7 @@ Service({
   "listAdmins": Func([], [Vec(Admin)], ["query"]),
   "listAllFaqs": Func([], [Vec(Faq)], ["query"]),
   "listAllProducts": Func([], [Vec(Product)], ["query"]),
+  "listPageViews": Func([], [Vec(RouteViews)], ["query"]),
   "listPublishedFaqs": Func([Nat], [Vec(Faq)], ["query"]),
   "listPublishedProducts": Func([], [Vec(Product)], ["query"]),
   "listSubmissions": Func(
@@ -39202,6 +39074,7 @@ Service({
     [Vec(Submission)],
     ["query"]
   ),
+  "recordPageView": Func([Text], [RecordViewResult], []),
   "removeAdmin": Func([Principal2], [Bool], []),
   "schema": Func([], [Text], ["query"]),
   "setAdminRole": Func([Principal2, AdminRole$1], [Opt(Admin)], []),
@@ -39321,6 +39194,13 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "addedAt": Timestamp2,
     "isOwner": IDL2.Bool
   });
+  const RoutePath2 = IDL2.Text;
+  const RouteViews2 = IDL2.Record({
+    "lastSeenAt": Timestamp2,
+    "views": IDL2.Nat,
+    "firstSeenAt": Timestamp2,
+    "path": RoutePath2
+  });
   const SiteContent2 = IDL2.Record({
     "contactBody": IDL2.Opt(IDL2.Text),
     "privacyBody": IDL2.Opt(IDL2.Text),
@@ -39365,6 +39245,10 @@ const idlFactory = ({ IDL: IDL2 }) => {
   const SubmissionFilter2 = IDL2.Record({
     "status": IDL2.Opt(SubmissionStatus2),
     "kind": IDL2.Opt(SubmissionKind2)
+  });
+  const RecordViewResult2 = IDL2.Variant({
+    "recorded": RouteViews2,
+    "ignored": IDL2.Null
   });
   const ContactInput2 = IDL2.Record({
     "name": IDL2.Text,
@@ -39456,6 +39340,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "getCallerAdmin": IDL2.Func([], [IDL2.Opt(Admin2)], ["query"]),
     "getCallerUserRole": IDL2.Func([], [UserRole2], ["query"]),
     "getFaq": IDL2.Func([IDL2.Nat], [IDL2.Opt(Faq2)], ["query"]),
+    "getPageViews": IDL2.Func([IDL2.Text], [IDL2.Opt(RouteViews2)], ["query"]),
     "getProduct": IDL2.Func([IDL2.Nat], [IDL2.Opt(Product2)], ["query"]),
     "getSiteContent": IDL2.Func([], [SiteContent2], ["query"]),
     "getSubmission": IDL2.Func([IDL2.Nat], [IDL2.Opt(Submission2)], ["query"]),
@@ -39465,6 +39350,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "listAdmins": IDL2.Func([], [IDL2.Vec(Admin2)], ["query"]),
     "listAllFaqs": IDL2.Func([], [IDL2.Vec(Faq2)], ["query"]),
     "listAllProducts": IDL2.Func([], [IDL2.Vec(Product2)], ["query"]),
+    "listPageViews": IDL2.Func([], [IDL2.Vec(RouteViews2)], ["query"]),
     "listPublishedFaqs": IDL2.Func([IDL2.Nat], [IDL2.Vec(Faq2)], ["query"]),
     "listPublishedProducts": IDL2.Func([], [IDL2.Vec(Product2)], ["query"]),
     "listSubmissions": IDL2.Func(
@@ -39472,6 +39358,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
       [IDL2.Vec(Submission2)],
       ["query"]
     ),
+    "recordPageView": IDL2.Func([IDL2.Text], [RecordViewResult2], []),
     "removeAdmin": IDL2.Func([IDL2.Principal], [IDL2.Bool], []),
     "schema": IDL2.Func([], [IDL2.Text], ["query"]),
     "setAdminRole": IDL2.Func([IDL2.Principal, AdminRole2], [IDL2.Opt(Admin2)], []),
@@ -39841,46 +39728,60 @@ class Backend {
       return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
     }
   }
-  async getProduct(arg0) {
+  async getPageViews(arg0) {
     if (this.processError) {
       try {
-        const result = await this.actor.getProduct(arg0);
+        const result = await this.actor.getPageViews(arg0);
         return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.getProduct(arg0);
+      const result = await this.actor.getPageViews(arg0);
       return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async getProduct(arg0) {
+    if (this.processError) {
+      try {
+        const result = await this.actor.getProduct(arg0);
+        return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+      } catch (e) {
+        this.processError(e);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.getProduct(arg0);
+      return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
     }
   }
   async getSiteContent() {
     if (this.processError) {
       try {
         const result = await this.actor.getSiteContent();
-        return from_candid_SiteContent_n45(this._uploadFile, this._downloadFile, result);
+        return from_candid_SiteContent_n46(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.getSiteContent();
-      return from_candid_SiteContent_n45(this._uploadFile, this._downloadFile, result);
+      return from_candid_SiteContent_n46(this._uploadFile, this._downloadFile, result);
     }
   }
   async getSubmission(arg0) {
     if (this.processError) {
       try {
         const result = await this.actor.getSubmission(arg0);
-        return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
+        return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.getSubmission(arg0);
-      return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
+      return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
     }
   }
   async isCallerAdmin() {
@@ -39929,84 +39830,112 @@ class Backend {
     if (this.processError) {
       try {
         const result = await this.actor.listAdmins();
-        return from_candid_vec_n54(this._uploadFile, this._downloadFile, result);
+        return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.listAdmins();
-      return from_candid_vec_n54(this._uploadFile, this._downloadFile, result);
+      return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
     }
   }
   async listAllFaqs() {
     if (this.processError) {
       try {
         const result = await this.actor.listAllFaqs();
-        return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
+        return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.listAllFaqs();
-      return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
+      return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
     }
   }
   async listAllProducts() {
     if (this.processError) {
       try {
         const result = await this.actor.listAllProducts();
-        return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
+        return from_candid_vec_n57(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.listAllProducts();
-      return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
+      return from_candid_vec_n57(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async listPageViews() {
+    if (this.processError) {
+      try {
+        const result = await this.actor.listPageViews();
+        return result;
+      } catch (e) {
+        this.processError(e);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.listPageViews();
+      return result;
     }
   }
   async listPublishedFaqs(arg0) {
     if (this.processError) {
       try {
         const result = await this.actor.listPublishedFaqs(arg0);
-        return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
-      } catch (e) {
-        this.processError(e);
-        throw new Error("unreachable");
-      }
-    } else {
-      const result = await this.actor.listPublishedFaqs(arg0);
-      return from_candid_vec_n55(this._uploadFile, this._downloadFile, result);
-    }
-  }
-  async listPublishedProducts() {
-    if (this.processError) {
-      try {
-        const result = await this.actor.listPublishedProducts();
         return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.listPublishedProducts();
+      const result = await this.actor.listPublishedFaqs(arg0);
       return from_candid_vec_n56(this._uploadFile, this._downloadFile, result);
     }
   }
-  async listSubmissions(arg0) {
+  async listPublishedProducts() {
     if (this.processError) {
       try {
-        const result = await this.actor.listSubmissions(to_candid_SubmissionFilter_n57(this._uploadFile, this._downloadFile, arg0));
-        return from_candid_vec_n63(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.listPublishedProducts();
+        return from_candid_vec_n57(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.listSubmissions(to_candid_SubmissionFilter_n57(this._uploadFile, this._downloadFile, arg0));
-      return from_candid_vec_n63(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.listPublishedProducts();
+      return from_candid_vec_n57(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async listSubmissions(arg0) {
+    if (this.processError) {
+      try {
+        const result = await this.actor.listSubmissions(to_candid_SubmissionFilter_n58(this._uploadFile, this._downloadFile, arg0));
+        return from_candid_vec_n64(this._uploadFile, this._downloadFile, result);
+      } catch (e) {
+        this.processError(e);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.listSubmissions(to_candid_SubmissionFilter_n58(this._uploadFile, this._downloadFile, arg0));
+      return from_candid_vec_n64(this._uploadFile, this._downloadFile, result);
+    }
+  }
+  async recordPageView(arg0) {
+    if (this.processError) {
+      try {
+        const result = await this.actor.recordPageView(arg0);
+        return from_candid_RecordViewResult_n65(this._uploadFile, this._downloadFile, result);
+      } catch (e) {
+        this.processError(e);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.recordPageView(arg0);
+      return from_candid_RecordViewResult_n65(this._uploadFile, this._downloadFile, result);
     }
   }
   async removeAdmin(arg0) {
@@ -40054,113 +39983,113 @@ class Backend {
   async setFaqState(arg0, arg1) {
     if (this.processError) {
       try {
-        const result = await this.actor.setFaqState(arg0, to_candid_PublishState_n64(this._uploadFile, this._downloadFile, arg1));
+        const result = await this.actor.setFaqState(arg0, to_candid_PublishState_n67(this._uploadFile, this._downloadFile, arg1));
         return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.setFaqState(arg0, to_candid_PublishState_n64(this._uploadFile, this._downloadFile, arg1));
+      const result = await this.actor.setFaqState(arg0, to_candid_PublishState_n67(this._uploadFile, this._downloadFile, arg1));
       return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
     }
   }
   async setProductState(arg0, arg1) {
     if (this.processError) {
       try {
-        const result = await this.actor.setProductState(arg0, to_candid_PublishState_n64(this._uploadFile, this._downloadFile, arg1));
-        return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.setProductState(arg0, to_candid_PublishState_n67(this._uploadFile, this._downloadFile, arg1));
+        return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.setProductState(arg0, to_candid_PublishState_n64(this._uploadFile, this._downloadFile, arg1));
-      return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.setProductState(arg0, to_candid_PublishState_n67(this._uploadFile, this._downloadFile, arg1));
+      return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
     }
   }
   async setSubmissionStatus(arg0, arg1) {
     if (this.processError) {
       try {
-        const result = await this.actor.setSubmissionStatus(arg0, to_candid_SubmissionStatus_n59(this._uploadFile, this._downloadFile, arg1));
-        return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.setSubmissionStatus(arg0, to_candid_SubmissionStatus_n60(this._uploadFile, this._downloadFile, arg1));
+        return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.setSubmissionStatus(arg0, to_candid_SubmissionStatus_n59(this._uploadFile, this._downloadFile, arg1));
-      return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.setSubmissionStatus(arg0, to_candid_SubmissionStatus_n60(this._uploadFile, this._downloadFile, arg1));
+      return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
     }
   }
   async submitContact(arg0) {
     if (this.processError) {
       try {
         const result = await this.actor.submitContact(arg0);
-        return from_candid_SubmitResult_n66(this._uploadFile, this._downloadFile, result);
+        return from_candid_SubmitResult_n69(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
       const result = await this.actor.submitContact(arg0);
-      return from_candid_SubmitResult_n66(this._uploadFile, this._downloadFile, result);
+      return from_candid_SubmitResult_n69(this._uploadFile, this._downloadFile, result);
     }
   }
   async submitWaitlist(arg0) {
     if (this.processError) {
       try {
-        const result = await this.actor.submitWaitlist(to_candid_WaitlistInput_n68(this._uploadFile, this._downloadFile, arg0));
-        return from_candid_SubmitResult_n66(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.submitWaitlist(to_candid_WaitlistInput_n71(this._uploadFile, this._downloadFile, arg0));
+        return from_candid_SubmitResult_n69(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.submitWaitlist(to_candid_WaitlistInput_n68(this._uploadFile, this._downloadFile, arg0));
-      return from_candid_SubmitResult_n66(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.submitWaitlist(to_candid_WaitlistInput_n71(this._uploadFile, this._downloadFile, arg0));
+      return from_candid_SubmitResult_n69(this._uploadFile, this._downloadFile, result);
     }
   }
   async updateFaq(arg0, arg1) {
     if (this.processError) {
       try {
-        const result = await this.actor.updateFaq(arg0, to_candid_FaqPatch_n70(this._uploadFile, this._downloadFile, arg1));
+        const result = await this.actor.updateFaq(arg0, to_candid_FaqPatch_n73(this._uploadFile, this._downloadFile, arg1));
         return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.updateFaq(arg0, to_candid_FaqPatch_n70(this._uploadFile, this._downloadFile, arg1));
+      const result = await this.actor.updateFaq(arg0, to_candid_FaqPatch_n73(this._uploadFile, this._downloadFile, arg1));
       return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
     }
   }
   async updateProduct(arg0, arg1) {
     if (this.processError) {
       try {
-        const result = await this.actor.updateProduct(arg0, await to_candid_ProductPatch_n72(this._uploadFile, this._downloadFile, arg1));
-        return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.updateProduct(arg0, await to_candid_ProductPatch_n75(this._uploadFile, this._downloadFile, arg1));
+        return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.updateProduct(arg0, await to_candid_ProductPatch_n72(this._uploadFile, this._downloadFile, arg1));
-      return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.updateProduct(arg0, await to_candid_ProductPatch_n75(this._uploadFile, this._downloadFile, arg1));
+      return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
     }
   }
   async updateSiteContent(arg0) {
     if (this.processError) {
       try {
-        const result = await this.actor.updateSiteContent(to_candid_SiteContentPatch_n74(this._uploadFile, this._downloadFile, arg0));
-        return from_candid_SiteContent_n45(this._uploadFile, this._downloadFile, result);
+        const result = await this.actor.updateSiteContent(to_candid_SiteContentPatch_n77(this._uploadFile, this._downloadFile, arg0));
+        return from_candid_SiteContent_n46(this._uploadFile, this._downloadFile, result);
       } catch (e) {
         this.processError(e);
         throw new Error("unreachable");
       }
     } else {
-      const result = await this.actor.updateSiteContent(to_candid_SiteContentPatch_n74(this._uploadFile, this._downloadFile, arg0));
-      return from_candid_SiteContent_n45(this._uploadFile, this._downloadFile, result);
+      const result = await this.actor.updateSiteContent(to_candid_SiteContentPatch_n77(this._uploadFile, this._downloadFile, arg0));
+      return from_candid_SiteContent_n46(this._uploadFile, this._downloadFile, result);
     }
   }
 }
@@ -40188,26 +40117,29 @@ async function from_candid_Product_n23(_uploadFile, _downloadFile, value) {
 function from_candid_PublishState_n18(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
+function from_candid_RecordViewResult_n65(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n66(_uploadFile, _downloadFile, value);
+}
 function from_candid_Result__1_n8(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n9(_uploadFile, _downloadFile, value);
 }
 function from_candid_Result_n28(_uploadFile, _downloadFile, value) {
   return from_candid_record_n29(_uploadFile, _downloadFile, value);
 }
-function from_candid_SiteContent_n45(_uploadFile, _downloadFile, value) {
-  return from_candid_record_n46(_uploadFile, _downloadFile, value);
+function from_candid_SiteContent_n46(_uploadFile, _downloadFile, value) {
+  return from_candid_record_n47(_uploadFile, _downloadFile, value);
 }
-function from_candid_SubmissionKind_n52(_uploadFile, _downloadFile, value) {
-  return from_candid_variant_n53(_uploadFile, _downloadFile, value);
+function from_candid_SubmissionKind_n53(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n54(_uploadFile, _downloadFile, value);
 }
-function from_candid_SubmissionStatus_n50(_uploadFile, _downloadFile, value) {
-  return from_candid_variant_n51(_uploadFile, _downloadFile, value);
+function from_candid_SubmissionStatus_n51(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n52(_uploadFile, _downloadFile, value);
 }
-function from_candid_Submission_n48(_uploadFile, _downloadFile, value) {
-  return from_candid_record_n49(_uploadFile, _downloadFile, value);
+function from_candid_Submission_n49(_uploadFile, _downloadFile, value) {
+  return from_candid_record_n50(_uploadFile, _downloadFile, value);
 }
-function from_candid_SubmitResult_n66(_uploadFile, _downloadFile, value) {
-  return from_candid_variant_n67(_uploadFile, _downloadFile, value);
+function from_candid_SubmitResult_n69(_uploadFile, _downloadFile, value) {
+  return from_candid_variant_n70(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n41(_uploadFile, _downloadFile, value) {
   return from_candid_variant_n42(_uploadFile, _downloadFile, value);
@@ -40230,11 +40162,14 @@ function from_candid_opt_n36(_uploadFile, _downloadFile, value) {
 function from_candid_opt_n43(_uploadFile, _downloadFile, value) {
   return value.length === 0 ? null : from_candid_Faq_n16(_uploadFile, _downloadFile, value[0]);
 }
-async function from_candid_opt_n44(_uploadFile, _downloadFile, value) {
+function from_candid_opt_n44(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n45(_uploadFile, _downloadFile, value) {
   return value.length === 0 ? null : await from_candid_Product_n23(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n47(_uploadFile, _downloadFile, value) {
-  return value.length === 0 ? null : from_candid_Submission_n48(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n48(_uploadFile, _downloadFile, value) {
+  return value.length === 0 ? null : from_candid_Submission_n49(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile, _downloadFile, value) {
   return value.length === 0 ? null : value[0];
@@ -40287,7 +40222,7 @@ function from_candid_record_n38(_uploadFile, _downloadFile, value) {
     isOwner: value.isOwner
   };
 }
-function from_candid_record_n46(_uploadFile, _downloadFile, value) {
+function from_candid_record_n47(_uploadFile, _downloadFile, value) {
   return {
     contactBody: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.contactBody)),
     privacyBody: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.privacyBody)),
@@ -40311,22 +40246,22 @@ function from_candid_record_n46(_uploadFile, _downloadFile, value) {
     waitlistBody: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.waitlistBody))
   };
 }
-function from_candid_record_n49(_uploadFile, _downloadFile, value) {
+function from_candid_record_n5(_uploadFile, _downloadFile, value) {
+  return {
+    success: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.success)),
+    topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
+  };
+}
+function from_candid_record_n50(_uploadFile, _downloadFile, value) {
   return {
     id: value.id,
-    status: from_candid_SubmissionStatus_n50(_uploadFile, _downloadFile, value.status),
-    kind: from_candid_SubmissionKind_n52(_uploadFile, _downloadFile, value.kind),
+    status: from_candid_SubmissionStatus_n51(_uploadFile, _downloadFile, value.status),
+    kind: from_candid_SubmissionKind_n53(_uploadFile, _downloadFile, value.kind),
     name: value.name,
     createdAt: value.createdAt,
     email: value.email,
     updatedAt: value.updatedAt,
     message: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.message))
-  };
-}
-function from_candid_record_n5(_uploadFile, _downloadFile, value) {
-  return {
-    success: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.success)),
-    topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
   };
 }
 function from_candid_variant_n11(_uploadFile, _downloadFile, value) {
@@ -40392,19 +40327,28 @@ function from_candid_variant_n40(_uploadFile, _downloadFile, value) {
 function from_candid_variant_n42(_uploadFile, _downloadFile, value) {
   return "admin" in value ? "admin" : "user" in value ? "user" : "guest" in value ? "guest" : value;
 }
-function from_candid_variant_n51(_uploadFile, _downloadFile, value) {
+function from_candid_variant_n52(_uploadFile, _downloadFile, value) {
   return "new" in value ? SubmissionStatus.new : "handled" in value ? "handled" : "read" in value ? "read" : value;
 }
-function from_candid_variant_n53(_uploadFile, _downloadFile, value) {
+function from_candid_variant_n54(_uploadFile, _downloadFile, value) {
   return "contact" in value ? "contact" : "waitlist" in value ? "waitlist" : value;
 }
-function from_candid_variant_n67(_uploadFile, _downloadFile, value) {
+function from_candid_variant_n66(_uploadFile, _downloadFile, value) {
+  return "recorded" in value ? {
+    __kind__: "recorded",
+    recorded: value.recorded
+  } : "ignored" in value ? {
+    __kind__: "ignored",
+    ignored: value.ignored
+  } : value;
+}
+function from_candid_variant_n70(_uploadFile, _downloadFile, value) {
   return "created" in value ? {
     __kind__: "created",
-    created: from_candid_Submission_n48(_uploadFile, _downloadFile, value.created)
+    created: from_candid_Submission_n49(_uploadFile, _downloadFile, value.created)
   } : "duplicate" in value ? {
     __kind__: "duplicate",
-    duplicate: from_candid_Submission_n48(_uploadFile, _downloadFile, value.duplicate)
+    duplicate: from_candid_Submission_n49(_uploadFile, _downloadFile, value.duplicate)
   } : value;
 }
 function from_candid_variant_n9(_uploadFile, _downloadFile, value) {
@@ -40422,17 +40366,17 @@ function from_candid_vec_n30(_uploadFile, _downloadFile, value) {
 function from_candid_vec_n31(_uploadFile, _downloadFile, value) {
   return value.map((x2) => from_candid_Cell_n32(_uploadFile, _downloadFile, x2));
 }
-function from_candid_vec_n54(_uploadFile, _downloadFile, value) {
+function from_candid_vec_n55(_uploadFile, _downloadFile, value) {
   return value.map((x2) => from_candid_Admin_n37(_uploadFile, _downloadFile, x2));
 }
-function from_candid_vec_n55(_uploadFile, _downloadFile, value) {
+function from_candid_vec_n56(_uploadFile, _downloadFile, value) {
   return value.map((x2) => from_candid_Faq_n16(_uploadFile, _downloadFile, x2));
 }
-async function from_candid_vec_n56(_uploadFile, _downloadFile, value) {
+async function from_candid_vec_n57(_uploadFile, _downloadFile, value) {
   return await Promise.all(value.map(async (x2) => await from_candid_Product_n23(_uploadFile, _downloadFile, x2)));
 }
-function from_candid_vec_n63(_uploadFile, _downloadFile, value) {
-  return value.map((x2) => from_candid_Submission_n48(_uploadFile, _downloadFile, x2));
+function from_candid_vec_n64(_uploadFile, _downloadFile, value) {
+  return value.map((x2) => from_candid_Submission_n49(_uploadFile, _downloadFile, x2));
 }
 function to_candid_AdminRole_n12(_uploadFile, _downloadFile, value) {
   return to_candid_variant_n13(_uploadFile, _downloadFile, value);
@@ -40440,35 +40384,35 @@ function to_candid_AdminRole_n12(_uploadFile, _downloadFile, value) {
 async function to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value) {
   return await _uploadFile(value);
 }
-function to_candid_FaqPatch_n70(_uploadFile, _downloadFile, value) {
-  return to_candid_record_n71(_uploadFile, _downloadFile, value);
+function to_candid_FaqPatch_n73(_uploadFile, _downloadFile, value) {
+  return to_candid_record_n74(_uploadFile, _downloadFile, value);
 }
 async function to_candid_ProductInput_n20(_uploadFile, _downloadFile, value) {
   return await to_candid_record_n21(_uploadFile, _downloadFile, value);
 }
-async function to_candid_ProductPatch_n72(_uploadFile, _downloadFile, value) {
-  return await to_candid_record_n73(_uploadFile, _downloadFile, value);
+async function to_candid_ProductPatch_n75(_uploadFile, _downloadFile, value) {
+  return await to_candid_record_n76(_uploadFile, _downloadFile, value);
 }
-function to_candid_PublishState_n64(_uploadFile, _downloadFile, value) {
-  return to_candid_variant_n65(_uploadFile, _downloadFile, value);
+function to_candid_PublishState_n67(_uploadFile, _downloadFile, value) {
+  return to_candid_variant_n68(_uploadFile, _downloadFile, value);
 }
-function to_candid_SiteContentPatch_n74(_uploadFile, _downloadFile, value) {
-  return to_candid_record_n75(_uploadFile, _downloadFile, value);
+function to_candid_SiteContentPatch_n77(_uploadFile, _downloadFile, value) {
+  return to_candid_record_n78(_uploadFile, _downloadFile, value);
 }
-function to_candid_SubmissionFilter_n57(_uploadFile, _downloadFile, value) {
-  return to_candid_record_n58(_uploadFile, _downloadFile, value);
+function to_candid_SubmissionFilter_n58(_uploadFile, _downloadFile, value) {
+  return to_candid_record_n59(_uploadFile, _downloadFile, value);
 }
-function to_candid_SubmissionKind_n61(_uploadFile, _downloadFile, value) {
-  return to_candid_variant_n62(_uploadFile, _downloadFile, value);
+function to_candid_SubmissionKind_n62(_uploadFile, _downloadFile, value) {
+  return to_candid_variant_n63(_uploadFile, _downloadFile, value);
 }
-function to_candid_SubmissionStatus_n59(_uploadFile, _downloadFile, value) {
-  return to_candid_variant_n60(_uploadFile, _downloadFile, value);
+function to_candid_SubmissionStatus_n60(_uploadFile, _downloadFile, value) {
+  return to_candid_variant_n61(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n14(_uploadFile, _downloadFile, value) {
   return to_candid_variant_n15(_uploadFile, _downloadFile, value);
 }
-function to_candid_WaitlistInput_n68(_uploadFile, _downloadFile, value) {
-  return to_candid_record_n69(_uploadFile, _downloadFile, value);
+function to_candid_WaitlistInput_n71(_uploadFile, _downloadFile, value) {
+  return to_candid_record_n72(_uploadFile, _downloadFile, value);
 }
 function to_candid__ImmutableObjectStorageRefillInformation_n2(_uploadFile, _downloadFile, value) {
   return to_candid_record_n3(_uploadFile, _downloadFile, value);
@@ -40490,27 +40434,27 @@ function to_candid_record_n3(_uploadFile, _downloadFile, value) {
     proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
   };
 }
-function to_candid_record_n58(_uploadFile, _downloadFile, value) {
+function to_candid_record_n59(_uploadFile, _downloadFile, value) {
   return {
-    status: value.status ? candid_some(to_candid_SubmissionStatus_n59(_uploadFile, _downloadFile, value.status)) : candid_none(),
-    kind: value.kind ? candid_some(to_candid_SubmissionKind_n61(_uploadFile, _downloadFile, value.kind)) : candid_none()
+    status: value.status ? candid_some(to_candid_SubmissionStatus_n60(_uploadFile, _downloadFile, value.status)) : candid_none(),
+    kind: value.kind ? candid_some(to_candid_SubmissionKind_n62(_uploadFile, _downloadFile, value.kind)) : candid_none()
   };
 }
-function to_candid_record_n69(_uploadFile, _downloadFile, value) {
+function to_candid_record_n72(_uploadFile, _downloadFile, value) {
   return {
     name: value.name,
     note: value.note ? candid_some(value.note) : candid_none(),
     email: value.email
   };
 }
-function to_candid_record_n71(_uploadFile, _downloadFile, value) {
+function to_candid_record_n74(_uploadFile, _downloadFile, value) {
   return {
     question: value.question ? candid_some(value.question) : candid_none(),
     sortOrder: value.sortOrder ? candid_some(value.sortOrder) : candid_none(),
     answer: value.answer ? candid_some(value.answer) : candid_none()
   };
 }
-async function to_candid_record_n73(_uploadFile, _downloadFile, value) {
+async function to_candid_record_n76(_uploadFile, _downloadFile, value) {
   return {
     sortOrder: value.sortOrder ? candid_some(value.sortOrder) : candid_none(),
     link: value.link ? candid_some(value.link) : candid_none(),
@@ -40519,7 +40463,7 @@ async function to_candid_record_n73(_uploadFile, _downloadFile, value) {
     imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none()
   };
 }
-function to_candid_record_n75(_uploadFile, _downloadFile, value) {
+function to_candid_record_n78(_uploadFile, _downloadFile, value) {
   return {
     contactBody: value.contactBody ? candid_some(value.contactBody) : candid_none(),
     privacyBody: value.privacyBody ? candid_some(value.privacyBody) : candid_none(),
@@ -40560,7 +40504,7 @@ function to_candid_variant_n15(_uploadFile, _downloadFile, value) {
     guest: null
   } : value;
 }
-function to_candid_variant_n60(_uploadFile, _downloadFile, value) {
+function to_candid_variant_n61(_uploadFile, _downloadFile, value) {
   return value == SubmissionStatus.new ? {
     new_: null
   } : value == "handled" ? {
@@ -40569,14 +40513,14 @@ function to_candid_variant_n60(_uploadFile, _downloadFile, value) {
     read: null
   } : value;
 }
-function to_candid_variant_n62(_uploadFile, _downloadFile, value) {
+function to_candid_variant_n63(_uploadFile, _downloadFile, value) {
   return value == "contact" ? {
     contact: null
   } : value == "waitlist" ? {
     waitlist: null
   } : value;
 }
-function to_candid_variant_n65(_uploadFile, _downloadFile, value) {
+function to_candid_variant_n68(_uploadFile, _downloadFile, value) {
   return value == "published" ? {
     published: null
   } : value == "draft" ? {
@@ -40851,6 +40795,121 @@ function AdminGate({ children }) {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
 }
+function RouteFallback() {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    "output",
+    {
+      "data-ocid": "route.loading_state",
+      "aria-live": "polite",
+      className: "block border-b border-border",
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "··" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Loading" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "py-20 md:py-28", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-10 w-3/4 max-w-xl animate-pulse rounded-sm bg-muted md:h-14" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 h-4 w-full max-w-md animate-pulse rounded-sm bg-muted" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-3 h-4 w-2/3 max-w-sm animate-pulse rounded-sm bg-muted" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "sr-only", children: "Loading page…" })
+      ]
+    }
+  );
+}
+const CONSENT_STORAGE_KEY = "ovanite.analytics-consent";
+const CONSENT_CHANGE_EVENT = "ovanite:consent-change";
+function isConsentChoice(value) {
+  return value === "accepted" || value === "declined";
+}
+function readConsent() {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(CONSENT_STORAGE_KEY);
+    return isConsentChoice(stored) ? stored : null;
+  } catch {
+    return null;
+  }
+}
+function writeConsent(choice) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CONSENT_STORAGE_KEY, choice);
+  } catch {
+  }
+  window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
+}
+function clearConsent() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(CONSENT_STORAGE_KEY);
+  } catch {
+  }
+  window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
+}
+function hasAnalyticsConsent() {
+  return readConsent() === "accepted";
+}
+function ConsentBanner() {
+  const [choice, setChoice] = reactExports.useState(
+    () => readConsent()
+  );
+  reactExports.useEffect(() => {
+    function sync() {
+      setChoice(readConsent());
+    }
+    window.addEventListener(CONSENT_CHANGE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CONSENT_CHANGE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  if (choice !== null) return null;
+  function decide(next) {
+    writeConsent(next);
+    setChoice(next);
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "section",
+    {
+      "aria-label": "Analytics consent",
+      "data-ocid": "consent.banner",
+      className: "fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card shadow-elevated",
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-4 py-5 md:flex-row md:items-center md:justify-between md:gap-8", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-2xl", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow text-muted-foreground", children: "Privacy" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm leading-relaxed text-foreground", children: "We count anonymous page views to understand which parts of the site are useful. No personal data, no third-party analytics, and no tracking cookies — just aggregate totals stored in our own backend." })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Button,
+            {
+              type: "button",
+              variant: "outline",
+              className: "rounded-sm",
+              "data-ocid": "consent.decline_button",
+              onClick: () => decide("declined"),
+              children: "Decline"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Button,
+            {
+              type: "button",
+              className: "rounded-sm",
+              "data-ocid": "consent.accept_button",
+              onClick: () => decide("accepted"),
+              children: "Accept"
+            }
+          )
+        ] })
+      ] }) })
+    }
+  );
+}
 function OvaniteMark({
   className,
   title = "Ovanite",
@@ -41004,21 +41063,33 @@ function Footer() {
         year,
         " Ovanite. All rights reserved."
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
-        "© ",
-        year,
-        ". Built with love using",
-        " ",
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "a",
+          "button",
           {
-            href: `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`,
-            target: "_blank",
-            rel: "noreferrer",
-            className: "rounded-sm underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink",
-            children: "caffeine.ai"
+            type: "button",
+            "data-ocid": "footer.cookie_preferences_button",
+            onClick: () => clearConsent(),
+            className: "self-start rounded-sm text-left underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:self-auto",
+            children: "Cookie preferences"
           }
-        )
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
+          "© ",
+          year,
+          ". Built with love using",
+          " ",
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "a",
+            {
+              href: `https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`,
+              target: "_blank",
+              rel: "noreferrer",
+              className: "rounded-sm underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink",
+              children: "caffeine.ai"
+            }
+          )
+        ] })
       ] })
     ] })
   ] }) });
@@ -41046,7 +41117,7 @@ function Navbar() {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
-  const linkClass2 = ({ isActive }) => cn(
+  const linkClass = ({ isActive }) => cn(
     "relative rounded-sm px-1 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     isActive ? "text-foreground after:absolute after:inset-x-1 after:-bottom-px after:h-px after:bg-primary" : "text-muted-foreground hover:text-foreground"
   );
@@ -41073,7 +41144,7 @@ function Navbar() {
               {
                 to: link.to,
                 "data-ocid": `nav.${link.label.toLowerCase()}_link`,
-                className: linkClass2,
+                className: linkClass,
                 children: link.label
               },
               link.to
@@ -41083,7 +41154,7 @@ function Navbar() {
               {
                 to: "/admin",
                 "data-ocid": "nav.admin_link",
-                className: linkClass2,
+                className: linkClass,
                 children: "Admin"
               }
             ) : null
@@ -41154,7 +41225,19 @@ function Navbar() {
     )
   ] });
 }
+function usePageViewTracking() {
+  const { pathname } = useLocation();
+  const { actor, isFetching } = useActor(createActor);
+  reactExports.useEffect(() => {
+    if (!actor || isFetching) return;
+    if (pathname.startsWith("/admin")) return;
+    if (!hasAnalyticsConsent()) return;
+    void actor.recordPageView(pathname).catch(() => {
+    });
+  }, [actor, isFetching, pathname]);
+}
 function SiteLayout() {
+  usePageViewTracking();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex min-h-screen flex-col bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "a",
@@ -41166,10122 +41249,27 @@ function SiteLayout() {
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Navbar, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx("main", { id: "main-content", className: "flex-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Footer, {})
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Footer, {}),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ConsentBanner, {})
   ] });
 }
-function Breadcrumbs({ items, className }) {
-  if (items.length === 0) return null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "nav",
-    {
-      "aria-label": "Breadcrumb",
-      "data-ocid": "breadcrumbs",
-      className: cn("border-b border-border bg-muted/30", className),
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("ol", { className: "flex flex-wrap items-center gap-2 py-4 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground", children: items.map((item, i) => {
-        const isLast = i === items.length - 1;
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex items-center gap-2", children: [
-          i > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            ChevronRight,
-            {
-              "aria-hidden": "true",
-              className: "h-3.5 w-3.5 shrink-0 opacity-50"
-            }
-          ) : null,
-          item.to && !isLast ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Link,
-            {
-              to: item.to,
-              className: "rounded-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              children: item.label
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "span",
-            {
-              "aria-current": isLast ? "page" : void 0,
-              className: "text-foreground",
-              children: item.label
-            }
-          )
-        ] }, item.label);
-      }) }) })
-    }
-  );
-}
-const DEFAULT_IMAGE = "https://caffeine.ai/imgs/share-logo.jpeg";
-function setMeta(selector, attr, key, content) {
-  let element = document.head.querySelector(selector);
-  if (!element) {
-    element = document.createElement("meta");
-    element.setAttribute(attr, key);
-    document.head.appendChild(element);
-  }
-  element.setAttribute("content", content);
-}
-function PageMeta({ title, description, image }) {
-  reactExports.useEffect(() => {
-    const fullTitle = `${title} — Ovanite`;
-    document.title = fullTitle;
-    setMeta('meta[name="description"]', "name", "description", description);
-    setMeta('meta[property="og:title"]', "property", "og:title", fullTitle);
-    setMeta(
-      'meta[property="og:description"]',
-      "property",
-      "og:description",
-      description
-    );
-    setMeta('meta[property="og:type"]', "property", "og:type", "website");
-    setMeta(
-      'meta[property="og:image"]',
-      "property",
-      "og:image",
-      image ?? DEFAULT_IMAGE
-    );
-    setMeta(
-      'meta[property="og:image:alt"]',
-      "property",
-      "og:image:alt",
-      `${fullTitle} — ${description}`
-    );
-    setMeta(
-      'meta[name="twitter:card"]',
-      "name",
-      "twitter:card",
-      "summary_large_image"
-    );
-    setMeta('meta[name="twitter:title"]', "name", "twitter:title", fullTitle);
-    setMeta(
-      'meta[name="twitter:description"]',
-      "name",
-      "twitter:description",
-      description
-    );
-    setMeta(
-      'meta[name="twitter:image"]',
-      "name",
-      "twitter:image",
-      image ?? DEFAULT_IMAGE
-    );
-  }, [title, description, image]);
-  return null;
-}
-function Section({
-  index: index2,
-  label,
-  muted = false,
-  contained = true,
-  className,
-  children,
-  ...props
-}) {
-  const head = index2 || label ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-10 md:mb-14", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-    index2 ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: index2 }) : null,
-    label ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: label }) : null
-  ] }) }) : null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "section",
-    {
-      className: cn("py-20 md:py-28", muted && "bg-muted/40", className),
-      ...props,
-      children: contained ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { children: [
-        head,
-        children
-      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-        head ? /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { children: head }) : null,
-        children
-      ] })
-    }
-  );
-}
-function isAbsoluteUrl(href) {
-  return /^https?:\/\//i.test(href.trim());
-}
-function stored(value) {
-  if (value === void 0) return void 0;
-  return value.trim() === "" ? void 0 : value;
-}
-function resolveSiteCopy(content) {
-  return {
-    heroHeadline: stored(content == null ? void 0 : content.heroHeadline) ?? "Software, built to matter.",
-    heroDescription: stored(content == null ? void 0 : content.heroDescription) ?? "Ovanite builds thoughtful digital products designed to solve meaningful problems.",
-    primaryCtaLabel: stored(content == null ? void 0 : content.primaryCtaLabel) ?? "Explore products",
-    primaryCtaHref: stored(content == null ? void 0 : content.primaryCtaHref) ?? "/products",
-    secondaryCtaLabel: stored(content == null ? void 0 : content.secondaryCtaLabel) ?? "About Ovanite",
-    secondaryCtaHref: stored(content == null ? void 0 : content.secondaryCtaHref) ?? "/about",
-    philosophyTitle: stored(content == null ? void 0 : content.philosophyTitle) ?? "Built with purpose.",
-    philosophyBody: stored(content == null ? void 0 : content.philosophyBody) ?? "We start from the problem, not the technology. Every product we build begins with a clear understanding of who it serves and what it must make possible — then we hold it to that standard through every release.",
-    approachTitle: stored(content == null ? void 0 : content.approachTitle) ?? "From idea to impact.",
-    approachBody: stored(content == null ? void 0 : content.approachBody) ?? "We work in small, focused cycles: define the outcome, build the smallest complete version, measure what changed, and refine. That discipline keeps scope honest and turns early momentum into durable software.",
-    aboutTitle: stored(content == null ? void 0 : content.aboutTitle) ?? "A software company, not a service.",
-    aboutBody: stored(content == null ? void 0 : content.aboutBody) ?? "Ovanite designs and builds its own software products. We are deliberately small, international in outlook, and focused on work that compounds over time rather than chasing short-lived trends.",
-    contactTitle: stored(content == null ? void 0 : content.contactTitle) ?? "Start a conversation.",
-    contactBody: stored(content == null ? void 0 : content.contactBody) ?? "Tell us what you are working on and what a good outcome looks like. We read every message and reply to the ones where we can genuinely help.",
-    waitlistTitle: stored(content == null ? void 0 : content.waitlistTitle) ?? "Join the waitlist.",
-    waitlistBody: stored(content == null ? void 0 : content.waitlistBody) ?? "Be the first to know when our products launch. We will only email you when there is something real to share.",
-    privacyBody: stored(content == null ? void 0 : content.privacyBody) ?? "Ovanite collects only the information you choose to share through our contact and waitlist forms — your name, email address, and any message or note you provide. We use it solely to respond to you and to share product updates you asked for. We do not sell your data, and we do not share it with third parties for marketing. You can ask us to delete your information at any time by contacting us.",
-    termsBody: stored(content == null ? void 0 : content.termsBody) ?? "This website is provided for general information about Ovanite and its products. Content is offered as-is and may change without notice. Product descriptions do not constitute a binding offer. By using this site you agree to use it lawfully and not to interfere with its operation. These terms are governed by the laws applicable at Ovanite's place of establishment.",
-    footerText: stored(content == null ? void 0 : content.footerText) ?? "Ovanite builds software products designed to matter — precise, durable, and made for the long term."
-  };
-}
-function About() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "About",
-        description: "Ovanite is a software company building products designed to matter. Learn how we work and what we believe."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Breadcrumbs, { items: [{ label: "Home", to: "/" }, { label: "About" }] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "About Ovanite" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance break-words font-display text-4xl font-bold tracking-tight md:text-6xl", children: copy.aboutTitle }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-md text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: copy.aboutBody }) })
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Section,
-      {
-        index: "02",
-        label: "Philosophy",
-        muted: true,
-        "data-ocid": "about.philosophy_section",
-        className: "border-y border-border",
-        children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance break-words font-display text-3xl font-bold tracking-tight md:text-4xl", children: copy.philosophyTitle }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-2xl text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: copy.philosophyBody }) })
-        ] })
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Section, { index: "03", label: "Approach", "data-ocid": "about.approach_section", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0 md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance break-words font-display text-3xl font-bold tracking-tight md:text-4xl", children: copy.approachTitle }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0 md:col-span-7", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-2xl text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: copy.approachBody }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-8 flex flex-wrap gap-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/products", "data-ocid": "about.products_link", children: "Explore products" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/contact", "data-ocid": "about.contact_link", children: "Start a conversation" }) })
-        ] })
-      ] })
-    ] }) })
-  ] });
-}
-function Textarea({ className, ...props }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "textarea",
-    {
-      "data-slot": "textarea",
-      className: cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
-      ),
-      ...props
-    }
-  );
-}
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-function isRequired(value) {
-  return value.trim().length > 0;
-}
-function isValidEmail(value) {
-  return EMAIL_PATTERN.test(value.trim());
-}
-function validateName(value) {
-  if (!isRequired(value)) return "Please enter your name.";
-  if (value.trim().length < 2) return "Name must be at least 2 characters.";
-  return void 0;
-}
-function validateEmail(value) {
-  if (!isRequired(value)) return "Please enter your email address.";
-  if (!isValidEmail(value)) return "Please enter a valid email address.";
-  return void 0;
-}
-function validateMessage(value) {
-  if (!isRequired(value)) return "Please tell us how we can help.";
-  if (value.trim().length < 10)
-    return "Please provide at least 10 characters of detail.";
-  return void 0;
-}
-function validateNote(value) {
-  if (value.trim().length > 500)
-    return "Please keep your note under 500 characters.";
-  return void 0;
-}
-function isDuplicateResult(result) {
-  return typeof result === "object" && result !== null && result.__kind__ === "duplicate";
-}
-const FIELD_IDS$1 = {
-  name: "contact-name",
-  email: "contact-email",
-  message: "contact-message"
-};
-function ContactForm() {
-  const navigate = useNavigate();
-  const { actor } = useActor(createActor);
-  const [name, setName] = reactExports.useState("");
-  const [email, setEmail] = reactExports.useState("");
-  const [message, setMessage] = reactExports.useState("");
-  const [errors, setErrors] = reactExports.useState({});
-  const [alreadyReceived, setAlreadyReceived] = reactExports.useState(false);
-  const mutation = useMutation({
-    mutationFn: async (input) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.submitContact(input);
-    },
-    onSuccess: (result) => {
-      if (isDuplicateResult(result)) {
-        setAlreadyReceived(true);
-        return;
-      }
-      navigate("/thank-you", { state: { kind: "contact" } });
-    }
-  });
-  function validate() {
-    const next = {
-      name: validateName(name),
-      email: validateEmail(email),
-      message: validateMessage(message)
-    };
-    setErrors(next);
-    return !next.name && !next.email && !next.message;
-  }
-  function handleSubmit(event) {
-    event.preventDefault();
-    setAlreadyReceived(false);
-    if (!validate()) return;
-    mutation.mutate({
-      name: name.trim(),
-      email: email.trim(),
-      message: message.trim()
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "form",
-    {
-      noValidate: true,
-      onSubmit: handleSubmit,
-      "data-ocid": "contact.form",
-      className: "space-y-6",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: FIELD_IDS$1.name, className: "mb-2", children: "Name" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: FIELD_IDS$1.name,
-              name: "name",
-              autoComplete: "name",
-              value: name,
-              onChange: (event) => setName(event.target.value),
-              "aria-invalid": errors.name ? true : void 0,
-              "aria-describedby": errors.name ? `${FIELD_IDS$1.name}-error` : void 0,
-              "data-ocid": "contact.name_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          errors.name ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS$1.name}-error`,
-              role: "alert",
-              "data-ocid": "contact.name_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.name
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: FIELD_IDS$1.email, className: "mb-2", children: "Email" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: FIELD_IDS$1.email,
-              name: "email",
-              type: "email",
-              autoComplete: "email",
-              value: email,
-              onChange: (event) => setEmail(event.target.value),
-              "aria-invalid": errors.email ? true : void 0,
-              "aria-describedby": errors.email ? `${FIELD_IDS$1.email}-error` : void 0,
-              "data-ocid": "contact.email_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          errors.email ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS$1.email}-error`,
-              role: "alert",
-              "data-ocid": "contact.email_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.email
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: FIELD_IDS$1.message, className: "mb-2", children: "Message" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              id: FIELD_IDS$1.message,
-              name: "message",
-              rows: 6,
-              value: message,
-              onChange: (event) => setMessage(event.target.value),
-              "aria-invalid": errors.message ? true : void 0,
-              "aria-describedby": errors.message ? `${FIELD_IDS$1.message}-error` : void 0,
-              "data-ocid": "contact.message_textarea",
-              className: "min-h-32 rounded-sm"
-            }
-          ),
-          errors.message ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS$1.message}-error`,
-              role: "alert",
-              "data-ocid": "contact.message_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.message
-            }
-          ) : null
-        ] }),
-        alreadyReceived ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "output",
-          {
-            "aria-live": "polite",
-            "data-ocid": "contact.already_received_state",
-            className: "block border border-accent/40 bg-accent/5 px-4 py-3 text-sm text-foreground",
-            children: "Already received — we have this exact message from you and will reply to it. There is no need to send it again."
-          }
-        ) : null,
-        mutation.isError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
-          {
-            role: "alert",
-            "data-ocid": "contact.error_state",
-            className: "border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-            children: "Something went wrong sending your message. Please try again."
-          }
-        ) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          PrimaryButton,
-          {
-            type: "submit",
-            size: "lg",
-            disabled: mutation.isPending,
-            "data-ocid": "contact.submit_button",
-            children: mutation.isPending ? "Sending…" : "Send message"
-          }
-        )
-      ]
-    }
-  );
-}
-function Contact() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Contact",
-        description: "Start a conversation with Ovanite. Tell us what you are working on and what a good outcome looks like."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Breadcrumbs, { items: [{ label: "Home", to: "/" }, { label: "Contact" }] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Contact" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 grid gap-14 md:grid-cols-12 md:gap-10", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance font-display text-4xl font-bold tracking-tight md:text-5xl", children: copy.contactTitle }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-6 max-w-md text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.contactBody })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-border bg-card", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-10", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "New enquiry" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground", children: "Replies within 2 business days" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-6 md:p-10", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ContactForm, {}) })
-        ] }) })
-      ] })
-    ] })
-  ] });
-}
-function AboutPreview({ copy }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Section,
-    {
-      index: "04",
-      label: "About Ovanite",
-      "data-ocid": "home.about_section",
-      className: "border-b border-border",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: copy.aboutTitle }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-7", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.aboutBody }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, size: "lg", className: "mt-8", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/about", "data-ocid": "home.about_link", children: [
-            "More about Ovanite",
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-          ] }) })
-        ] })
-      ] })
-    }
-  );
-}
-function ApproachSection({ copy }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Section,
-    {
-      index: "03",
-      label: "Approach",
-      muted: true,
-      "data-ocid": "home.approach_section",
-      className: "border-b border-border",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: copy.approachTitle }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.approachBody }) })
-      ] })
-    }
-  );
-}
-function ContactCta() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "section",
-    {
-      "data-ocid": "home.contact_cta_section",
-      className: "bg-ink text-ink-foreground",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 py-20 md:grid-cols-12 md:py-28", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-7", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-ink-foreground/20 pt-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-accent", children: "06" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium uppercase tracking-[0.22em] text-ink-foreground/60", children: "Get in touch" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-8 text-balance font-display text-3xl font-bold tracking-tight md:text-5xl", children: "Let’s build something that matters." })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col justify-end md:col-span-5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-md text-pretty text-lg leading-relaxed text-ink-foreground/70", children: "Tell us what you are working on, or join the waitlist to follow what we ship next." }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-9 flex flex-wrap gap-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(PrimaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/contact", "data-ocid": "home.contact_cta_button", children: [
-              "Start a conversation",
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-            ] }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SecondaryButton,
-              {
-                asChild: true,
-                size: "lg",
-                className: "border-ink-foreground/25 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/waitlist", "data-ocid": "home.waitlist_cta_button", children: "Join the waitlist" })
-              }
-            )
-          ] })
-        ] })
-      ] }) })
-    }
-  );
-}
-function createContextScope(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = reactExports.createContext(defaultContext);
-    const index2 = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    const Provider = (props) => {
-      var _a2;
-      const { scope, children, ...context } = props;
-      const Context = ((_a2 = scope == null ? void 0 : scope[scopeName]) == null ? void 0 : _a2[index2]) || BaseContext;
-      const value = reactExports.useMemo(() => context, Object.values(context));
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children });
-    };
-    Provider.displayName = rootComponentName + "Provider";
-    function useContext2(consumerName, scope) {
-      var _a2;
-      const Context = ((_a2 = scope == null ? void 0 : scope[scopeName]) == null ? void 0 : _a2[index2]) || BaseContext;
-      const context = reactExports.useContext(Context);
-      if (context) return context;
-      if (defaultContext !== void 0) return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    return [Provider, useContext2];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return reactExports.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = (scope == null ? void 0 : scope[scopeName]) || scopeContexts;
-      return reactExports.useMemo(
-        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
-        [scope, contexts]
-      );
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1) return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return reactExports.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-// @__NO_SIDE_EFFECTS__
-function createSlot(ownerName) {
-  const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
-  const Slot2 = reactExports.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    const childrenArray = reactExports.Children.toArray(children);
-    const slottable = childrenArray.find(isSlottable);
-    if (slottable) {
-      const newElement = slottable.props.children;
-      const newChildren = childrenArray.map((child) => {
-        if (child === slottable) {
-          if (reactExports.Children.count(newElement) > 1) return reactExports.Children.only(null);
-          return reactExports.isValidElement(newElement) ? newElement.props.children : null;
-        } else {
-          return child;
-        }
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: reactExports.isValidElement(newElement) ? reactExports.cloneElement(newElement, void 0, newChildren) : null });
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
-  });
-  Slot2.displayName = `${ownerName}.Slot`;
-  return Slot2;
-}
-// @__NO_SIDE_EFFECTS__
-function createSlotClone(ownerName) {
-  const SlotClone = reactExports.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    if (reactExports.isValidElement(children)) {
-      const childrenRef = getElementRef$1(children);
-      const props2 = mergeProps(slotProps, children.props);
-      if (children.type !== reactExports.Fragment) {
-        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
-      }
-      return reactExports.cloneElement(children, props2);
-    }
-    return reactExports.Children.count(children) > 1 ? reactExports.Children.only(null) : null;
-  });
-  SlotClone.displayName = `${ownerName}.SlotClone`;
-  return SlotClone;
-}
-var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
-function isSlottable(child) {
-  return reactExports.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
-}
-function mergeProps(slotProps, childProps) {
-  const overrideProps = { ...childProps };
-  for (const propName in childProps) {
-    const slotPropValue = slotProps[propName];
-    const childPropValue = childProps[propName];
-    const isHandler = /^on[A-Z]/.test(propName);
-    if (isHandler) {
-      if (slotPropValue && childPropValue) {
-        overrideProps[propName] = (...args) => {
-          const result = childPropValue(...args);
-          slotPropValue(...args);
-          return result;
-        };
-      } else if (slotPropValue) {
-        overrideProps[propName] = slotPropValue;
-      }
-    } else if (propName === "style") {
-      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
-    } else if (propName === "className") {
-      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
-    }
-  }
-  return { ...slotProps, ...overrideProps };
-}
-function getElementRef$1(element) {
-  var _a2, _b2;
-  let getter = (_a2 = Object.getOwnPropertyDescriptor(element.props, "ref")) == null ? void 0 : _a2.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = (_b2 = Object.getOwnPropertyDescriptor(element, "ref")) == null ? void 0 : _b2.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-function createCollection(name) {
-  const PROVIDER_NAME = name + "CollectionProvider";
-  const [createCollectionContext, createCollectionScope2] = createContextScope(PROVIDER_NAME);
-  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(
-    PROVIDER_NAME,
-    { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map() }
-  );
-  const CollectionProvider = (props) => {
-    const { scope, children } = props;
-    const ref = React$2.useRef(null);
-    const itemMap = React$2.useRef(/* @__PURE__ */ new Map()).current;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
-  };
-  CollectionProvider.displayName = PROVIDER_NAME;
-  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
-  const CollectionSlotImpl = /* @__PURE__ */ createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = React$2.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children } = props;
-      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
-      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionSlotImpl, { ref: composedRefs, children });
-    }
-  );
-  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
-  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
-  const ITEM_DATA_ATTR = "data-radix-collection-item";
-  const CollectionItemSlotImpl = /* @__PURE__ */ createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = React$2.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children, ...itemData } = props;
-      const ref = React$2.useRef(null);
-      const composedRefs = useComposedRefs(forwardedRef, ref);
-      const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-      React$2.useEffect(() => {
-        context.itemMap.set(ref, { ref, ...itemData });
-        return () => void context.itemMap.delete(ref);
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
-    }
-  );
-  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
-  function useCollection2(scope) {
-    const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = React$2.useCallback(() => {
-      const collectionNode = context.collectionRef.current;
-      if (!collectionNode) return [];
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
-      const items = Array.from(context.itemMap.values());
-      const orderedItems = items.sort(
-        (a2, b2) => orderedNodes.indexOf(a2.ref.current) - orderedNodes.indexOf(b2.ref.current)
-      );
-      return orderedItems;
-    }, [context.collectionRef, context.itemMap]);
-    return getItems;
-  }
-  return [
-    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
-    useCollection2,
-    createCollectionScope2
-  ];
-}
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler == null ? void 0 : originalEventHandler(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler == null ? void 0 : ourEventHandler(event);
-    }
-  };
-}
-var useLayoutEffect2 = (globalThis == null ? void 0 : globalThis.document) ? reactExports.useLayoutEffect : () => {
-};
-var useInsertionEffect = React$3[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
-function useControllableState({
-  prop,
-  defaultProp,
-  onChange = () => {
-  },
-  caller
-}) {
-  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
-    defaultProp,
-    onChange
-  });
-  const isControlled = prop !== void 0;
-  const value = isControlled ? prop : uncontrolledProp;
-  {
-    const isControlledRef = reactExports.useRef(prop !== void 0);
-    reactExports.useEffect(() => {
-      const wasControlled = isControlledRef.current;
-      if (wasControlled !== isControlled) {
-        const from = wasControlled ? "controlled" : "uncontrolled";
-        const to = isControlled ? "controlled" : "uncontrolled";
-        console.warn(
-          `${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`
-        );
-      }
-      isControlledRef.current = isControlled;
-    }, [isControlled, caller]);
-  }
-  const setValue = reactExports.useCallback(
-    (nextValue) => {
-      var _a2;
-      if (isControlled) {
-        const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
-        if (value2 !== prop) {
-          (_a2 = onChangeRef.current) == null ? void 0 : _a2.call(onChangeRef, value2);
-        }
-      } else {
-        setUncontrolledProp(nextValue);
-      }
-    },
-    [isControlled, prop, setUncontrolledProp, onChangeRef]
-  );
-  return [value, setValue];
-}
-function useUncontrolledState({
-  defaultProp,
-  onChange
-}) {
-  const [value, setValue] = reactExports.useState(defaultProp);
-  const prevValueRef = reactExports.useRef(value);
-  const onChangeRef = reactExports.useRef(onChange);
-  useInsertionEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-  reactExports.useEffect(() => {
-    var _a2;
-    if (prevValueRef.current !== value) {
-      (_a2 = onChangeRef.current) == null ? void 0 : _a2.call(onChangeRef, value);
-      prevValueRef.current = value;
-    }
-  }, [value, prevValueRef]);
-  return [value, setValue, onChangeRef];
-}
-function isFunction(value) {
-  return typeof value === "function";
-}
-var NODES = [
-  "a",
-  "button",
-  "div",
-  "form",
-  "h2",
-  "h3",
-  "img",
-  "input",
-  "label",
-  "li",
-  "nav",
-  "ol",
-  "p",
-  "select",
-  "span",
-  "svg",
-  "ul"
-];
-var Primitive = NODES.reduce((primitive, node) => {
-  const Slot2 = /* @__PURE__ */ createSlot(`Primitive.${node}`);
-  const Node2 = reactExports.forwardRef((props, forwardedRef) => {
-    const { asChild, ...primitiveProps } = props;
-    const Comp = asChild ? Slot2 : node;
-    if (typeof window !== "undefined") {
-      window[Symbol.for("radix-ui")] = true;
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
-  });
-  Node2.displayName = `Primitive.${node}`;
-  return { ...primitive, [node]: Node2 };
-}, {});
-function dispatchDiscreteCustomEvent(target, event) {
-  if (target) reactDomExports.flushSync(() => target.dispatchEvent(event));
-}
-function useStateMachine(initialState, machine) {
-  return reactExports.useReducer((state, event) => {
-    const nextState = machine[state][event];
-    return nextState ?? state;
-  }, initialState);
-}
-var Presence = (props) => {
-  const { present, children } = props;
-  const presence = usePresence(present);
-  const child = typeof children === "function" ? children({ present: presence.isPresent }) : reactExports.Children.only(children);
-  const ref = useComposedRefs(presence.ref, getElementRef(child));
-  const forceMount = typeof children === "function";
-  return forceMount || presence.isPresent ? reactExports.cloneElement(child, { ref }) : null;
-};
-Presence.displayName = "Presence";
-function usePresence(present) {
-  const [node, setNode] = reactExports.useState();
-  const stylesRef = reactExports.useRef(null);
-  const prevPresentRef = reactExports.useRef(present);
-  const prevAnimationNameRef = reactExports.useRef("none");
-  const initialState = present ? "mounted" : "unmounted";
-  const [state, send] = useStateMachine(initialState, {
-    mounted: {
-      UNMOUNT: "unmounted",
-      ANIMATION_OUT: "unmountSuspended"
-    },
-    unmountSuspended: {
-      MOUNT: "mounted",
-      ANIMATION_END: "unmounted"
-    },
-    unmounted: {
-      MOUNT: "mounted"
-    }
-  });
-  reactExports.useEffect(() => {
-    const currentAnimationName = getAnimationName(stylesRef.current);
-    prevAnimationNameRef.current = state === "mounted" ? currentAnimationName : "none";
-  }, [state]);
-  useLayoutEffect2(() => {
-    const styles = stylesRef.current;
-    const wasPresent = prevPresentRef.current;
-    const hasPresentChanged = wasPresent !== present;
-    if (hasPresentChanged) {
-      const prevAnimationName = prevAnimationNameRef.current;
-      const currentAnimationName = getAnimationName(styles);
-      if (present) {
-        send("MOUNT");
-      } else if (currentAnimationName === "none" || (styles == null ? void 0 : styles.display) === "none") {
-        send("UNMOUNT");
-      } else {
-        const isAnimating = prevAnimationName !== currentAnimationName;
-        if (wasPresent && isAnimating) {
-          send("ANIMATION_OUT");
-        } else {
-          send("UNMOUNT");
-        }
-      }
-      prevPresentRef.current = present;
-    }
-  }, [present, send]);
-  useLayoutEffect2(() => {
-    if (node) {
-      let timeoutId;
-      const ownerWindow = node.ownerDocument.defaultView ?? window;
-      const handleAnimationEnd = (event) => {
-        const currentAnimationName = getAnimationName(stylesRef.current);
-        const isCurrentAnimation = currentAnimationName.includes(CSS.escape(event.animationName));
-        if (event.target === node && isCurrentAnimation) {
-          send("ANIMATION_END");
-          if (!prevPresentRef.current) {
-            const currentFillMode = node.style.animationFillMode;
-            node.style.animationFillMode = "forwards";
-            timeoutId = ownerWindow.setTimeout(() => {
-              if (node.style.animationFillMode === "forwards") {
-                node.style.animationFillMode = currentFillMode;
-              }
-            });
-          }
-        }
-      };
-      const handleAnimationStart = (event) => {
-        if (event.target === node) {
-          prevAnimationNameRef.current = getAnimationName(stylesRef.current);
-        }
-      };
-      node.addEventListener("animationstart", handleAnimationStart);
-      node.addEventListener("animationcancel", handleAnimationEnd);
-      node.addEventListener("animationend", handleAnimationEnd);
-      return () => {
-        ownerWindow.clearTimeout(timeoutId);
-        node.removeEventListener("animationstart", handleAnimationStart);
-        node.removeEventListener("animationcancel", handleAnimationEnd);
-        node.removeEventListener("animationend", handleAnimationEnd);
-      };
-    } else {
-      send("ANIMATION_END");
-    }
-  }, [node, send]);
-  return {
-    isPresent: ["mounted", "unmountSuspended"].includes(state),
-    ref: reactExports.useCallback((node2) => {
-      stylesRef.current = node2 ? getComputedStyle(node2) : null;
-      setNode(node2);
-    }, [])
-  };
-}
-function getAnimationName(styles) {
-  return (styles == null ? void 0 : styles.animationName) || "none";
-}
-function getElementRef(element) {
-  var _a2, _b2;
-  let getter = (_a2 = Object.getOwnPropertyDescriptor(element.props, "ref")) == null ? void 0 : _a2.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = (_b2 = Object.getOwnPropertyDescriptor(element, "ref")) == null ? void 0 : _b2.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-var useReactId = React$3[" useId ".trim().toString()] || (() => void 0);
-var count$1 = 0;
-function useId(deterministicId) {
-  const [id, setId] = reactExports.useState(useReactId());
-  useLayoutEffect2(() => {
-    setId((reactId) => reactId ?? String(count$1++));
-  }, [deterministicId]);
-  return deterministicId || (id ? `radix-${id}` : "");
-}
-var COLLAPSIBLE_NAME = "Collapsible";
-var [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
-var [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
-var Collapsible = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeCollapsible,
-      open: openProp,
-      defaultOpen,
-      disabled,
-      onOpenChange,
-      ...collapsibleProps
-    } = props;
-    const [open, setOpen] = useControllableState({
-      prop: openProp,
-      defaultProp: defaultOpen ?? false,
-      onChange: onOpenChange,
-      caller: COLLAPSIBLE_NAME
-    });
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      CollapsibleProvider,
-      {
-        scope: __scopeCollapsible,
-        disabled,
-        contentId: useId(),
-        open,
-        onOpenToggle: reactExports.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.div,
-          {
-            "data-state": getState$1(open),
-            "data-disabled": disabled ? "" : void 0,
-            ...collapsibleProps,
-            ref: forwardedRef
-          }
-        )
-      }
-    );
-  }
-);
-Collapsible.displayName = COLLAPSIBLE_NAME;
-var TRIGGER_NAME$3 = "CollapsibleTrigger";
-var CollapsibleTrigger = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeCollapsible, ...triggerProps } = props;
-    const context = useCollapsibleContext(TRIGGER_NAME$3, __scopeCollapsible);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.button,
-      {
-        type: "button",
-        "aria-controls": context.contentId,
-        "aria-expanded": context.open || false,
-        "data-state": getState$1(context.open),
-        "data-disabled": context.disabled ? "" : void 0,
-        disabled: context.disabled,
-        ...triggerProps,
-        ref: forwardedRef,
-        onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
-      }
-    );
-  }
-);
-CollapsibleTrigger.displayName = TRIGGER_NAME$3;
-var CONTENT_NAME$4 = "CollapsibleContent";
-var CollapsibleContent = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { forceMount, ...contentProps } = props;
-    const context = useCollapsibleContext(CONTENT_NAME$4, props.__scopeCollapsible);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ jsxRuntimeExports.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
-  }
-);
-CollapsibleContent.displayName = CONTENT_NAME$4;
-var CollapsibleContentImpl = reactExports.forwardRef((props, forwardedRef) => {
-  const { __scopeCollapsible, present, children, ...contentProps } = props;
-  const context = useCollapsibleContext(CONTENT_NAME$4, __scopeCollapsible);
-  const [isPresent, setIsPresent] = reactExports.useState(present);
-  const ref = reactExports.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, ref);
-  const heightRef = reactExports.useRef(0);
-  const height = heightRef.current;
-  const widthRef = reactExports.useRef(0);
-  const width = widthRef.current;
-  const isOpen = context.open || isPresent;
-  const isMountAnimationPreventedRef = reactExports.useRef(isOpen);
-  const originalStylesRef = reactExports.useRef(void 0);
-  reactExports.useEffect(() => {
-    const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
-    return () => cancelAnimationFrame(rAF);
-  }, []);
-  useLayoutEffect2(() => {
-    const node = ref.current;
-    if (node) {
-      originalStylesRef.current = originalStylesRef.current || {
-        transitionDuration: node.style.transitionDuration,
-        animationName: node.style.animationName
-      };
-      node.style.transitionDuration = "0s";
-      node.style.animationName = "none";
-      const rect = node.getBoundingClientRect();
-      heightRef.current = rect.height;
-      widthRef.current = rect.width;
-      if (!isMountAnimationPreventedRef.current) {
-        node.style.transitionDuration = originalStylesRef.current.transitionDuration;
-        node.style.animationName = originalStylesRef.current.animationName;
-      }
-      setIsPresent(present);
-    }
-  }, [context.open, present]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive.div,
-    {
-      "data-state": getState$1(context.open),
-      "data-disabled": context.disabled ? "" : void 0,
-      id: context.contentId,
-      hidden: !isOpen,
-      ...contentProps,
-      ref: composedRefs,
-      style: {
-        [`--radix-collapsible-content-height`]: height ? `${height}px` : void 0,
-        [`--radix-collapsible-content-width`]: width ? `${width}px` : void 0,
-        ...props.style
-      },
-      children: isOpen && children
-    }
-  );
-});
-function getState$1(open) {
-  return open ? "open" : "closed";
-}
-var Root$2 = Collapsible;
-var Trigger$2 = CollapsibleTrigger;
-var Content$1 = CollapsibleContent;
-var DirectionContext = reactExports.createContext(void 0);
-function useDirection(localDir) {
-  const globalDir = reactExports.useContext(DirectionContext);
-  return localDir || globalDir || "ltr";
-}
-var ACCORDION_NAME = "Accordion";
-var ACCORDION_KEYS = ["Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"];
-var [Collection$2, useCollection$2, createCollectionScope$2] = createCollection(ACCORDION_NAME);
-var [createAccordionContext] = createContextScope(ACCORDION_NAME, [
-  createCollectionScope$2,
-  createCollapsibleScope
-]);
-var useCollapsibleScope = createCollapsibleScope();
-var Accordion$1 = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { type, ...accordionProps } = props;
-    const singleProps = accordionProps;
-    const multipleProps = accordionProps;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Collection$2.Provider, { scope: props.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
-  }
-);
-Accordion$1.displayName = ACCORDION_NAME;
-var [AccordionValueProvider, useAccordionValueContext] = createAccordionContext(ACCORDION_NAME);
-var [AccordionCollapsibleProvider, useAccordionCollapsibleContext] = createAccordionContext(
-  ACCORDION_NAME,
-  { collapsible: false }
-);
-var AccordionImplSingle = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      value: valueProp,
-      defaultValue,
-      onValueChange = () => {
-      },
-      collapsible = false,
-      ...accordionSingleProps
-    } = props;
-    const [value, setValue] = useControllableState({
-      prop: valueProp,
-      defaultProp: defaultValue ?? "",
-      onChange: onValueChange,
-      caller: ACCORDION_NAME
-    });
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      AccordionValueProvider,
-      {
-        scope: props.__scopeAccordion,
-        value: React$2.useMemo(() => value ? [value] : [], [value]),
-        onItemOpen: setValue,
-        onItemClose: React$2.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible, children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
-      }
-    );
-  }
-);
-var AccordionImplMultiple = React$2.forwardRef((props, forwardedRef) => {
-  const {
-    value: valueProp,
-    defaultValue,
-    onValueChange = () => {
-    },
-    ...accordionMultipleProps
-  } = props;
-  const [value, setValue] = useControllableState({
-    prop: valueProp,
-    defaultProp: defaultValue ?? [],
-    onChange: onValueChange,
-    caller: ACCORDION_NAME
-  });
-  const handleItemOpen = React$2.useCallback(
-    (itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]),
-    [setValue]
-  );
-  const handleItemClose = React$2.useCallback(
-    (itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)),
-    [setValue]
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    AccordionValueProvider,
-    {
-      scope: props.__scopeAccordion,
-      value,
-      onItemOpen: handleItemOpen,
-      onItemClose: handleItemClose,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
-    }
-  );
-});
-var [AccordionImplProvider, useAccordionContext] = createAccordionContext(ACCORDION_NAME);
-var AccordionImpl = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeAccordion, disabled, dir, orientation = "vertical", ...accordionProps } = props;
-    const accordionRef = React$2.useRef(null);
-    const composedRefs = useComposedRefs(accordionRef, forwardedRef);
-    const getItems = useCollection$2(__scopeAccordion);
-    const direction = useDirection(dir);
-    const isDirectionLTR = direction === "ltr";
-    const handleKeyDown = composeEventHandlers(props.onKeyDown, (event) => {
-      var _a2;
-      if (!ACCORDION_KEYS.includes(event.key)) return;
-      const target = event.target;
-      const triggerCollection = getItems().filter((item) => {
-        var _a3;
-        return !((_a3 = item.ref.current) == null ? void 0 : _a3.disabled);
-      });
-      const triggerIndex = triggerCollection.findIndex((item) => item.ref.current === target);
-      const triggerCount = triggerCollection.length;
-      if (triggerIndex === -1) return;
-      event.preventDefault();
-      let nextIndex = triggerIndex;
-      const homeIndex = 0;
-      const endIndex = triggerCount - 1;
-      const moveNext = () => {
-        nextIndex = triggerIndex + 1;
-        if (nextIndex > endIndex) {
-          nextIndex = homeIndex;
-        }
-      };
-      const movePrev = () => {
-        nextIndex = triggerIndex - 1;
-        if (nextIndex < homeIndex) {
-          nextIndex = endIndex;
-        }
-      };
-      switch (event.key) {
-        case "Home":
-          nextIndex = homeIndex;
-          break;
-        case "End":
-          nextIndex = endIndex;
-          break;
-        case "ArrowRight":
-          if (orientation === "horizontal") {
-            if (isDirectionLTR) {
-              moveNext();
-            } else {
-              movePrev();
-            }
-          }
-          break;
-        case "ArrowDown":
-          if (orientation === "vertical") {
-            moveNext();
-          }
-          break;
-        case "ArrowLeft":
-          if (orientation === "horizontal") {
-            if (isDirectionLTR) {
-              movePrev();
-            } else {
-              moveNext();
-            }
-          }
-          break;
-        case "ArrowUp":
-          if (orientation === "vertical") {
-            movePrev();
-          }
-          break;
-      }
-      const clampedIndex = nextIndex % triggerCount;
-      (_a2 = triggerCollection[clampedIndex].ref.current) == null ? void 0 : _a2.focus();
-    });
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      AccordionImplProvider,
-      {
-        scope: __scopeAccordion,
-        disabled,
-        direction: dir,
-        orientation,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection$2.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.div,
-          {
-            ...accordionProps,
-            "data-orientation": orientation,
-            ref: composedRefs,
-            onKeyDown: disabled ? void 0 : handleKeyDown
-          }
-        ) })
-      }
-    );
-  }
-);
-var ITEM_NAME$2 = "AccordionItem";
-var [AccordionItemProvider, useAccordionItemContext] = createAccordionContext(ITEM_NAME$2);
-var AccordionItem$1 = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeAccordion, value, ...accordionItemProps } = props;
-    const accordionContext = useAccordionContext(ITEM_NAME$2, __scopeAccordion);
-    const valueContext = useAccordionValueContext(ITEM_NAME$2, __scopeAccordion);
-    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    const triggerId = useId();
-    const open = value && valueContext.value.includes(value) || false;
-    const disabled = accordionContext.disabled || props.disabled;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      AccordionItemProvider,
-      {
-        scope: __scopeAccordion,
-        open,
-        disabled,
-        triggerId,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Root$2,
-          {
-            "data-orientation": accordionContext.orientation,
-            "data-state": getState(open),
-            ...collapsibleScope,
-            ...accordionItemProps,
-            ref: forwardedRef,
-            disabled,
-            open,
-            onOpenChange: (open2) => {
-              if (open2) {
-                valueContext.onItemOpen(value);
-              } else {
-                valueContext.onItemClose(value);
-              }
-            }
-          }
-        )
-      }
-    );
-  }
-);
-AccordionItem$1.displayName = ITEM_NAME$2;
-var HEADER_NAME = "AccordionHeader";
-var AccordionHeader = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeAccordion, ...headerProps } = props;
-    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(HEADER_NAME, __scopeAccordion);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.h3,
-      {
-        "data-orientation": accordionContext.orientation,
-        "data-state": getState(itemContext.open),
-        "data-disabled": itemContext.disabled ? "" : void 0,
-        ...headerProps,
-        ref: forwardedRef
-      }
-    );
-  }
-);
-AccordionHeader.displayName = HEADER_NAME;
-var TRIGGER_NAME$2 = "AccordionTrigger";
-var AccordionTrigger$1 = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeAccordion, ...triggerProps } = props;
-    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(TRIGGER_NAME$2, __scopeAccordion);
-    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME$2, __scopeAccordion);
-    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Collection$2.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Trigger$2,
-      {
-        "aria-disabled": itemContext.open && !collapsibleContext.collapsible || void 0,
-        "data-orientation": accordionContext.orientation,
-        id: itemContext.triggerId,
-        ...collapsibleScope,
-        ...triggerProps,
-        ref: forwardedRef
-      }
-    ) });
-  }
-);
-AccordionTrigger$1.displayName = TRIGGER_NAME$2;
-var CONTENT_NAME$3 = "AccordionContent";
-var AccordionContent$1 = React$2.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeAccordion, ...contentProps } = props;
-    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(CONTENT_NAME$3, __scopeAccordion);
-    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Content$1,
-      {
-        role: "region",
-        "aria-labelledby": itemContext.triggerId,
-        "data-orientation": accordionContext.orientation,
-        ...collapsibleScope,
-        ...contentProps,
-        ref: forwardedRef,
-        style: {
-          ["--radix-accordion-content-height"]: "var(--radix-collapsible-content-height)",
-          ["--radix-accordion-content-width"]: "var(--radix-collapsible-content-width)",
-          ...props.style
-        }
-      }
-    );
-  }
-);
-AccordionContent$1.displayName = CONTENT_NAME$3;
-function getState(open) {
-  return open ? "open" : "closed";
-}
-var Root2$3 = Accordion$1;
-var Item$2 = AccordionItem$1;
-var Header = AccordionHeader;
-var Trigger2 = AccordionTrigger$1;
-var Content2$1 = AccordionContent$1;
-function Accordion({
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2$3, { "data-slot": "accordion", ...props });
-}
-function AccordionItem({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Item$2,
-    {
-      "data-slot": "accordion-item",
-      className: cn("border-b last:border-b-0", className),
-      ...props
-    }
-  );
-}
-function AccordionTrigger({
-  className,
-  children,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Header, { className: "flex", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    Trigger2,
-    {
-      "data-slot": "accordion-trigger",
-      className: cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
-        className
-      ),
-      ...props,
-      children: [
-        children,
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" })
-      ]
-    }
-  ) });
-}
-function AccordionContent({
-  className,
-  children,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Content2$1,
-    {
-      "data-slot": "accordion-content",
-      className: "data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm",
-      ...props,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cn("pt-0 pb-4", className), children })
-    }
-  );
-}
-function Skeleton({ className, ...props }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      "data-slot": "skeleton",
-      className: cn("bg-accent animate-pulse rounded-md", className),
-      ...props
-    }
-  );
-}
-const faqsQueryKey = ["faqs", "published"];
-function useFaqs(limit = 12) {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery({
-    queryKey: [...faqsQueryKey, limit],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listPublishedFaqs(BigInt(limit));
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-const SKELETON_IDS$5 = Array.from({ length: 4 }, (_2, i) => `faq-skeleton-${i}`);
-function FaqSection() {
-  const { data: faqs, isLoading, isError, refetch } = useFaqs(5);
-  const visible = (faqs ?? []).slice(0, 5);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Section,
-    {
-      index: "05",
-      label: "FAQ",
-      muted: true,
-      "data-ocid": "home.faq_section",
-      className: "border-b border-border",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: "Questions, answered." }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-8", children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            "data-ocid": "home.faq_loading_state",
-            className: "space-y-4 border-t border-border pt-6",
-            children: SKELETON_IDS$5.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-12 rounded-sm" }, id))
-          }
-        ) : isError ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            "data-ocid": "home.faq_error_state",
-            className: "border border-border bg-card p-8",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "We couldn’t load the FAQ right now." }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  type: "button",
-                  onClick: () => void refetch(),
-                  "data-ocid": "home.faq_retry_button",
-                  className: "mt-4 rounded-sm text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  children: "Try again"
-                }
-              )
-            ]
-          }
-        ) : visible.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            "data-ocid": "home.faq_empty_state",
-            className: "border border-border bg-card p-8",
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "No questions published yet. Reach out and we’ll answer directly." })
-          }
-        ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Accordion,
-          {
-            type: "single",
-            collapsible: true,
-            "data-ocid": "home.faq_accordion",
-            className: "border-t border-border",
-            children: visible.map((faq, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              AccordionItem,
-              {
-                value: `faq-${faq.id}`,
-                "data-ocid": `home.faq.item.${i + 1}`,
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionTrigger, { className: "py-5 font-display text-base font-semibold tracking-tight hover:no-underline md:text-lg", children: faq.question }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(AccordionContent, { className: "max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground", children: faq.answer })
-                ]
-              },
-              String(faq.id)
-            ))
-          }
-        ) })
-      ] })
-    }
-  );
-}
-function Hero({ copy }) {
-  const primaryExternal = isAbsoluteUrl(copy.primaryCtaHref);
-  const secondaryExternal = isAbsoluteUrl(copy.secondaryCtaHref);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "section",
-    {
-      "data-ocid": "home.hero_section",
-      className: "relative overflow-hidden border-b border-border",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            "aria-hidden": "true",
-            className: "pointer-events-none absolute inset-0 bg-dot-grid opacity-60 [mask-image:linear-gradient(to_bottom,black,transparent_75%)]"
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "relative", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "00" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Software company" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-12 py-20 md:grid-cols-12 md:gap-10 md:py-28", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance font-display text-5xl font-bold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl", children: copy.heroHeadline }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col justify-end md:col-span-5", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-md text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.heroDescription }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-9 flex flex-wrap gap-3", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(PrimaryButton, { asChild: true, size: "lg", children: primaryExternal ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "a",
-                  {
-                    href: copy.primaryCtaHref,
-                    rel: "noreferrer",
-                    target: "_blank",
-                    "data-ocid": "home.primary_cta_button",
-                    children: [
-                      copy.primaryCtaLabel,
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-                    ]
-                  }
-                ) : /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  Link,
-                  {
-                    to: copy.primaryCtaHref,
-                    "data-ocid": "home.primary_cta_button",
-                    children: [
-                      copy.primaryCtaLabel,
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-                    ]
-                  }
-                ) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, size: "lg", children: secondaryExternal ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "a",
-                  {
-                    href: copy.secondaryCtaHref,
-                    rel: "noreferrer",
-                    target: "_blank",
-                    "data-ocid": "home.secondary_cta_button",
-                    children: copy.secondaryCtaLabel
-                  }
-                ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  Link,
-                  {
-                    to: copy.secondaryCtaHref,
-                    "data-ocid": "home.secondary_cta_button",
-                    children: copy.secondaryCtaLabel
-                  }
-                ) })
-              ] })
-            ] })
-          ] })
-        ] })
-      ]
-    }
-  );
-}
-function PhilosophySection({ copy }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Section,
-    {
-      index: "01",
-      label: "Philosophy",
-      "data-ocid": "home.philosophy_section",
-      className: "border-b border-border",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: copy.philosophyTitle }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.philosophyBody }) })
-      ] })
-    }
-  );
-}
-function timestampToDate(timestamp) {
-  const date = new Date(Number(timestamp / 1000000n));
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-function formatDate(timestamp) {
-  const date = timestampToDate(timestamp);
-  if (!date) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(date);
-}
-function formatDateTime(timestamp) {
-  const date = timestampToDate(timestamp);
-  if (!date) return "—";
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
-}
-function sectionIndex(index2) {
-  return String(index2).padStart(2, "0");
-}
-function hasProductImage(image) {
-  if (!image) return false;
-  const bytes = image._blob;
-  return bytes !== void 0 && bytes !== null && bytes.byteLength > 0;
-}
-function monogram(name) {
-  const trimmed = name.trim();
-  return trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "•";
-}
-function ProductCard({ product, position, total }) {
-  const counter = `${sectionIndex(position)} / ${sectionIndex(total)}`;
-  const image = hasProductImage(product.imageKey) ? product.imageKey : null;
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    SurfaceCard,
-    {
-      interactive: true,
-      "data-ocid": `products.item.${position}`,
-      className: "flex h-full min-w-0 flex-col",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-3 border-b border-border px-6 py-4", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex min-w-0 items-center gap-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, {}),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate font-mono text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground", children: "Product" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "shrink-0 font-mono text-xs tracking-[0.16em] text-muted-foreground", children: counter })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex min-w-0 flex-1 flex-col p-6", children: [
-          image ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "img",
-            {
-              src: image.getDirectURL(),
-              alt: `${product.name} product logo`,
-              loading: "lazy",
-              decoding: "async",
-              className: "mb-6 h-14 w-14 shrink-0 rounded-sm border border-border object-cover"
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "div",
-            {
-              "aria-hidden": "true",
-              className: "mb-6 flex h-14 w-14 shrink-0 items-center justify-center rounded-sm border border-dashed border-border bg-muted/40 font-display text-lg font-bold text-muted-foreground",
-              children: monogram(product.name)
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "break-words font-display text-xl font-bold tracking-tight", children: product.name }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 flex-1 text-pretty break-words text-sm leading-relaxed text-muted-foreground", children: product.description }),
-          product.link ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "a",
-            {
-              href: product.link,
-              target: "_blank",
-              rel: "noreferrer",
-              "data-ocid": `products.link.${position}`,
-              className: "mt-6 inline-flex items-center gap-1.5 self-start rounded-sm text-sm font-medium text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              children: [
-                "Visit product",
-                /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowUpRight, { "aria-hidden": "true", className: "h-4 w-4" })
-              ]
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { className: "mt-6 self-start", children: "In development" })
-        ] })
-      ]
-    }
-  );
-}
-const productsQueryKey = ["products", "published"];
-function useProducts() {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery({
-    queryKey: productsQueryKey,
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listPublishedProducts();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-const SKELETON_IDS$4 = Array.from(
-  { length: 3 },
-  (_2, i) => `product-skeleton-${i}`
-);
-function ProductsPreview() {
-  const { data: products, isLoading, isError, refetch } = useProducts();
-  const visible = (products ?? []).slice(0, 3);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    Section,
-    {
-      index: "02",
-      label: "Products",
-      "data-ocid": "home.products_section",
-      className: "border-b border-border",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-10 flex flex-wrap items-end justify-between gap-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: "Products in development." }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/products", "data-ocid": "home.products_link", children: [
-            "View all products",
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-          ] }) })
-        ] }),
-        isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            "data-ocid": "home.products_loading_state",
-            className: "grid gap-6 md:grid-cols-3",
-            children: SKELETON_IDS$4.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-64 rounded-sm" }, id))
-          }
-        ) : isError ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            "data-ocid": "home.products_error_state",
-            className: "border border-border bg-card p-8",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "We couldn’t load our products right now." }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                SecondaryButton,
-                {
-                  type: "button",
-                  className: "mt-4",
-                  onClick: () => void refetch(),
-                  "data-ocid": "home.products_retry_button",
-                  children: "Try again"
-                }
-              )
-            ]
-          }
-        ) : visible.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            "data-ocid": "home.products_empty_state",
-            className: "border border-border bg-card p-10 md:p-14",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "In development" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground", children: "We are building our first products now. Join the waitlist to hear when they launch." }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, className: "mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/waitlist", "data-ocid": "home.products_waitlist_link", children: "Join the waitlist" }) })
-            ]
-          }
-        ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-6 md:grid-cols-3", children: visible.map((product, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          ProductCard,
-          {
-            product,
-            position: i + 1,
-            total: visible.length
-          },
-          String(product.id)
-        )) })
-      ]
-    }
-  );
-}
-function Home() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Software, built to matter",
-        description: "Ovanite is a software company building products designed to matter — precise, durable, and made for the long term."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Hero, { copy }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(PhilosophySection, { copy }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ProductsPreview, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ApproachSection, { copy }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(AboutPreview, { copy }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(FaqSection, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(ContactCta, {})
-  ] });
-}
-function NotFound() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Page not found",
-        description: "The page you were looking for does not exist. Return to the Ovanite home page or explore our products."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Breadcrumbs,
-      {
-        items: [{ label: "Home", to: "/" }, { label: "Not found" }]
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { className: "py-24 md:py-36", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto min-w-0 max-w-xl", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "Error 404" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mt-5 text-balance break-words font-display text-5xl font-bold tracking-tight md:text-6xl", children: "This page doesn’t exist." }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-6 text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: "The link may be broken, or the page may have moved. Let’s get you back to something useful." }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 flex flex-wrap gap-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(PrimaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", "data-ocid": "not_found.home_button", children: "Back to home" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/products", "data-ocid": "not_found.products_button", children: "Explore products" }) })
-      ] })
-    ] }) })
-  ] });
-}
-function toParagraphs$1(body) {
-  return body.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter((paragraph) => paragraph.length > 0);
-}
-function Privacy() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  const paragraphs = toParagraphs$1(copy.privacyBody);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Privacy",
-        description: "How Ovanite handles the information you share through our contact and waitlist forms."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Breadcrumbs, { items: [{ label: "Home", to: "/" }, { label: "Privacy" }] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Legal" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 min-w-0 max-w-3xl", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance break-words font-display text-4xl font-bold tracking-tight md:text-5xl", children: "Privacy Policy" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-8 space-y-5 text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: paragraphs.map((paragraph) => /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: paragraph }, paragraph)) })
-      ] })
-    ] })
-  ] });
-}
-const SKELETON_IDS$3 = Array.from(
-  { length: 6 },
-  (_2, i) => `products-skeleton-${i}`
-);
-const DEVELOPMENT_NOTES = [
-  {
-    index: "01",
-    title: "Designed before it is built",
-    body: "Every product starts as a written problem and a considered interface, not a feature list."
-  },
-  {
-    index: "02",
-    title: "Built to be maintained",
-    body: "We ship software we intend to keep running, so durability is a requirement from day one."
-  },
-  {
-    index: "03",
-    title: "Published when it is ready",
-    body: "Products appear here the moment they are released. Nothing is announced before it works."
-  }
-];
-function Products() {
-  const { data: products, isLoading, isError, refetch } = useProducts();
-  const visible = products ?? [];
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Products",
-        description: "Explore the software products Ovanite has published, and see what is currently in development."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Breadcrumbs,
-      {
-        items: [{ label: "Home", to: "/" }, { label: "Products" }]
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Products" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 grid gap-10 md:grid-cols-12", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance font-display text-4xl font-bold tracking-tight md:text-6xl", children: "Products in the field." }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "max-w-md text-pretty text-lg leading-relaxed text-muted-foreground", children: "Every product below is designed, built, and maintained by Ovanite. Follow the links to see them in use." }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-16", children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          "aria-busy": "true",
-          "data-ocid": "products.loading_state",
-          className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "sr-only", children: "Loading products…" }),
-            SKELETON_IDS$3.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-64 rounded-sm" }, id))
-          ]
-        }
-      ) : isError ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          role: "alert",
-          "data-ocid": "products.error_state",
-          className: "border border-border bg-card p-10 md:p-14",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, { className: "bg-destructive" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Something went wrong" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-5 max-w-2xl text-balance font-display text-2xl font-bold tracking-tight md:text-3xl", children: "We couldn’t load our products." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground", children: "This is usually temporary. Try again, or reach out and we will help directly." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-8 flex flex-wrap gap-3", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                PrimaryButton,
-                {
-                  type: "button",
-                  onClick: () => void refetch(),
-                  "data-ocid": "products.retry_button",
-                  children: "Try again"
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/contact", "data-ocid": "products.error_contact_link", children: "Contact us" }) })
-            ] })
-          ]
-        }
-      ) : visible.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          "data-ocid": "products.empty_state",
-          className: "border border-border bg-card",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 p-8 md:grid-cols-12 md:gap-12 md:p-14", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-7", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, {}),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Products in development" })
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-6 max-w-2xl text-balance font-display text-3xl font-bold tracking-tight md:text-4xl", children: "Our first products are on the way." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground", children: "We are building now. Each product will be published here the moment it ships, with a direct link to use it. Join the waitlist to be the first to know." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-9 flex flex-wrap gap-3", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(PrimaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/waitlist", "data-ocid": "products.waitlist_link", children: [
-                    "Join the waitlist",
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-                  ] }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/contact", "data-ocid": "products.contact_link", children: "Start a conversation" }) })
-                ] })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-5", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-border bg-muted/40 p-6", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-3 border-b border-border pb-4", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground", children: "How we work" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: "In progress" })
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "mt-5 space-y-5", children: DEVELOPMENT_NOTES.map((note) => /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex gap-4", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mt-0.5 shrink-0 font-mono text-xs font-medium tracking-[0.16em] text-primary", children: note.index }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-display text-sm font-bold tracking-tight", children: note.title }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-pretty text-sm leading-relaxed text-muted-foreground", children: note.body })
-                  ] })
-                ] }, note.index)) })
-              ] }) })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border px-8 py-5 font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground md:px-14", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "inline-flex items-center gap-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Compass, { "aria-hidden": "true", className: "h-3.5 w-3.5" }),
-                "Publishing as we ship"
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "inline-flex items-center gap-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Mail, { "aria-hidden": "true", className: "h-3.5 w-3.5" }),
-                "Waitlist opens first"
-              ] })
-            ] })
-          ]
-        }
-      ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3", children: visible.map((product, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ProductCard,
-        {
-          product,
-          position: i + 1,
-          total: visible.length
-        },
-        String(product.id)
-      )) }) })
-    ] })
-  ] });
-}
-function toParagraphs(body) {
-  return body.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter((paragraph) => paragraph.length > 0);
-}
-function Terms() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  const paragraphs = toParagraphs(copy.termsBody);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Terms",
-        description: "The terms that govern your use of the Ovanite website and its content."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Breadcrumbs, { items: [{ label: "Home", to: "/" }, { label: "Terms" }] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Legal" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 min-w-0 max-w-3xl", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance break-words font-display text-4xl font-bold tracking-tight md:text-5xl", children: "Terms of Use" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-8 space-y-5 text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: paragraphs.map((paragraph) => /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: paragraph }, paragraph)) })
-      ] })
-    ] })
-  ] });
-}
-function ThankYou() {
-  const location2 = useLocation();
-  const state = location2.state;
-  const isWaitlist = (state == null ? void 0 : state.kind) === "waitlist";
-  const heading = isWaitlist ? "You're on the list." : "Thank you for reaching out.";
-  const body = isWaitlist ? "We have your details and will be in touch when there is something real to share. No noise in between." : "We have received your message and will reply as soon as we can. In the meantime, feel free to explore what we are building.";
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Thank you",
-        description: "Thank you for getting in touch with Ovanite. We have received your submission."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { className: "py-24 md:py-36", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto min-w-0 max-w-2xl", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Confirmation" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "h1",
-        {
-          "data-ocid": "thank_you.heading",
-          className: "mt-10 text-balance break-words font-display text-4xl font-bold tracking-tight md:text-6xl",
-          children: heading
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-6 text-pretty break-words text-lg leading-relaxed text-muted-foreground", children: body }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 flex flex-wrap gap-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(PrimaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/products", "data-ocid": "thank_you.products_button", children: [
-          "Explore products",
-          /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { "aria-hidden": "true", className: "h-4 w-4" })
-        ] }) }),
-        isWaitlist ? /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/contact", "data-ocid": "thank_you.contact_button", children: "Send us a message" }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx(SecondaryButton, { asChild: true, size: "lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", "data-ocid": "thank_you.home_button", children: "Back to home" }) })
-      ] })
-    ] }) })
-  ] });
-}
-const FIELD_IDS = {
-  name: "waitlist-name",
-  email: "waitlist-email",
-  note: "waitlist-note"
-};
-function WaitlistForm() {
-  const navigate = useNavigate();
-  const { actor } = useActor(createActor);
-  const [name, setName] = reactExports.useState("");
-  const [email, setEmail] = reactExports.useState("");
-  const [note, setNote] = reactExports.useState("");
-  const [errors, setErrors] = reactExports.useState({});
-  const [alreadyReceived, setAlreadyReceived] = reactExports.useState(false);
-  const mutation = useMutation({
-    mutationFn: async (input) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.submitWaitlist(input);
-    },
-    onSuccess: (result) => {
-      if (isDuplicateResult(result)) {
-        setAlreadyReceived(true);
-        return;
-      }
-      navigate("/thank-you", { state: { kind: "waitlist" } });
-    }
-  });
-  function validate() {
-    const next = {
-      name: validateName(name),
-      email: validateEmail(email),
-      note: validateNote(note)
-    };
-    setErrors(next);
-    return !next.name && !next.email && !next.note;
-  }
-  function handleSubmit(event) {
-    event.preventDefault();
-    setAlreadyReceived(false);
-    if (!validate()) return;
-    const trimmedNote = note.trim();
-    mutation.mutate({
-      name: name.trim(),
-      email: email.trim(),
-      ...trimmedNote ? { note: trimmedNote } : {}
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "form",
-    {
-      noValidate: true,
-      onSubmit: handleSubmit,
-      "data-ocid": "waitlist.form",
-      className: "space-y-6",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: FIELD_IDS.name, className: "mb-2", children: "Name" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: FIELD_IDS.name,
-              name: "name",
-              autoComplete: "name",
-              value: name,
-              onChange: (event) => setName(event.target.value),
-              "aria-invalid": errors.name ? true : void 0,
-              "aria-describedby": errors.name ? `${FIELD_IDS.name}-error` : void 0,
-              "data-ocid": "waitlist.name_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          errors.name ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS.name}-error`,
-              role: "alert",
-              "data-ocid": "waitlist.name_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.name
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: FIELD_IDS.email, className: "mb-2", children: "Email" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: FIELD_IDS.email,
-              name: "email",
-              type: "email",
-              autoComplete: "email",
-              value: email,
-              onChange: (event) => setEmail(event.target.value),
-              "aria-invalid": errors.email ? true : void 0,
-              "aria-describedby": errors.email ? `${FIELD_IDS.email}-error` : void 0,
-              "data-ocid": "waitlist.email_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          errors.email ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS.email}-error`,
-              role: "alert",
-              "data-ocid": "waitlist.email_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.email
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { htmlFor: FIELD_IDS.note, className: "mb-2", children: [
-            "Note",
-            " ",
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-normal text-muted-foreground", children: "(optional)" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              id: FIELD_IDS.note,
-              name: "note",
-              rows: 4,
-              value: note,
-              onChange: (event) => setNote(event.target.value),
-              "aria-invalid": errors.note ? true : void 0,
-              "aria-describedby": errors.note ? `${FIELD_IDS.note}-error` : void 0,
-              "data-ocid": "waitlist.note_textarea",
-              className: "min-h-24 rounded-sm"
-            }
-          ),
-          errors.note ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: `${FIELD_IDS.note}-error`,
-              role: "alert",
-              "data-ocid": "waitlist.note_error",
-              className: "mt-2 text-sm text-destructive",
-              children: errors.note
-            }
-          ) : null
-        ] }),
-        alreadyReceived ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "output",
-          {
-            "aria-live": "polite",
-            "data-ocid": "waitlist.already_received_state",
-            className: "block border border-accent/40 bg-accent/5 px-4 py-3 text-sm text-foreground",
-            children: "Already received — you are on the list with this exact note. We will be in touch when there is something real to share."
-          }
-        ) : null,
-        mutation.isError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
-          {
-            role: "alert",
-            "data-ocid": "waitlist.error_state",
-            className: "border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-            children: "Something went wrong joining the waitlist. Please try again."
-          }
-        ) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          PrimaryButton,
-          {
-            type: "submit",
-            size: "lg",
-            disabled: mutation.isPending,
-            "data-ocid": "waitlist.submit_button",
-            children: mutation.isPending ? "Joining…" : "Join the waitlist"
-          }
-        )
-      ]
-    }
-  );
-}
-function Waitlist() {
-  const { data } = useSiteContent();
-  const copy = resolveSiteCopy(data);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Waitlist",
-        description: "Join the Ovanite waitlist to be the first to know when our software products launch."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Breadcrumbs,
-      {
-        items: [{ label: "Home", to: "/" }, { label: "Waitlist" }]
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-16 md:py-24", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-baseline gap-3 border-t border-border pt-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-medium tracking-[0.22em] text-primary", children: "01" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Waitlist" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 grid gap-14 md:grid-cols-12 md:gap-10", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-balance font-display text-4xl font-bold tracking-tight md:text-5xl", children: copy.waitlistTitle }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-6 max-w-md text-pretty text-lg leading-relaxed text-muted-foreground", children: copy.waitlistBody })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "md:col-span-7", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-border bg-card", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-10", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "eyebrow", children: "Early access" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground", children: "No noise, launch updates only" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-6 md:p-10", children: /* @__PURE__ */ jsxRuntimeExports.jsx(WaitlistForm, {}) })
-        ] }) })
-      ] })
-    ] })
-  ] });
-}
-const ADMIN_NAV_ITEMS = [
-  { label: "Dashboard", to: "/admin", end: true },
-  { label: "Products", to: "/admin/products" },
-  { label: "FAQs", to: "/admin/faqs" },
-  { label: "Site Copy", to: "/admin/site-copy" },
-  { label: "Submissions", to: "/admin/submissions" },
-  { label: "Team", to: "/admin/team" }
-];
-const linkClass = ({ isActive }) => cn(
-  "flex min-h-[44px] items-center rounded-sm border-l-2 px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-  isActive ? "border-primary bg-muted/60 text-foreground" : "border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-);
-function AdminNav() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "nav",
-    {
-      "aria-label": "Admin sections",
-      "data-ocid": "admin.nav",
-      className: "border-b border-border bg-card md:border-b-0 md:border-r",
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex gap-1 overflow-x-auto p-2 md:flex-col md:overflow-visible md:p-4", children: ADMIN_NAV_ITEMS.map((item) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-        NavLink,
-        {
-          to: item.to,
-          end: item.end,
-          "data-ocid": `admin.nav.${item.label.toLowerCase().replace(/\s+/g, "_")}_link`,
-          className: linkClass,
-          children: item.label
-        },
-        item.to
-      )) })
-    }
-  );
-}
-function AdminLayout({
-  title,
-  description,
-  action,
-  children
-}) {
-  const { data: admin } = useAdmin();
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-10 md:py-14", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-end justify-between gap-6 border-t border-border pt-4", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "Admin" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mt-3 font-display text-3xl font-bold tracking-tight md:text-4xl", children: title }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground", children: description })
-      ] }),
-      action ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "shrink-0", children: action }) : null
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 grid gap-8 md:grid-cols-[220px_minmax(0,1fr)]", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:sticky md:top-24 md:self-start", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(AdminNav, {}),
-        admin ? /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-4 hidden break-all px-4 font-mono text-[0.6875rem] leading-relaxed text-muted-foreground md:block", children: [
-          admin.isOwner ? "Owner" : "Admin",
-          " · ",
-          admin.principal.toText()
-        ] }) : null
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0", children })
-    ] })
-  ] });
-}
-const adminFaqsQueryKey = ["admin", "faqs"];
-function useAdminFaqs() {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery({
-    queryKey: adminFaqsQueryKey,
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listAllFaqs();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-function useInvalidateFaqs() {
-  const queryClient2 = useQueryClient();
-  return () => {
-    void queryClient2.invalidateQueries({ queryKey: adminFaqsQueryKey });
-    void queryClient2.invalidateQueries({ queryKey: ["faqs", "published"] });
-  };
-}
-function useCreateFaq() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateFaqs();
-  return useMutation({
-    mutationFn: async (input) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.createFaq(input);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useUpdateFaq() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateFaqs();
-  return useMutation({
-    mutationFn: async ({ id, patch }) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.updateFaq(id, patch);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useSetFaqState() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateFaqs();
-  return useMutation({
-    mutationFn: async ({ id, state }) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.setFaqState(id, state);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useDeleteFaq() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateFaqs();
-  return useMutation({
-    mutationFn: async (id) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.deleteFaq(id);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-const adminProductsQueryKey = ["admin", "products"];
-function useAdminProducts() {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery({
-    queryKey: adminProductsQueryKey,
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listAllProducts();
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-function useInvalidateProducts() {
-  const queryClient2 = useQueryClient();
-  return () => {
-    void queryClient2.invalidateQueries({ queryKey: adminProductsQueryKey });
-    void queryClient2.invalidateQueries({ queryKey: ["products", "published"] });
-  };
-}
-function useCreateProduct() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateProducts();
-  return useMutation({
-    mutationFn: async (input) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.createProduct(input);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useUpdateProduct() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateProducts();
-  return useMutation({
-    mutationFn: async ({ id, patch }) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.updateProduct(id, patch);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useSetProductState() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateProducts();
-  return useMutation({
-    mutationFn: async ({ id, state }) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.setProductState(id, state);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-function useDeleteProduct() {
-  const { actor } = useActor(createActor);
-  const invalidate = useInvalidateProducts();
-  return useMutation({
-    mutationFn: async (id) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.deleteProduct(id);
-    },
-    onSuccess: () => {
-      invalidate();
-    }
-  });
-}
-const adminSubmissionsQueryKey = ["admin", "submissions"];
-function useAdminSubmissions(filter) {
-  const { actor, isFetching } = useActor(createActor);
-  return useQuery({
-    queryKey: [
-      ...adminSubmissionsQueryKey,
-      filter.kind ?? "all",
-      filter.status ?? "all"
-    ],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listSubmissions(filter);
-    },
-    enabled: !!actor && !isFetching
-  });
-}
-function useSetSubmissionStatus() {
-  const { actor } = useActor(createActor);
-  const queryClient2 = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      id,
-      status
-    }) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.setSubmissionStatus(id, status);
-    },
-    onSuccess: () => {
-      void queryClient2.invalidateQueries({
-        queryKey: adminSubmissionsQueryKey
-      });
-    }
-  });
-}
-function useDeleteSubmission() {
-  const { actor } = useActor(createActor);
-  const queryClient2 = useQueryClient();
-  return useMutation({
-    mutationFn: async (id) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.deleteSubmission(id);
-    },
-    onSuccess: () => {
-      void queryClient2.invalidateQueries({
-        queryKey: adminSubmissionsQueryKey
-      });
-    }
-  });
-}
-const SKELETON_IDS$2 = Array.from(
-  { length: 4 },
-  (_2, i) => `admin-dashboard-skeleton-${i}`
-);
-const SUBMISSION_KIND_LABELS = {
-  contact: "Contact",
-  waitlist: "Waitlist"
-};
-function submissionKindLabel(kind) {
-  return SUBMISSION_KIND_LABELS[kind] ?? kind;
-}
-function AdminDashboard() {
-  const products = useAdminProducts();
-  const faqs = useAdminFaqs();
-  const submissions = useAdminSubmissions({});
-  const team = useAdminTeam();
-  const siteContent = useSiteContent();
-  const isLoading = products.isLoading || faqs.isLoading || submissions.isLoading || team.isLoading || siteContent.isLoading;
-  const productList = products.data ?? [];
-  const faqList = faqs.data ?? [];
-  const submissionList = submissions.data ?? [];
-  const teamList = team.data ?? [];
-  const publishedProducts = productList.filter(
-    (product) => product.state === "published"
-  ).length;
-  const publishedFaqs = faqList.filter(
-    (faq) => faq.state === "published"
-  ).length;
-  const unreadSubmissions = submissionList.filter(
-    (submission) => submission.status === SubmissionStatus.new_
-  ).length;
-  const stats = [
-    {
-      label: "Products",
-      value: String(productList.length),
-      detail: `${publishedProducts} published`,
-      to: "/admin/products",
-      ocid: "admin.dashboard.products_card"
-    },
-    {
-      label: "FAQs",
-      value: String(faqList.length),
-      detail: `${publishedFaqs} published`,
-      to: "/admin/faqs",
-      ocid: "admin.dashboard.faqs_card"
-    },
-    {
-      label: "Submissions",
-      value: String(submissionList.length),
-      detail: `${unreadSubmissions} unread`,
-      to: "/admin/submissions",
-      ocid: "admin.dashboard.submissions_card"
-    },
-    {
-      label: "Team",
-      value: String(teamList.length),
-      detail: "Admins with access",
-      to: "/admin/team",
-      ocid: "admin.dashboard.team_card"
-    }
-  ];
-  const recent = submissionList.slice(0, 5);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Admin",
-        description: "Manage Ovanite products, FAQs, site copy, submissions, and team access."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      AdminLayout,
-      {
-        title: "Dashboard",
-        description: "An overview of the content, submissions, and access that power the Ovanite site.",
-        children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "div",
-          {
-            "data-ocid": "admin.dashboard.loading_state",
-            className: "grid gap-4 sm:grid-cols-2",
-            children: SKELETON_IDS$2.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-32 rounded-sm" }, id))
-          }
-        ) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-10", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-4 sm:grid-cols-2", children: stats.map((stat) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SurfaceCard,
-            {
-              interactive: true,
-              "data-ocid": stat.ocid,
-              className: "p-6",
-              children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                Link,
-                {
-                  to: stat.to,
-                  className: "flex items-start justify-between gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: stat.label }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 font-display text-4xl font-bold tracking-tight", children: stat.value }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: stat.detail })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      ArrowRight,
-                      {
-                        "aria-hidden": "true",
-                        className: "mt-1 h-4 w-4 shrink-0 text-muted-foreground"
-                      }
-                    )
-                  ]
-                }
-              )
-            },
-            stat.label
-          )) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border border-border bg-card", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-4 border-b border-border px-6 py-4", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-lg font-bold tracking-tight", children: "Recent submissions" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                Link,
-                {
-                  to: "/admin/submissions",
-                  "data-ocid": "admin.dashboard.view_submissions_link",
-                  className: "rounded-sm text-sm font-medium text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                  children: "View all"
-                }
-              )
-            ] }),
-            recent.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "div",
-              {
-                "data-ocid": "admin.dashboard.submissions_empty_state",
-                className: "px-6 py-10 text-sm text-muted-foreground",
-                children: "No submissions yet. Contact and waitlist entries will appear here."
-              }
-            ) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { "data-ocid": "admin.dashboard.submissions_list", children: recent.map((submission, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "li",
-              {
-                "data-ocid": `admin.dashboard.submission_item.${i + 1}`,
-                className: "flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4 last:border-b-0",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "truncate text-sm font-medium", children: submission.name }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "truncate text-xs text-muted-foreground", children: submission.email })
-                  ] }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs uppercase tracking-[0.16em] text-muted-foreground", children: submissionKindLabel(submission.kind) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs text-muted-foreground", children: formatDateTime(submission.createdAt) })
-                  ] })
-                ]
-              },
-              String(submission.id)
-            )) })
-          ] })
-        ] })
-      }
-    )
-  ] });
-}
-function parseSortOrder$1(value) {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed < 0) return 0n;
-  return BigInt(parsed);
-}
-function FaqForm({
-  faq,
-  onSubmit,
-  onCancel,
-  isPending,
-  errorMessage
-}) {
-  const [question, setQuestion] = reactExports.useState((faq == null ? void 0 : faq.question) ?? "");
-  const [answer, setAnswer] = reactExports.useState((faq == null ? void 0 : faq.answer) ?? "");
-  const [sortOrder, setSortOrder] = reactExports.useState(faq ? String(faq.sortOrder) : "0");
-  const questionError = question.trim() === "" ? "A question is required." : null;
-  const answerError = answer.trim() === "" ? "An answer is required." : null;
-  function handleSubmit(event) {
-    event.preventDefault();
-    if (questionError || answerError) return;
-    onSubmit({
-      question: question.trim(),
-      answer: answer.trim(),
-      sortOrder: parseSortOrder$1(sortOrder)
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "form",
-    {
-      noValidate: true,
-      onSubmit: handleSubmit,
-      "data-ocid": "admin.faq_form",
-      className: "space-y-6 border border-border bg-card p-6 md:p-8",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "faq-question", className: "mb-2", children: "Question" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: "faq-question",
-              value: question,
-              onChange: (event) => setQuestion(event.target.value),
-              "aria-invalid": questionError ? true : void 0,
-              "aria-describedby": questionError ? "faq-question-error" : void 0,
-              "data-ocid": "admin.faq.question_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          questionError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: "faq-question-error",
-              role: "alert",
-              "data-ocid": "admin.faq.question_error",
-              className: "mt-2 text-sm text-destructive",
-              children: questionError
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "faq-answer", className: "mb-2", children: "Answer" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              id: "faq-answer",
-              rows: 5,
-              value: answer,
-              onChange: (event) => setAnswer(event.target.value),
-              "aria-invalid": answerError ? true : void 0,
-              "aria-describedby": answerError ? "faq-answer-error" : void 0,
-              "data-ocid": "admin.faq.answer_textarea",
-              className: "min-h-32 rounded-sm"
-            }
-          ),
-          answerError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: "faq-answer-error",
-              role: "alert",
-              "data-ocid": "admin.faq.answer_error",
-              className: "mt-2 text-sm text-destructive",
-              children: answerError
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-xs", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "faq-sort-order", className: "mb-2", children: "Order" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: "faq-sort-order",
-              type: "number",
-              min: 0,
-              inputMode: "numeric",
-              value: sortOrder,
-              onChange: (event) => setSortOrder(event.target.value),
-              "data-ocid": "admin.faq.sort_order_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground", children: "Lower numbers appear first." })
-        ] }),
-        errorMessage ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
-          {
-            role: "alert",
-            "data-ocid": "admin.faq.form_error",
-            className: "border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-            children: errorMessage
-          }
-        ) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-3 border-t border-border pt-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            PrimaryButton,
-            {
-              type: "submit",
-              disabled: isPending,
-              "data-ocid": "admin.faq.submit_button",
-              children: isPending ? "Saving…" : faq ? "Save changes" : "Create FAQ"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SecondaryButton,
-            {
-              type: "button",
-              onClick: onCancel,
-              disabled: isPending,
-              "data-ocid": "admin.faq.cancel_button",
-              children: "Cancel"
-            }
-          )
-        ] })
-      ]
-    }
-  );
-}
-const SKELETON_IDS$1 = Array.from(
-  { length: 4 },
-  (_2, i) => `admin-faqs-skeleton-${i}`
-);
-function errorText$2(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("Unauthorized")) {
-    return "You do not have permission to perform this action.";
-  }
-  return "Something went wrong. Please try again.";
-}
-function AdminFaqs() {
-  const { data, isLoading, isError, refetch } = useAdminFaqs();
-  const createFaq = useCreateFaq();
-  const updateFaq = useUpdateFaq();
-  const setFaqState = useSetFaqState();
-  const deleteFaq = useDeleteFaq();
-  const [editing, setEditing] = reactExports.useState(null);
-  const [creating, setCreating] = reactExports.useState(false);
-  const [confirmingId, setConfirmingId] = reactExports.useState(null);
-  const faqs = data ?? [];
-  const sorted = [...faqs].sort((a2, b2) => {
-    if (a2.sortOrder === b2.sortOrder) return Number(a2.id - b2.id);
-    return a2.sortOrder < b2.sortOrder ? -1 : 1;
-  });
-  const formOpen = creating || editing !== null;
-  const activeMutation = editing ? updateFaq : createFaq;
-  function closeForm() {
-    setCreating(false);
-    setEditing(null);
-    createFaq.reset();
-    updateFaq.reset();
-  }
-  function handleSubmit(input) {
-    if (editing) {
-      updateFaq.mutate(
-        { id: editing.id, patch: input },
-        { onSuccess: () => closeForm() }
-      );
-      return;
-    }
-    createFaq.mutate(input, { onSuccess: () => closeForm() });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "FAQs",
-        description: "Create, edit, order, and publish the frequently asked questions shown on the Ovanite site."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      AdminLayout,
-      {
-        title: "FAQs",
-        description: "Create, edit, order, and publish the questions shown on the public site.",
-        action: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          PrimaryButton,
-          {
-            type: "button",
-            onClick: () => {
-              setEditing(null);
-              setCreating(true);
-            },
-            "data-ocid": "admin.faqs.create_button",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { "aria-hidden": "true", className: "h-4 w-4" }),
-              "New FAQ"
-            ]
-          }
-        ),
-        children: [
-          formOpen ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-8", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mb-4 font-display text-lg font-bold tracking-tight", children: editing ? "Edit FAQ" : "New FAQ" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              FaqForm,
-              {
-                faq: editing ?? void 0,
-                onSubmit: handleSubmit,
-                onCancel: closeForm,
-                isPending: activeMutation.isPending,
-                errorMessage: activeMutation.isError ? errorText$2(activeMutation.error) : void 0
-              },
-              editing ? String(editing.id) : "new"
-            )
-          ] }) : null,
-          isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { "data-ocid": "admin.faqs.loading_state", className: "space-y-3", children: SKELETON_IDS$1.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-24 rounded-sm" }, id)) }) : isError ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              "data-ocid": "admin.faqs.error_state",
-              className: "border border-border bg-card p-8",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "We couldn’t load the FAQs." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  SecondaryButton,
-                  {
-                    type: "button",
-                    className: "mt-4",
-                    onClick: () => void refetch(),
-                    "data-ocid": "admin.faqs.retry_button",
-                    children: "Try again"
-                  }
-                )
-              ]
-            }
-          ) : sorted.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              "data-ocid": "admin.faqs.empty_state",
-              className: "border border-border bg-card p-10 text-center",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "No FAQs" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-4 font-display text-2xl font-bold tracking-tight", children: "Add your first FAQ" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mx-auto mt-3 max-w-md text-sm text-muted-foreground", children: "Published FAQs appear in the questions section of the public site." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  PrimaryButton,
-                  {
-                    type: "button",
-                    className: "mt-6",
-                    onClick: () => setCreating(true),
-                    "data-ocid": "admin.faqs.empty_create_button",
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { "aria-hidden": "true", className: "h-4 w-4" }),
-                      "New FAQ"
-                    ]
-                  }
-                )
-              ]
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { "data-ocid": "admin.faqs.list", className: "space-y-3", children: sorted.map((faq, i) => {
-            const isPublished = faq.state === "published";
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "li",
-              {
-                "data-ocid": `admin.faqs.item.${i + 1}`,
-                className: "border border-border bg-card p-5",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start justify-between gap-4", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "font-display text-lg font-bold tracking-tight", children: faq.question }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: isPublished ? "Published" : "Draft" })
-                      ] }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 line-clamp-3 max-w-2xl text-sm text-muted-foreground", children: faq.answer }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                          "Order ",
-                          String(faq.sortOrder)
-                        ] }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                          "Updated ",
-                          formatDate(faq.updatedAt)
-                        ] })
-                      ] })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => setFaqState.mutate({
-                            id: faq.id,
-                            state: isPublished ? PublishState.draft : PublishState.published
-                          }),
-                          disabled: setFaqState.isPending,
-                          "data-ocid": `admin.faqs.publish_toggle.${i + 1}`,
-                          children: isPublished ? "Unpublish" : "Publish"
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => {
-                            setCreating(false);
-                            setEditing(faq);
-                          },
-                          "data-ocid": `admin.faqs.edit_button.${i + 1}`,
-                          children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Pencil, { "aria-hidden": "true", className: "h-4 w-4" }),
-                            "Edit"
-                          ]
-                        }
-                      ),
-                      confirmingId === faq.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          SecondaryButton,
-                          {
-                            type: "button",
-                            onClick: () => {
-                              deleteFaq.mutate(faq.id);
-                              setConfirmingId(null);
-                            },
-                            disabled: deleteFaq.isPending,
-                            "data-ocid": `admin.faqs.confirm_delete_button.${i + 1}`,
-                            className: "border-destructive/50 text-destructive hover:bg-destructive/10",
-                            children: "Confirm delete"
-                          }
-                        ),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          SecondaryButton,
-                          {
-                            type: "button",
-                            onClick: () => setConfirmingId(null),
-                            "data-ocid": `admin.faqs.cancel_delete_button.${i + 1}`,
-                            children: "Cancel"
-                          }
-                        )
-                      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => setConfirmingId(faq.id),
-                          "data-ocid": `admin.faqs.delete_button.${i + 1}`,
-                          className: "text-destructive hover:bg-destructive/10",
-                          children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { "aria-hidden": "true", className: "h-4 w-4" }),
-                            "Delete"
-                          ]
-                        }
-                      )
-                    ] })
-                  ] }),
-                  setFaqState.isError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "p",
-                    {
-                      role: "alert",
-                      "data-ocid": `admin.faqs.state_error.${i + 1}`,
-                      className: "mt-3 text-sm text-destructive",
-                      children: errorText$2(setFaqState.error)
-                    }
-                  ) : null,
-                  deleteFaq.isError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "p",
-                    {
-                      role: "alert",
-                      "data-ocid": `admin.faqs.delete_error.${i + 1}`,
-                      className: "mt-3 text-sm text-destructive",
-                      children: errorText$2(deleteFaq.error)
-                    }
-                  ) : null
-                ]
-              },
-              String(faq.id)
-            );
-          }) })
-        ]
-      }
-    )
-  ] });
-}
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-function emptyBlob() {
-  return ExternalBlob$1.fromBytes(new Uint8Array(0), "application/octet-stream");
-}
-function parseSortOrder(value) {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed < 0) return 0n;
-  return BigInt(parsed);
-}
-function ProductForm({
-  product,
-  onSubmit,
-  onCancel,
-  isPending,
-  errorMessage
-}) {
-  const fileInputRef = reactExports.useRef(null);
-  const [name, setName] = reactExports.useState((product == null ? void 0 : product.name) ?? "");
-  const [description, setDescription] = reactExports.useState((product == null ? void 0 : product.description) ?? "");
-  const [link, setLink] = reactExports.useState((product == null ? void 0 : product.link) ?? "");
-  const [sortOrder, setSortOrder] = reactExports.useState(
-    product ? String(product.sortOrder) : "0"
-  );
-  const [image, setImage] = reactExports.useState(
-    (product == null ? void 0 : product.imageKey) ?? null
-  );
-  const [uploading, setUploading] = reactExports.useState(false);
-  const [uploadError, setUploadError] = reactExports.useState(null);
-  const nameError = name.trim() === "" ? "A product name is required." : null;
-  const descriptionError = description.trim() === "" ? "A description is required." : null;
-  const previewUrl = image ? image.getDirectURL() : null;
-  async function handleFileChange(event) {
-    var _a2;
-    const file = (_a2 = event.target.files) == null ? void 0 : _a2[0];
-    event.target.value = "";
-    if (!file) return;
-    setUploadError(null);
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Choose an image file (PNG, JPG, SVG, or WebP).");
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setUploadError("Images must be 5 MB or smaller.");
-      return;
-    }
-    setUploading(true);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      setImage(ExternalBlob$1.fromBytes(bytes, file.type, file.name));
-    } catch {
-      setUploadError("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  }
-  function handleSubmit(event) {
-    event.preventDefault();
-    if (nameError || descriptionError || uploading) return;
-    const imageKey = image ?? ((product == null ? void 0 : product.imageKey) ? emptyBlob() : void 0);
-    onSubmit({
-      name: name.trim(),
-      description: description.trim(),
-      link: link.trim(),
-      imageKey,
-      sortOrder: parseSortOrder(sortOrder)
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "form",
-    {
-      noValidate: true,
-      onSubmit: handleSubmit,
-      "data-ocid": "admin.product_form",
-      className: "space-y-6 border border-border bg-card p-6 md:p-8",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "product-name", className: "mb-2", children: "Name" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Input,
-            {
-              id: "product-name",
-              value: name,
-              onChange: (event) => setName(event.target.value),
-              "aria-invalid": nameError ? true : void 0,
-              "aria-describedby": nameError ? "product-name-error" : void 0,
-              "data-ocid": "admin.product.name_input",
-              className: "h-11 rounded-sm"
-            }
-          ),
-          nameError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: "product-name-error",
-              role: "alert",
-              "data-ocid": "admin.product.name_error",
-              className: "mt-2 text-sm text-destructive",
-              children: nameError
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "product-description", className: "mb-2", children: "Description" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Textarea,
-            {
-              id: "product-description",
-              rows: 4,
-              value: description,
-              onChange: (event) => setDescription(event.target.value),
-              "aria-invalid": descriptionError ? true : void 0,
-              "aria-describedby": descriptionError ? "product-description-error" : void 0,
-              "data-ocid": "admin.product.description_textarea",
-              className: "min-h-28 rounded-sm"
-            }
-          ),
-          descriptionError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              id: "product-description-error",
-              role: "alert",
-              "data-ocid": "admin.product.description_error",
-              className: "mt-2 text-sm text-destructive",
-              children: descriptionError
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-6 sm:grid-cols-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { htmlFor: "product-link", className: "mb-2", children: [
-              "Link ",
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-muted-foreground", children: "(optional)" })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "product-link",
-                type: "url",
-                inputMode: "url",
-                placeholder: "https://",
-                value: link,
-                onChange: (event) => setLink(event.target.value),
-                "data-ocid": "admin.product.link_input",
-                className: "h-11 rounded-sm"
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "product-sort-order", className: "mb-2", children: "Order" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "product-sort-order",
-                type: "number",
-                min: 0,
-                inputMode: "numeric",
-                value: sortOrder,
-                onChange: (event) => setSortOrder(event.target.value),
-                "data-ocid": "admin.product.sort_order_input",
-                className: "h-11 rounded-sm"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground", children: "Lower numbers appear first." })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(Label, { htmlFor: "product-image", className: "mb-2", children: [
-            "Image / logo ",
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-muted-foreground", children: "(optional)" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-4", children: [
-            previewUrl ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "img",
-              {
-                src: previewUrl,
-                alt: "Product preview",
-                className: "h-16 w-16 rounded-sm border border-border object-cover"
-              }
-            ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-16 w-16 items-center justify-center rounded-sm border border-dashed border-border text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ImagePlus, { "aria-hidden": "true", className: "h-5 w-5" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                ref: fileInputRef,
-                id: "product-image",
-                type: "file",
-                accept: "image/*",
-                className: "sr-only",
-                onChange: handleFileChange,
-                "data-ocid": "admin.product.image_input"
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              SecondaryButton,
-              {
-                type: "button",
-                onClick: () => {
-                  var _a2;
-                  return (_a2 = fileInputRef.current) == null ? void 0 : _a2.click();
-                },
-                disabled: uploading,
-                "data-ocid": "admin.product.upload_button",
-                children: uploading ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { "aria-hidden": "true", className: "h-4 w-4 animate-spin" }),
-                  "Uploading…"
-                ] }) : "Upload image"
-              }
-            ),
-            previewUrl ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              SecondaryButton,
-              {
-                type: "button",
-                onClick: () => setImage(null),
-                "data-ocid": "admin.product.remove_image_button",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(X, { "aria-hidden": "true", className: "h-4 w-4" }),
-                  "Remove"
-                ]
-              }
-            ) : null
-          ] }),
-          uploadError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              role: "alert",
-              "data-ocid": "admin.product.upload_error",
-              className: "mt-2 text-sm text-destructive",
-              children: uploadError
-            }
-          ) : null
-        ] }),
-        errorMessage ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
-          {
-            role: "alert",
-            "data-ocid": "admin.product.form_error",
-            className: "border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-            children: errorMessage
-          }
-        ) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-3 border-t border-border pt-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            PrimaryButton,
-            {
-              type: "submit",
-              disabled: isPending || uploading,
-              "data-ocid": "admin.product.submit_button",
-              children: isPending ? "Saving…" : product ? "Save changes" : "Create product"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SecondaryButton,
-            {
-              type: "button",
-              onClick: onCancel,
-              disabled: isPending,
-              "data-ocid": "admin.product.cancel_button",
-              children: "Cancel"
-            }
-          )
-        ] })
-      ]
-    }
-  );
-}
-const SKELETON_IDS = Array.from(
-  { length: 4 },
-  (_2, i) => `admin-products-skeleton-${i}`
-);
-function errorText$1(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("Unauthorized")) {
-    return "You do not have permission to perform this action.";
-  }
-  return "Something went wrong. Please try again.";
-}
-function AdminProducts() {
-  const { data, isLoading, isError, refetch } = useAdminProducts();
-  const createProduct = useCreateProduct();
-  const updateProduct = useUpdateProduct();
-  const setProductState = useSetProductState();
-  const deleteProduct = useDeleteProduct();
-  const [editing, setEditing] = reactExports.useState(null);
-  const [creating, setCreating] = reactExports.useState(false);
-  const [confirmingId, setConfirmingId] = reactExports.useState(null);
-  const [stateErrorId, setStateErrorId] = reactExports.useState(null);
-  const [deleteErrorId, setDeleteErrorId] = reactExports.useState(null);
-  const products = data ?? [];
-  const sorted = [...products].sort((a2, b2) => {
-    if (a2.sortOrder === b2.sortOrder) return Number(a2.id - b2.id);
-    return a2.sortOrder < b2.sortOrder ? -1 : 1;
-  });
-  const formOpen = creating || editing !== null;
-  const activeMutation = editing ? updateProduct : createProduct;
-  function closeForm() {
-    setCreating(false);
-    setEditing(null);
-    createProduct.reset();
-    updateProduct.reset();
-  }
-  function handleSubmit(input) {
-    if (editing) {
-      updateProduct.mutate(
-        { id: editing.id, patch: input },
-        { onSuccess: () => closeForm() }
-      );
-      return;
-    }
-    createProduct.mutate(input, { onSuccess: () => closeForm() });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Products",
-        description: "Create, edit, order, and publish the products shown on the Ovanite site."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      AdminLayout,
-      {
-        title: "Products",
-        description: "Create, edit, order, and publish the products shown on the public site.",
-        action: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          PrimaryButton,
-          {
-            type: "button",
-            onClick: () => {
-              setEditing(null);
-              setCreating(true);
-            },
-            "data-ocid": "admin.products.create_button",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { "aria-hidden": "true", className: "h-4 w-4" }),
-              "New product"
-            ]
-          }
-        ),
-        children: [
-          formOpen ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-8", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mb-4 font-display text-lg font-bold tracking-tight", children: editing ? `Edit “${editing.name}”` : "New product" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              ProductForm,
-              {
-                product: editing ?? void 0,
-                onSubmit: handleSubmit,
-                onCancel: closeForm,
-                isPending: activeMutation.isPending,
-                errorMessage: activeMutation.isError ? errorText$1(activeMutation.error) : void 0
-              },
-              editing ? String(editing.id) : "new"
-            )
-          ] }) : null,
-          isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { "data-ocid": "admin.products.loading_state", className: "space-y-3", children: SKELETON_IDS.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-24 rounded-sm" }, id)) }) : isError ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              "data-ocid": "admin.products.error_state",
-              className: "border border-border bg-card p-8",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "We couldn’t load the products." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  SecondaryButton,
-                  {
-                    type: "button",
-                    className: "mt-4",
-                    onClick: () => void refetch(),
-                    "data-ocid": "admin.products.retry_button",
-                    children: "Try again"
-                  }
-                )
-              ]
-            }
-          ) : sorted.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              "data-ocid": "admin.products.empty_state",
-              className: "border border-border bg-card p-10 text-center",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "No products" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-4 font-display text-2xl font-bold tracking-tight", children: "Add your first product" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mx-auto mt-3 max-w-md text-sm text-muted-foreground", children: "Products you create here appear on the public products page once published." }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  PrimaryButton,
-                  {
-                    type: "button",
-                    className: "mt-6",
-                    onClick: () => setCreating(true),
-                    "data-ocid": "admin.products.empty_create_button",
-                    children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { "aria-hidden": "true", className: "h-4 w-4" }),
-                      "New product"
-                    ]
-                  }
-                )
-              ]
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { "data-ocid": "admin.products.list", className: "space-y-3", children: sorted.map((product, i) => {
-            const isPublished = product.state === "published";
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "li",
-              {
-                "data-ocid": `admin.products.item.${i + 1}`,
-                className: "border border-border bg-card p-5",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-start justify-between gap-4", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex min-w-0 gap-4", children: [
-                      hasProductImage(product.imageKey) && product.imageKey ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "img",
-                        {
-                          src: product.imageKey.getDirectURL(),
-                          alt: `${product.name} logo`,
-                          className: "h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
-                        }
-                      ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-dashed border-border font-mono text-xs text-muted-foreground", children: "—" }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "truncate font-display text-lg font-bold tracking-tight", children: product.name }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: isPublished ? "Published" : "Draft" })
-                        ] }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 line-clamp-2 max-w-xl text-sm text-muted-foreground", children: product.description }),
-                        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground", children: [
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                            "Order ",
-                            String(product.sortOrder)
-                          ] }),
-                          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                            "Updated ",
-                            formatDate(product.updatedAt)
-                          ] }),
-                          product.link ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                            "a",
-                            {
-                              href: product.link,
-                              target: "_blank",
-                              rel: "noreferrer",
-                              "data-ocid": `admin.products.link.${i + 1}`,
-                              className: "inline-flex items-center gap-1 rounded-sm text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                              children: [
-                                "Visit",
-                                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                                  ExternalLink,
-                                  {
-                                    "aria-hidden": "true",
-                                    className: "h-3 w-3"
-                                  }
-                                )
-                              ]
-                            }
-                          ) : null
-                        ] })
-                      ] })
-                    ] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => {
-                            setStateErrorId(null);
-                            setProductState.mutate(
-                              {
-                                id: product.id,
-                                state: isPublished ? PublishState.draft : PublishState.published
-                              },
-                              {
-                                onError: () => setStateErrorId(product.id)
-                              }
-                            );
-                          },
-                          disabled: setProductState.isPending,
-                          "data-ocid": `admin.products.publish_toggle.${i + 1}`,
-                          children: isPublished ? "Unpublish" : "Publish"
-                        }
-                      ),
-                      /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => {
-                            setCreating(false);
-                            setEditing(product);
-                          },
-                          "data-ocid": `admin.products.edit_button.${i + 1}`,
-                          children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Pencil, { "aria-hidden": "true", className: "h-4 w-4" }),
-                            "Edit"
-                          ]
-                        }
-                      ),
-                      confirmingId === product.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          SecondaryButton,
-                          {
-                            type: "button",
-                            onClick: () => {
-                              setDeleteErrorId(null);
-                              deleteProduct.mutate(product.id, {
-                                onError: () => setDeleteErrorId(product.id)
-                              });
-                              setConfirmingId(null);
-                            },
-                            disabled: deleteProduct.isPending,
-                            "data-ocid": `admin.products.confirm_delete_button.${i + 1}`,
-                            className: "border-destructive/50 text-destructive hover:bg-destructive/10",
-                            children: "Confirm delete"
-                          }
-                        ),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          SecondaryButton,
-                          {
-                            type: "button",
-                            onClick: () => setConfirmingId(null),
-                            "data-ocid": `admin.products.cancel_delete_button.${i + 1}`,
-                            children: "Cancel"
-                          }
-                        )
-                      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                        SecondaryButton,
-                        {
-                          type: "button",
-                          onClick: () => setConfirmingId(product.id),
-                          "data-ocid": `admin.products.delete_button.${i + 1}`,
-                          className: "text-destructive hover:bg-destructive/10",
-                          children: [
-                            /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { "aria-hidden": "true", className: "h-4 w-4" }),
-                            "Delete"
-                          ]
-                        }
-                      )
-                    ] })
-                  ] }),
-                  setProductState.isError && stateErrorId === product.id ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "p",
-                    {
-                      role: "alert",
-                      "data-ocid": `admin.products.state_error.${i + 1}`,
-                      className: "mt-3 text-sm text-destructive",
-                      children: errorText$1(setProductState.error)
-                    }
-                  ) : null,
-                  deleteProduct.isError && deleteErrorId === product.id ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    "p",
-                    {
-                      role: "alert",
-                      "data-ocid": `admin.products.delete_error.${i + 1}`,
-                      className: "mt-3 text-sm text-destructive",
-                      children: errorText$1(deleteProduct.error)
-                    }
-                  ) : null
-                ]
-              },
-              String(product.id)
-            );
-          }) }),
-          !isLoading && !isError && sorted.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-6 flex items-center gap-2 text-xs text-muted-foreground", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, {}),
-            "Draft products are hidden from the public site until published."
-          ] }) : null
-        ]
-      }
-    )
-  ] });
-}
-const GROUPS = [
-  {
-    id: "hero",
-    title: "Hero",
-    description: "The first headline and supporting copy on the home page.",
-    fields: [
-      { key: "heroHeadline", label: "Headline" },
-      {
-        key: "heroDescription",
-        label: "Description",
-        multiline: true,
-        rows: 3
-      },
-      { key: "primaryCtaLabel", label: "Primary CTA label" },
-      {
-        key: "primaryCtaHref",
-        label: "Primary CTA link",
-        hint: "Internal path such as /waitlist, or a full URL."
-      },
-      { key: "secondaryCtaLabel", label: "Secondary CTA label" },
-      { key: "secondaryCtaHref", label: "Secondary CTA link" }
-    ]
-  },
-  {
-    id: "philosophy",
-    title: "Philosophy",
-    description: "The principles section on the home page.",
-    fields: [
-      { key: "philosophyTitle", label: "Title" },
-      {
-        key: "philosophyBody",
-        label: "Body",
-        multiline: true,
-        rows: 4
-      }
-    ]
-  },
-  {
-    id: "approach",
-    title: "Approach",
-    description: "How Ovanite works, shown on the home page.",
-    fields: [
-      { key: "approachTitle", label: "Title" },
-      { key: "approachBody", label: "Body", multiline: true, rows: 4 }
-    ]
-  },
-  {
-    id: "about",
-    title: "About",
-    description: "The about page introduction.",
-    fields: [
-      { key: "aboutTitle", label: "Title" },
-      { key: "aboutBody", label: "Body", multiline: true, rows: 5 }
-    ]
-  },
-  {
-    id: "contact",
-    title: "Contact",
-    description: "Copy shown on the contact page.",
-    fields: [
-      { key: "contactTitle", label: "Title" },
-      { key: "contactBody", label: "Body", multiline: true, rows: 3 }
-    ]
-  },
-  {
-    id: "waitlist",
-    title: "Waitlist",
-    description: "Copy shown on the waitlist page.",
-    fields: [
-      { key: "waitlistTitle", label: "Title" },
-      { key: "waitlistBody", label: "Body", multiline: true, rows: 3 }
-    ]
-  },
-  {
-    id: "legal",
-    title: "Legal",
-    description: "Privacy and terms page bodies.",
-    fields: [
-      { key: "privacyBody", label: "Privacy body", multiline: true, rows: 6 },
-      { key: "termsBody", label: "Terms body", multiline: true, rows: 6 }
-    ]
-  },
-  {
-    id: "footer",
-    title: "Footer",
-    description: "The short line rendered in the site footer.",
-    fields: [
-      { key: "footerText", label: "Footer text", multiline: true, rows: 2 }
-    ]
-  }
-];
-function initialDraft(content) {
-  const draft = {};
-  for (const group of GROUPS) {
-    for (const field of group.fields) {
-      draft[field.key] = content[field.key] ?? "";
-    }
-  }
-  return draft;
-}
-function SiteCopyForm({
-  content,
-  onSubmit,
-  isPending,
-  errorMessage
-}) {
-  const [draft, setDraft] = reactExports.useState(() => initialDraft(content));
-  const contentVersion = String(content.updatedAt);
-  const syncedVersion = reactExports.useRef(contentVersion);
-  reactExports.useEffect(() => {
-    if (syncedVersion.current === contentVersion) return;
-    syncedVersion.current = contentVersion;
-    setDraft(initialDraft(content));
-  }, [content, contentVersion]);
-  function setField(key, value) {
-    setDraft((current) => ({ ...current, [key]: value }));
-  }
-  function handleSubmit(event) {
-    event.preventDefault();
-    const patch = {};
-    for (const group of GROUPS) {
-      for (const field of group.fields) {
-        const next = draft[field.key] ?? "";
-        const current = content[field.key] ?? "";
-        if (next === current) continue;
-        patch[field.key] = next;
-      }
-    }
-    onSubmit(patch);
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "form",
-    {
-      noValidate: true,
-      onSubmit: handleSubmit,
-      "data-ocid": "admin.site_copy_form",
-      className: "space-y-8",
-      children: [
-        GROUPS.map((group) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "fieldset",
-          {
-            "data-ocid": `admin.site_copy.${group.id}_section`,
-            className: "border border-border bg-card p-6 md:p-8",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("legend", { className: "px-2 font-mono text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground", children: group.title }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: group.description }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 space-y-5", children: group.fields.map((field) => {
-                const inputId = `site-copy-${field.key}`;
-                const value = draft[field.key] ?? "";
-                return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: inputId, className: "mb-2", children: field.label }),
-                  field.multiline ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Textarea,
-                    {
-                      id: inputId,
-                      rows: field.rows ?? 3,
-                      value,
-                      onChange: (event) => setField(field.key, event.target.value),
-                      "data-ocid": `admin.site_copy.${field.key}_textarea`,
-                      className: "rounded-sm"
-                    }
-                  ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    Input,
-                    {
-                      id: inputId,
-                      value,
-                      onChange: (event) => setField(field.key, event.target.value),
-                      "data-ocid": `admin.site_copy.${field.key}_input`,
-                      className: "h-11 rounded-sm"
-                    }
-                  ),
-                  field.hint ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground", children: field.hint }) : null
-                ] }, field.key);
-              }) })
-            ]
-          },
-          group.id
-        )),
-        errorMessage ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
-          {
-            role: "alert",
-            "data-ocid": "admin.site_copy.form_error",
-            className: "border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-            children: errorMessage
-          }
-        ) : null,
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-border bg-background/95 py-4 backdrop-blur", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            PrimaryButton,
-            {
-              type: "submit",
-              disabled: isPending,
-              "data-ocid": "admin.site_copy.submit_button",
-              children: isPending ? "Saving…" : "Save site copy"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: "Only changed fields are saved. Clearing a field resets it to the site default. Published changes appear on the public site immediately." })
-        ] })
-      ]
-    }
-  );
-}
-function errorText(error) {
-  const message = error instanceof Error ? error.message : String(error);
-  if (message.includes("Unauthorized")) {
-    return "You do not have permission to edit site copy.";
-  }
-  return "Something went wrong saving the site copy. Please try again.";
-}
-function AdminSiteCopy() {
-  const { data, isLoading, isError, refetch } = useSiteContent();
-  const { actor } = useActor(createActor);
-  const queryClient2 = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: async (patch) => {
-      if (!actor) throw new Error("Backend is not ready");
-      return actor.updateSiteContent(patch);
-    },
-    onSuccess: () => {
-      void queryClient2.invalidateQueries({ queryKey: siteContentQueryKey });
-    }
-  });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Site Copy",
-        description: "Edit the headlines, descriptions, and body copy shown across the Ovanite site."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      AdminLayout,
-      {
-        title: "Site Copy",
-        description: "Edit the headlines, descriptions, and body copy shown across the public site. Clearing a field resets it to the site default.",
-        children: isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { "data-ocid": "admin.site_copy.loading_state", className: "space-y-4", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-64 rounded-sm" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-64 rounded-sm" })
-        ] }) : isError || !data ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "div",
-          {
-            "data-ocid": "admin.site_copy.error_state",
-            className: "border border-border bg-card p-8",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground", children: "We couldn’t load the site copy." }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                SecondaryButton,
-                {
-                  type: "button",
-                  className: "mt-4",
-                  onClick: () => void refetch(),
-                  "data-ocid": "admin.site_copy.retry_button",
-                  children: "Try again"
-                }
-              )
-            ]
-          }
-        ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-          SiteCopyForm,
-          {
-            content: data,
-            onSubmit: (patch) => mutation.mutate(patch),
-            isPending: mutation.isPending,
-            errorMessage: mutation.isError ? errorText(mutation.error) : void 0
-          }
-        )
-      }
-    )
-  ] });
-}
-const STATUS_LABEL$1 = {
-  [SubmissionStatus.new_]: "New",
-  [SubmissionStatus.read]: "Read",
-  [SubmissionStatus.handled]: "Handled"
-};
-function kindLabel$1(kind) {
-  return kind === "waitlist" ? "Waitlist" : "Contact";
-}
-function Field({ label, value }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "border-t border-border py-4", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("dt", { className: "eyebrow", children: label }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("dd", { className: "mt-2 break-words text-sm text-foreground", children: value })
-  ] });
-}
-function SubmissionDetail({
-  submission,
-  isLoading,
-  isError,
-  onRetry,
-  onMarkRead,
-  onMarkHandled,
-  onDelete,
-  isUpdating,
-  isDeleting,
-  actionError
-}) {
-  if (isLoading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.submission_detail.loading_state",
-        className: "flex h-full min-h-[320px] items-center justify-center gap-3 rounded-sm border border-border bg-card text-muted-foreground",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(LoaderCircle, { "aria-hidden": "true", className: "h-5 w-5 animate-spin" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm", children: "Loading submission…" })
-        ]
-      }
-    );
-  }
-  if (isError) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.submission_detail.error_state",
-        className: "rounded-sm border border-destructive/30 bg-destructive/5 p-8 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-display text-base font-semibold", children: "Could not load this submission" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: "It may have been removed, or the connection dropped." }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SecondaryButton,
-            {
-              type: "button",
-              className: "mt-4",
-              "data-ocid": "admin.submission_detail.retry_button",
-              onClick: onRetry,
-              children: "Retry"
-            }
-          )
-        ]
-      }
-    );
-  }
-  if (!submission) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.submission_detail.empty_state",
-        className: "flex h-full min-h-[320px] flex-col items-center justify-center rounded-sm border border-dashed border-border bg-muted/30 px-6 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(Inbox, { "aria-hidden": "true", className: "h-6 w-6 text-muted-foreground" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 font-display text-base font-semibold", children: "Select a submission" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 max-w-xs text-sm text-muted-foreground", children: "Choose an entry from the inbox to read the full message and update its status." })
-        ]
-      }
-    );
-  }
-  const isUnread = submission.status === SubmissionStatus.new_;
-  const isHandled = submission.status === SubmissionStatus.handled;
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "article",
-    {
-      "data-ocid": "admin.submission_detail.panel",
-      className: "rounded-sm border border-border bg-card",
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "border-b border-border p-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: kindLabel$1(submission.kind) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "span",
-              {
-                className: cn(
-                  "inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 font-mono text-[0.625rem] uppercase tracking-[0.14em]",
-                  isUnread ? "border-primary/40 text-primary" : "border-border text-muted-foreground"
-                ),
-                children: [
-                  isUnread ? /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, {}) : null,
-                  STATUS_LABEL$1[submission.status]
-                ]
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "mt-4 font-display text-2xl font-bold tracking-tight", children: submission.name }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-2 flex items-center gap-2 text-sm text-muted-foreground", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Mail, { "aria-hidden": "true", className: "h-4 w-4 shrink-0" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "a",
-              {
-                href: `mailto:${submission.email}`,
-                className: "break-all underline-offset-4 hover:text-foreground hover:underline",
-                children: submission.email
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("dl", { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Message", value: submission.message ?? "—" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Field,
-              {
-                label: "Received",
-                value: formatDateTime(submission.createdAt)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Field,
-              {
-                label: "Last updated",
-                value: formatDateTime(submission.updatedAt)
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Reference", value: `#${submission.id.toString()}` })
-          ] }),
-          actionError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              "data-ocid": "admin.submission_detail.error_state",
-              role: "alert",
-              className: "mt-4 rounded-sm border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-              children: actionError
-            }
-          ) : null,
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 flex flex-wrap items-center gap-3 border-t border-border pt-6", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              PrimaryButton,
-              {
-                type: "button",
-                "data-ocid": "admin.submission_detail.mark_read_button",
-                onClick: onMarkRead,
-                disabled: isUpdating || !isUnread,
-                children: [
-                  isUpdating ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    LoaderCircle,
-                    {
-                      "aria-hidden": "true",
-                      className: "mr-2 h-4 w-4 animate-spin"
-                    }
-                  ) : /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                  "Mark as read"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              SecondaryButton,
-              {
-                type: "button",
-                "data-ocid": "admin.submission_detail.mark_handled_button",
-                onClick: onMarkHandled,
-                disabled: isUpdating || isHandled,
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                  "Mark as handled"
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              SecondaryButton,
-              {
-                type: "button",
-                className: "ml-auto border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive",
-                "data-ocid": "admin.submission_detail.delete_button",
-                onClick: onDelete,
-                disabled: isDeleting,
-                children: [
-                  isDeleting ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    LoaderCircle,
-                    {
-                      "aria-hidden": "true",
-                      className: "mr-2 h-4 w-4 animate-spin"
-                    }
-                  ) : /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                  "Delete"
-                ]
-              }
-            )
-          ] })
-        ] })
-      ]
-    }
-  );
-}
-const STATUS_LABEL = {
-  [SubmissionStatus.new_]: "New",
-  [SubmissionStatus.read]: "Read",
-  [SubmissionStatus.handled]: "Handled"
-};
-function statusTone(status) {
-  if (status === SubmissionStatus.new_) return "border-primary/40 text-primary";
-  if (status === SubmissionStatus.handled) return "border-border text-muted-foreground";
-  return "border-border text-foreground";
-}
-function kindLabel(kind) {
-  return kind === "waitlist" ? "Waitlist" : "Contact";
-}
-function SubmissionList({
-  submissions,
-  selectedId,
-  onSelect,
-  isLoading,
-  isError,
-  onRetry
-}) {
-  if (isLoading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        "data-ocid": "admin.submissions.loading_state",
-        className: "space-y-2",
-        "aria-busy": "true",
-        children: Array.from({ length: 5 }, (_2, i) => `submission-skeleton-${i}`).map(
-          (id) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              className: "rounded-sm border border-border bg-card p-4",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-3 w-20" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "mt-3 h-4 w-40" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "mt-2 h-3 w-28" })
-              ]
-            },
-            id
-          )
-        )
-      }
-    );
-  }
-  if (isError) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.submissions.error_state",
-        className: "rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-display text-base font-semibold", children: "Could not load submissions" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: "The inbox is unavailable right now. Check your connection and try again." }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            SecondaryButton,
-            {
-              type: "button",
-              className: "mt-4",
-              "data-ocid": "admin.submissions.retry_button",
-              onClick: onRetry,
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                "Retry"
-              ]
-            }
-          )
-        ]
-      }
-    );
-  }
-  if (submissions.length === 0) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.submissions.empty_state",
-        className: "rounded-sm border border-dashed border-border bg-muted/30 px-6 py-14 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Inbox,
-            {
-              "aria-hidden": "true",
-              className: "mx-auto h-6 w-6 text-muted-foreground"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 font-display text-base font-semibold", children: "No submissions here" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mx-auto mt-2 max-w-xs text-sm text-muted-foreground", children: "Nothing matches the current filter. Try a different kind or status." })
-        ]
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "ul",
-    {
-      "data-ocid": "admin.submissions.list",
-      className: "space-y-2",
-      "aria-label": "Submissions",
-      children: submissions.map((submission, index2) => {
-        const isSelected = selectedId === submission.id;
-        const isUnread = submission.status === SubmissionStatus.new_;
-        return /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            type: "button",
-            "data-ocid": `admin.submissions.item.${index2 + 1}`,
-            "aria-current": isSelected ? "true" : void 0,
-            onClick: () => onSelect(submission.id),
-            className: cn(
-              "w-full rounded-sm border bg-card p-4 text-left transition-smooth",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              isSelected ? "border-primary/50 shadow-subtle" : "border-border hover:border-primary/30 hover:shadow-subtle"
-            ),
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-3", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-2", children: [
-                  isUnread ? /* @__PURE__ */ jsxRuntimeExports.jsx(StatusDot, {}) : null,
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: kindLabel(submission.kind) })
-                ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "span",
-                  {
-                    className: cn(
-                      "rounded-sm border px-2 py-0.5 font-mono text-[0.625rem] uppercase tracking-[0.14em]",
-                      statusTone(submission.status)
-                    ),
-                    children: STATUS_LABEL[submission.status]
-                  }
-                )
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "p",
-                {
-                  className: cn(
-                    "mt-3 truncate font-display text-sm",
-                    isUnread ? "font-semibold" : "font-medium"
-                  ),
-                  children: submission.name
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Mail, { "aria-hidden": "true", className: "h-3 w-3 shrink-0" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "truncate", children: submission.email })
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 font-mono text-[0.6875rem] text-muted-foreground", children: formatDateTime(submission.createdAt) })
-            ]
-          }
-        ) }, submission.id.toString());
-      })
-    }
-  );
-}
-function SubmissionListFooter({
-  count: count2,
-  onRefresh,
-  isRefreshing
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 flex items-center justify-between border-t border-border pt-4", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground", children: [
-      count2,
-      " ",
-      count2 === 1 ? "entry" : "entries"
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      Button,
-      {
-        type: "button",
-        variant: "ghost",
-        size: "sm",
-        className: "rounded-sm",
-        "data-ocid": "admin.submissions.refresh_button",
-        onClick: onRefresh,
-        disabled: isRefreshing,
-        children: [
-          isRefreshing ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            LoaderCircle,
-            {
-              "aria-hidden": "true",
-              className: "mr-2 h-3.5 w-3.5 animate-spin"
-            }
-          ) : /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { "aria-hidden": "true", className: "mr-2 h-3.5 w-3.5" }),
-          "Refresh"
-        ]
-      }
-    )
-  ] });
-}
-function useCallbackRef$1(callback) {
-  const callbackRef = reactExports.useRef(callback);
-  reactExports.useEffect(() => {
-    callbackRef.current = callback;
-  });
-  return reactExports.useMemo(() => (...args) => {
-    var _a2;
-    return (_a2 = callbackRef.current) == null ? void 0 : _a2.call(callbackRef, ...args);
-  }, []);
-}
-var ENTRY_FOCUS = "rovingFocusGroup.onEntryFocus";
-var EVENT_OPTIONS$1 = { bubbles: false, cancelable: true };
-var GROUP_NAME$1 = "RovingFocusGroup";
-var [Collection$1, useCollection$1, createCollectionScope$1] = createCollection(GROUP_NAME$1);
-var [createRovingFocusGroupContext, createRovingFocusGroupScope] = createContextScope(
-  GROUP_NAME$1,
-  [createCollectionScope$1]
-);
-var [RovingFocusProvider, useRovingFocusContext] = createRovingFocusGroupContext(GROUP_NAME$1);
-var RovingFocusGroup = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Collection$1.Provider, { scope: props.__scopeRovingFocusGroup, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection$1.Slot, { scope: props.__scopeRovingFocusGroup, children: /* @__PURE__ */ jsxRuntimeExports.jsx(RovingFocusGroupImpl, { ...props, ref: forwardedRef }) }) });
-  }
-);
-RovingFocusGroup.displayName = GROUP_NAME$1;
-var RovingFocusGroupImpl = reactExports.forwardRef((props, forwardedRef) => {
-  const {
-    __scopeRovingFocusGroup,
-    orientation,
-    loop = false,
-    dir,
-    currentTabStopId: currentTabStopIdProp,
-    defaultCurrentTabStopId,
-    onCurrentTabStopIdChange,
-    onEntryFocus,
-    preventScrollOnEntryFocus = false,
-    ...groupProps
-  } = props;
-  const ref = reactExports.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, ref);
-  const direction = useDirection(dir);
-  const [currentTabStopId, setCurrentTabStopId] = useControllableState({
-    prop: currentTabStopIdProp,
-    defaultProp: defaultCurrentTabStopId ?? null,
-    onChange: onCurrentTabStopIdChange,
-    caller: GROUP_NAME$1
-  });
-  const [isTabbingBackOut, setIsTabbingBackOut] = reactExports.useState(false);
-  const handleEntryFocus = useCallbackRef$1(onEntryFocus);
-  const getItems = useCollection$1(__scopeRovingFocusGroup);
-  const isClickFocusRef = reactExports.useRef(false);
-  const [focusableItemsCount, setFocusableItemsCount] = reactExports.useState(0);
-  reactExports.useEffect(() => {
-    const node = ref.current;
-    if (node) {
-      node.addEventListener(ENTRY_FOCUS, handleEntryFocus);
-      return () => node.removeEventListener(ENTRY_FOCUS, handleEntryFocus);
-    }
-  }, [handleEntryFocus]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    RovingFocusProvider,
-    {
-      scope: __scopeRovingFocusGroup,
-      orientation,
-      dir: direction,
-      loop,
-      currentTabStopId,
-      onItemFocus: reactExports.useCallback(
-        (tabStopId) => setCurrentTabStopId(tabStopId),
-        [setCurrentTabStopId]
-      ),
-      onItemShiftTab: reactExports.useCallback(() => setIsTabbingBackOut(true), []),
-      onFocusableItemAdd: reactExports.useCallback(
-        () => setFocusableItemsCount((prevCount) => prevCount + 1),
-        []
-      ),
-      onFocusableItemRemove: reactExports.useCallback(
-        () => setFocusableItemsCount((prevCount) => prevCount - 1),
-        []
-      ),
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Primitive.div,
-        {
-          tabIndex: isTabbingBackOut || focusableItemsCount === 0 ? -1 : 0,
-          "data-orientation": orientation,
-          ...groupProps,
-          ref: composedRefs,
-          style: { outline: "none", ...props.style },
-          onMouseDown: composeEventHandlers(props.onMouseDown, () => {
-            isClickFocusRef.current = true;
-          }),
-          onFocus: composeEventHandlers(props.onFocus, (event) => {
-            const isKeyboardFocus = !isClickFocusRef.current;
-            if (event.target === event.currentTarget && isKeyboardFocus && !isTabbingBackOut) {
-              const entryFocusEvent = new CustomEvent(ENTRY_FOCUS, EVENT_OPTIONS$1);
-              event.currentTarget.dispatchEvent(entryFocusEvent);
-              if (!entryFocusEvent.defaultPrevented) {
-                const items = getItems().filter((item) => item.focusable);
-                const activeItem = items.find((item) => item.active);
-                const currentItem = items.find((item) => item.id === currentTabStopId);
-                const candidateItems = [activeItem, currentItem, ...items].filter(
-                  Boolean
-                );
-                const candidateNodes = candidateItems.map((item) => item.ref.current);
-                focusFirst$1(candidateNodes, preventScrollOnEntryFocus);
-              }
-            }
-            isClickFocusRef.current = false;
-          }),
-          onBlur: composeEventHandlers(props.onBlur, () => setIsTabbingBackOut(false))
-        }
-      )
-    }
-  );
-});
-var ITEM_NAME$1 = "RovingFocusGroupItem";
-var RovingFocusGroupItem = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeRovingFocusGroup,
-      focusable = true,
-      active = false,
-      tabStopId,
-      children,
-      ...itemProps
-    } = props;
-    const autoId = useId();
-    const id = tabStopId || autoId;
-    const context = useRovingFocusContext(ITEM_NAME$1, __scopeRovingFocusGroup);
-    const isCurrentTabStop = context.currentTabStopId === id;
-    const getItems = useCollection$1(__scopeRovingFocusGroup);
-    const { onFocusableItemAdd, onFocusableItemRemove, currentTabStopId } = context;
-    reactExports.useEffect(() => {
-      if (focusable) {
-        onFocusableItemAdd();
-        return () => onFocusableItemRemove();
-      }
-    }, [focusable, onFocusableItemAdd, onFocusableItemRemove]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Collection$1.ItemSlot,
-      {
-        scope: __scopeRovingFocusGroup,
-        id,
-        focusable,
-        active,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.span,
-          {
-            tabIndex: isCurrentTabStop ? 0 : -1,
-            "data-orientation": context.orientation,
-            ...itemProps,
-            ref: forwardedRef,
-            onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
-              if (!focusable) event.preventDefault();
-              else context.onItemFocus(id);
-            }),
-            onFocus: composeEventHandlers(props.onFocus, () => context.onItemFocus(id)),
-            onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
-              if (event.key === "Tab" && event.shiftKey) {
-                context.onItemShiftTab();
-                return;
-              }
-              if (event.target !== event.currentTarget) return;
-              const focusIntent = getFocusIntent(event, context.orientation, context.dir);
-              if (focusIntent !== void 0) {
-                if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-                event.preventDefault();
-                const items = getItems().filter((item) => item.focusable);
-                let candidateNodes = items.map((item) => item.ref.current);
-                if (focusIntent === "last") candidateNodes.reverse();
-                else if (focusIntent === "prev" || focusIntent === "next") {
-                  if (focusIntent === "prev") candidateNodes.reverse();
-                  const currentIndex = candidateNodes.indexOf(event.currentTarget);
-                  candidateNodes = context.loop ? wrapArray$1(candidateNodes, currentIndex + 1) : candidateNodes.slice(currentIndex + 1);
-                }
-                setTimeout(() => focusFirst$1(candidateNodes));
-              }
-            }),
-            children: typeof children === "function" ? children({ isCurrentTabStop, hasTabStop: currentTabStopId != null }) : children
-          }
-        )
-      }
-    );
-  }
-);
-RovingFocusGroupItem.displayName = ITEM_NAME$1;
-var MAP_KEY_TO_FOCUS_INTENT = {
-  ArrowLeft: "prev",
-  ArrowUp: "prev",
-  ArrowRight: "next",
-  ArrowDown: "next",
-  PageUp: "first",
-  Home: "first",
-  PageDown: "last",
-  End: "last"
-};
-function getDirectionAwareKey(key, dir) {
-  if (dir !== "rtl") return key;
-  return key === "ArrowLeft" ? "ArrowRight" : key === "ArrowRight" ? "ArrowLeft" : key;
-}
-function getFocusIntent(event, orientation, dir) {
-  const key = getDirectionAwareKey(event.key, dir);
-  if (orientation === "vertical" && ["ArrowLeft", "ArrowRight"].includes(key)) return void 0;
-  if (orientation === "horizontal" && ["ArrowUp", "ArrowDown"].includes(key)) return void 0;
-  return MAP_KEY_TO_FOCUS_INTENT[key];
-}
-function focusFirst$1(candidates, preventScroll = false) {
-  const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
-  for (const candidate of candidates) {
-    if (candidate === PREVIOUSLY_FOCUSED_ELEMENT) return;
-    candidate.focus({ preventScroll });
-    if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT) return;
-  }
-}
-function wrapArray$1(array, startIndex) {
-  return array.map((_2, index2) => array[(startIndex + index2) % array.length]);
-}
-var Root$1 = RovingFocusGroup;
-var Item$1 = RovingFocusGroupItem;
-var TABS_NAME = "Tabs";
-var [createTabsContext] = createContextScope(TABS_NAME, [
-  createRovingFocusGroupScope
-]);
-var useRovingFocusGroupScope = createRovingFocusGroupScope();
-var [TabsProvider, useTabsContext] = createTabsContext(TABS_NAME);
-var Tabs$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeTabs,
-      value: valueProp,
-      onValueChange,
-      defaultValue,
-      orientation = "horizontal",
-      dir,
-      activationMode = "automatic",
-      ...tabsProps
-    } = props;
-    const direction = useDirection(dir);
-    const [value, setValue] = useControllableState({
-      prop: valueProp,
-      onChange: onValueChange,
-      defaultProp: defaultValue ?? "",
-      caller: TABS_NAME
-    });
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      TabsProvider,
-      {
-        scope: __scopeTabs,
-        baseId: useId(),
-        value,
-        onValueChange: setValue,
-        orientation,
-        dir: direction,
-        activationMode,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.div,
-          {
-            dir: direction,
-            "data-orientation": orientation,
-            ...tabsProps,
-            ref: forwardedRef
-          }
-        )
-      }
-    );
-  }
-);
-Tabs$1.displayName = TABS_NAME;
-var TAB_LIST_NAME = "TabsList";
-var TabsList$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeTabs, loop = true, ...listProps } = props;
-    const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
-    const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Root$1,
-      {
-        asChild: true,
-        ...rovingFocusGroupScope,
-        orientation: context.orientation,
-        dir: context.dir,
-        loop,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.div,
-          {
-            role: "tablist",
-            "aria-orientation": context.orientation,
-            ...listProps,
-            ref: forwardedRef
-          }
-        )
-      }
-    );
-  }
-);
-TabsList$1.displayName = TAB_LIST_NAME;
-var TRIGGER_NAME$1 = "TabsTrigger";
-var TabsTrigger$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
-    const context = useTabsContext(TRIGGER_NAME$1, __scopeTabs);
-    const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-    const triggerId = makeTriggerId(context.baseId, value);
-    const contentId = makeContentId(context.baseId, value);
-    const isSelected = value === context.value;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Item$1,
-      {
-        asChild: true,
-        ...rovingFocusGroupScope,
-        focusable: !disabled,
-        active: isSelected,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Primitive.button,
-          {
-            type: "button",
-            role: "tab",
-            "aria-selected": isSelected,
-            "aria-controls": contentId,
-            "data-state": isSelected ? "active" : "inactive",
-            "data-disabled": disabled ? "" : void 0,
-            disabled,
-            id: triggerId,
-            ...triggerProps,
-            ref: forwardedRef,
-            onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
-              if (!disabled && event.button === 0 && event.ctrlKey === false) {
-                context.onValueChange(value);
-              } else {
-                event.preventDefault();
-              }
-            }),
-            onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
-              if ([" ", "Enter"].includes(event.key)) context.onValueChange(value);
-            }),
-            onFocus: composeEventHandlers(props.onFocus, () => {
-              const isAutomaticActivation = context.activationMode !== "manual";
-              if (!isSelected && !disabled && isAutomaticActivation) {
-                context.onValueChange(value);
-              }
-            })
-          }
-        )
-      }
-    );
-  }
-);
-TabsTrigger$1.displayName = TRIGGER_NAME$1;
-var CONTENT_NAME$2 = "TabsContent";
-var TabsContent = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
-    const context = useTabsContext(CONTENT_NAME$2, __scopeTabs);
-    const triggerId = makeTriggerId(context.baseId, value);
-    const contentId = makeContentId(context.baseId, value);
-    const isSelected = value === context.value;
-    const isMountAnimationPreventedRef = reactExports.useRef(isSelected);
-    reactExports.useEffect(() => {
-      const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
-      return () => cancelAnimationFrame(rAF);
-    }, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || isSelected, children: ({ present }) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.div,
-      {
-        "data-state": isSelected ? "active" : "inactive",
-        "data-orientation": context.orientation,
-        role: "tabpanel",
-        "aria-labelledby": triggerId,
-        hidden: !present,
-        id: contentId,
-        tabIndex: 0,
-        ...contentProps,
-        ref: forwardedRef,
-        style: {
-          ...props.style,
-          animationDuration: isMountAnimationPreventedRef.current ? "0s" : void 0
-        },
-        children: present && children
-      }
-    ) });
-  }
-);
-TabsContent.displayName = CONTENT_NAME$2;
-function makeTriggerId(baseId, value) {
-  return `${baseId}-trigger-${value}`;
-}
-function makeContentId(baseId, value) {
-  return `${baseId}-content-${value}`;
-}
-var Root2$2 = Tabs$1;
-var List = TabsList$1;
-var Trigger$1 = TabsTrigger$1;
-function Tabs({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Root2$2,
-    {
-      "data-slot": "tabs",
-      className: cn("flex flex-col gap-2", className),
-      ...props
-    }
-  );
-}
-function TabsList({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    List,
-    {
-      "data-slot": "tabs-list",
-      className: cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function TabsTrigger({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Trigger$1,
-    {
-      "data-slot": "tabs-trigger",
-      className: cn(
-        "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      ),
-      ...props
-    }
-  );
-}
-const KIND_TABS = [
-  { value: "all", label: "All" },
-  { value: SubmissionKind.contact, label: "Contact" },
-  { value: SubmissionKind.waitlist, label: "Waitlist" }
-];
-const STATUS_TABS = [
-  { value: "all", label: "All" },
-  { value: SubmissionStatus.new_, label: "Unread" },
-  { value: SubmissionStatus.read, label: "Read" },
-  { value: SubmissionStatus.handled, label: "Handled" }
-];
-function friendlyError$1(error) {
-  const raw = error instanceof Error ? error.message : String(error);
-  if (/unauthor|not.?admin|forbidden|access required/i.test(raw)) {
-    return "You do not have permission to perform this action.";
-  }
-  if (/not.?ready|backend/i.test(raw)) {
-    return "The backend is not ready yet. Try again in a moment.";
-  }
-  return "Something went wrong. Please try again.";
-}
-function AdminSubmissions() {
-  const [kind, setKind] = reactExports.useState("all");
-  const [status, setStatus] = reactExports.useState("all");
-  const [selectedId, setSelectedId] = reactExports.useState(null);
-  const [actionError, setActionError] = reactExports.useState(null);
-  const filter = reactExports.useMemo(
-    () => ({
-      kind: kind === "all" ? void 0 : kind,
-      status: status === "all" ? void 0 : status
-    }),
-    [kind, status]
-  );
-  const {
-    data: submissions = [],
-    isLoading,
-    isError,
-    refetch,
-    isFetching
-  } = useAdminSubmissions(filter);
-  const { data: allSubmissions = [] } = useAdminSubmissions({});
-  const setStatusMutation = useSetSubmissionStatus();
-  const deleteMutation = useDeleteSubmission();
-  const selected = reactExports.useMemo(
-    () => submissions.find((item) => item.id === selectedId) ?? null,
-    [submissions, selectedId]
-  );
-  const unreadCount = reactExports.useMemo(
-    () => allSubmissions.filter((item) => item.status === SubmissionStatus.new_).length,
-    [allSubmissions]
-  );
-  function handleSelect(id) {
-    setActionError(null);
-    setSelectedId(id);
-  }
-  function handleMarkRead() {
-    if (!selected) return;
-    setActionError(null);
-    setStatusMutation.mutate(
-      { id: selected.id, status: SubmissionStatus.read },
-      { onError: (error) => setActionError(friendlyError$1(error)) }
-    );
-  }
-  function handleMarkHandled() {
-    if (!selected) return;
-    setActionError(null);
-    setStatusMutation.mutate(
-      { id: selected.id, status: SubmissionStatus.handled },
-      { onError: (error) => setActionError(friendlyError$1(error)) }
-    );
-  }
-  function handleDelete() {
-    if (!selected) return;
-    setActionError(null);
-    deleteMutation.mutate(selected.id, {
-      onSuccess: () => setSelectedId(null),
-      onError: (error) => setActionError(friendlyError$1(error))
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Submissions",
-        description: "Review contact and waitlist submissions for Ovanite."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "border-b border-border bg-card", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { className: "py-10 md:py-14", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-end justify-between gap-4", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "Admin · Inbox" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mt-3 font-display text-3xl font-bold tracking-tight md:text-4xl", children: "Submissions" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 max-w-xl text-sm text-muted-foreground", children: "Contact and waitlist entries, newest first. No emails are sent — every submission is retained here for review." })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(MicroBadge, { "data-ocid": "admin.submissions.unread_badge", children: [
-        unreadCount,
-        " unread"
-      ] })
-    ] }) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-10 md:py-14", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-6", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow mb-2", children: "Kind" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Tabs,
-            {
-              value: kind,
-              onValueChange: (value) => setKind(value),
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                TabsList,
-                {
-                  "data-ocid": "admin.submissions.kind.tab",
-                  className: "rounded-sm",
-                  children: KIND_TABS.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    TabsTrigger,
-                    {
-                      value: tab.value,
-                      "data-ocid": `admin.submissions.kind.${tab.value}`,
-                      className: "rounded-sm",
-                      children: tab.label
-                    },
-                    tab.value
-                  ))
-                }
-              )
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow mb-2", children: "Status" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Tabs,
-            {
-              value: status,
-              onValueChange: (value) => setStatus(value),
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                TabsList,
-                {
-                  "data-ocid": "admin.submissions.status.tab",
-                  className: "rounded-sm",
-                  children: STATUS_TABS.map((tab) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    TabsTrigger,
-                    {
-                      value: tab.value,
-                      "data-ocid": `admin.submissions.status.${tab.value}`,
-                      className: "rounded-sm",
-                      children: tab.label
-                    },
-                    tab.value
-                  ))
-                }
-              )
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-8 grid gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cn("min-w-0"), children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SubmissionList,
-            {
-              submissions,
-              selectedId,
-              onSelect: handleSelect,
-              isLoading,
-              isError,
-              onRetry: () => void refetch()
-            }
-          ),
-          !isLoading && !isError && submissions.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            SubmissionListFooter,
-            {
-              count: submissions.length,
-              onRefresh: () => void refetch(),
-              isRefreshing: isFetching
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-w-0", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          SubmissionDetail,
-          {
-            submission: selected,
-            isLoading: isLoading && selectedId !== null,
-            isError: isError && selectedId !== null,
-            onRetry: () => void refetch(),
-            onMarkRead: handleMarkRead,
-            onMarkHandled: handleMarkHandled,
-            onDelete: handleDelete,
-            isUpdating: setStatusMutation.isPending,
-            isDeleting: deleteMutation.isPending,
-            actionError
-          }
-        ) })
-      ] })
-    ] })
-  ] });
-}
-function clamp$1(value, [min2, max2]) {
-  return Math.min(max2, Math.max(min2, value));
-}
-function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis == null ? void 0 : globalThis.document) {
-  const onEscapeKeyDown = useCallbackRef$1(onEscapeKeyDownProp);
-  reactExports.useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onEscapeKeyDown(event);
-      }
-    };
-    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [onEscapeKeyDown, ownerDocument]);
-}
-var DISMISSABLE_LAYER_NAME = "DismissableLayer";
-var CONTEXT_UPDATE = "dismissableLayer.update";
-var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
-var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
-var originalBodyPointerEvents;
-var DismissableLayerContext = reactExports.createContext({
-  layers: /* @__PURE__ */ new Set(),
-  layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set(),
-  branches: /* @__PURE__ */ new Set()
-});
-var DismissableLayer = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      disableOutsidePointerEvents = false,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      onFocusOutside,
-      onInteractOutside,
-      onDismiss,
-      ...layerProps
-    } = props;
-    const context = reactExports.useContext(DismissableLayerContext);
-    const [node, setNode] = reactExports.useState(null);
-    const ownerDocument = (node == null ? void 0 : node.ownerDocument) ?? (globalThis == null ? void 0 : globalThis.document);
-    const [, force] = reactExports.useState({});
-    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
-    const layers = Array.from(context.layers);
-    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
-    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
-    const index2 = node ? layers.indexOf(node) : -1;
-    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
-    const isPointerEventsEnabled = index2 >= highestLayerWithOutsidePointerEventsDisabledIndex;
-    const pointerDownOutside = usePointerDownOutside((event) => {
-      const target = event.target;
-      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (!isPointerEventsEnabled || isPointerDownOnBranch) return;
-      onPointerDownOutside == null ? void 0 : onPointerDownOutside(event);
-      onInteractOutside == null ? void 0 : onInteractOutside(event);
-      if (!event.defaultPrevented) onDismiss == null ? void 0 : onDismiss();
-    }, ownerDocument);
-    const focusOutside = useFocusOutside((event) => {
-      const target = event.target;
-      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (isFocusInBranch) return;
-      onFocusOutside == null ? void 0 : onFocusOutside(event);
-      onInteractOutside == null ? void 0 : onInteractOutside(event);
-      if (!event.defaultPrevented) onDismiss == null ? void 0 : onDismiss();
-    }, ownerDocument);
-    useEscapeKeydown((event) => {
-      const isHighestLayer = index2 === context.layers.size - 1;
-      if (!isHighestLayer) return;
-      onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(event);
-      if (!event.defaultPrevented && onDismiss) {
-        event.preventDefault();
-        onDismiss();
-      }
-    }, ownerDocument);
-    reactExports.useEffect(() => {
-      if (!node) return;
-      if (disableOutsidePointerEvents) {
-        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
-          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
-          ownerDocument.body.style.pointerEvents = "none";
-        }
-        context.layersWithOutsidePointerEventsDisabled.add(node);
-      }
-      context.layers.add(node);
-      dispatchUpdate();
-      return () => {
-        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
-          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
-        }
-      };
-    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
-    reactExports.useEffect(() => {
-      return () => {
-        if (!node) return;
-        context.layers.delete(node);
-        context.layersWithOutsidePointerEventsDisabled.delete(node);
-        dispatchUpdate();
-      };
-    }, [node, context]);
-    reactExports.useEffect(() => {
-      const handleUpdate = () => force({});
-      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
-      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
-    }, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.div,
-      {
-        ...layerProps,
-        ref: composedRefs,
-        style: {
-          pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : void 0,
-          ...props.style
-        },
-        onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
-        onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
-        onPointerDownCapture: composeEventHandlers(
-          props.onPointerDownCapture,
-          pointerDownOutside.onPointerDownCapture
-        )
-      }
-    );
-  }
-);
-DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
-var BRANCH_NAME = "DismissableLayerBranch";
-var DismissableLayerBranch = reactExports.forwardRef((props, forwardedRef) => {
-  const context = reactExports.useContext(DismissableLayerContext);
-  const ref = reactExports.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, ref);
-  reactExports.useEffect(() => {
-    const node = ref.current;
-    if (node) {
-      context.branches.add(node);
-      return () => {
-        context.branches.delete(node);
-      };
-    }
-  }, [context.branches]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...props, ref: composedRefs });
-});
-DismissableLayerBranch.displayName = BRANCH_NAME;
-function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis == null ? void 0 : globalThis.document) {
-  const handlePointerDownOutside = useCallbackRef$1(onPointerDownOutside);
-  const isPointerInsideReactTreeRef = reactExports.useRef(false);
-  const handleClickRef = reactExports.useRef(() => {
-  });
-  reactExports.useEffect(() => {
-    const handlePointerDown = (event) => {
-      if (event.target && !isPointerInsideReactTreeRef.current) {
-        let handleAndDispatchPointerDownOutsideEvent2 = function() {
-          handleAndDispatchCustomEvent(
-            POINTER_DOWN_OUTSIDE,
-            handlePointerDownOutside,
-            eventDetail,
-            { discrete: true }
-          );
-        };
-        const eventDetail = { originalEvent: event };
-        if (event.pointerType === "touch") {
-          ownerDocument.removeEventListener("click", handleClickRef.current);
-          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
-          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
-        } else {
-          handleAndDispatchPointerDownOutsideEvent2();
-        }
-      } else {
-        ownerDocument.removeEventListener("click", handleClickRef.current);
-      }
-      isPointerInsideReactTreeRef.current = false;
-    };
-    const timerId = window.setTimeout(() => {
-      ownerDocument.addEventListener("pointerdown", handlePointerDown);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
-      ownerDocument.removeEventListener("click", handleClickRef.current);
-    };
-  }, [ownerDocument, handlePointerDownOutside]);
-  return {
-    // ensures we check React component tree (not just DOM tree)
-    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
-  };
-}
-function useFocusOutside(onFocusOutside, ownerDocument = globalThis == null ? void 0 : globalThis.document) {
-  const handleFocusOutside = useCallbackRef$1(onFocusOutside);
-  const isFocusInsideReactTreeRef = reactExports.useRef(false);
-  reactExports.useEffect(() => {
-    const handleFocus = (event) => {
-      if (event.target && !isFocusInsideReactTreeRef.current) {
-        const eventDetail = { originalEvent: event };
-        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
-          discrete: false
-        });
-      }
-    };
-    ownerDocument.addEventListener("focusin", handleFocus);
-    return () => ownerDocument.removeEventListener("focusin", handleFocus);
-  }, [ownerDocument, handleFocusOutside]);
-  return {
-    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
-    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
-  };
-}
-function dispatchUpdate() {
-  const event = new CustomEvent(CONTEXT_UPDATE);
-  document.dispatchEvent(event);
-}
-function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
-  const target = detail.originalEvent.target;
-  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
-  if (handler) target.addEventListener(name, handler, { once: true });
-  if (discrete) {
-    dispatchDiscreteCustomEvent(target, event);
-  } else {
-    target.dispatchEvent(event);
-  }
-}
-var count = 0;
-function useFocusGuards() {
-  reactExports.useEffect(() => {
-    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
-    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
-    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
-    count++;
-    return () => {
-      if (count === 1) {
-        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
-      }
-      count--;
-    };
-  }, []);
-}
-function createFocusGuard() {
-  const element = document.createElement("span");
-  element.setAttribute("data-radix-focus-guard", "");
-  element.tabIndex = 0;
-  element.style.outline = "none";
-  element.style.opacity = "0";
-  element.style.position = "fixed";
-  element.style.pointerEvents = "none";
-  return element;
-}
-var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
-var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
-var EVENT_OPTIONS = { bubbles: false, cancelable: true };
-var FOCUS_SCOPE_NAME = "FocusScope";
-var FocusScope = reactExports.forwardRef((props, forwardedRef) => {
-  const {
-    loop = false,
-    trapped = false,
-    onMountAutoFocus: onMountAutoFocusProp,
-    onUnmountAutoFocus: onUnmountAutoFocusProp,
-    ...scopeProps
-  } = props;
-  const [container, setContainer] = reactExports.useState(null);
-  const onMountAutoFocus = useCallbackRef$1(onMountAutoFocusProp);
-  const onUnmountAutoFocus = useCallbackRef$1(onUnmountAutoFocusProp);
-  const lastFocusedElementRef = reactExports.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
-  const focusScope = reactExports.useRef({
-    paused: false,
-    pause() {
-      this.paused = true;
-    },
-    resume() {
-      this.paused = false;
-    }
-  }).current;
-  reactExports.useEffect(() => {
-    if (trapped) {
-      let handleFocusIn2 = function(event) {
-        if (focusScope.paused || !container) return;
-        const target = event.target;
-        if (container.contains(target)) {
-          lastFocusedElementRef.current = target;
-        } else {
-          focus(lastFocusedElementRef.current, { select: true });
-        }
-      }, handleFocusOut2 = function(event) {
-        if (focusScope.paused || !container) return;
-        const relatedTarget = event.relatedTarget;
-        if (relatedTarget === null) return;
-        if (!container.contains(relatedTarget)) {
-          focus(lastFocusedElementRef.current, { select: true });
-        }
-      }, handleMutations2 = function(mutations) {
-        const focusedElement = document.activeElement;
-        if (focusedElement !== document.body) return;
-        for (const mutation of mutations) {
-          if (mutation.removedNodes.length > 0) focus(container);
-        }
-      };
-      document.addEventListener("focusin", handleFocusIn2);
-      document.addEventListener("focusout", handleFocusOut2);
-      const mutationObserver = new MutationObserver(handleMutations2);
-      if (container) mutationObserver.observe(container, { childList: true, subtree: true });
-      return () => {
-        document.removeEventListener("focusin", handleFocusIn2);
-        document.removeEventListener("focusout", handleFocusOut2);
-        mutationObserver.disconnect();
-      };
-    }
-  }, [trapped, container, focusScope.paused]);
-  reactExports.useEffect(() => {
-    if (container) {
-      focusScopesStack.add(focusScope);
-      const previouslyFocusedElement = document.activeElement;
-      const hasFocusedCandidate = container.contains(previouslyFocusedElement);
-      if (!hasFocusedCandidate) {
-        const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
-        container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-        container.dispatchEvent(mountEvent);
-        if (!mountEvent.defaultPrevented) {
-          focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
-          if (document.activeElement === previouslyFocusedElement) {
-            focus(container);
-          }
-        }
-      }
-      return () => {
-        container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-        setTimeout(() => {
-          const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
-          container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-          container.dispatchEvent(unmountEvent);
-          if (!unmountEvent.defaultPrevented) {
-            focus(previouslyFocusedElement ?? document.body, { select: true });
-          }
-          container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-          focusScopesStack.remove(focusScope);
-        }, 0);
-      };
-    }
-  }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
-  const handleKeyDown = reactExports.useCallback(
-    (event) => {
-      if (!loop && !trapped) return;
-      if (focusScope.paused) return;
-      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
-      const focusedElement = document.activeElement;
-      if (isTabKey && focusedElement) {
-        const container2 = event.currentTarget;
-        const [first, last] = getTabbableEdges(container2);
-        const hasTabbableElementsInside = first && last;
-        if (!hasTabbableElementsInside) {
-          if (focusedElement === container2) event.preventDefault();
-        } else {
-          if (!event.shiftKey && focusedElement === last) {
-            event.preventDefault();
-            if (loop) focus(first, { select: true });
-          } else if (event.shiftKey && focusedElement === first) {
-            event.preventDefault();
-            if (loop) focus(last, { select: true });
-          }
-        }
-      }
-    },
-    [loop, trapped, focusScope.paused]
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
-});
-FocusScope.displayName = FOCUS_SCOPE_NAME;
-function focusFirst(candidates, { select = false } = {}) {
-  const previouslyFocusedElement = document.activeElement;
-  for (const candidate of candidates) {
-    focus(candidate, { select });
-    if (document.activeElement !== previouslyFocusedElement) return;
-  }
-}
-function getTabbableEdges(container) {
-  const candidates = getTabbableCandidates(container);
-  const first = findVisible(candidates, container);
-  const last = findVisible(candidates.reverse(), container);
-  return [first, last];
-}
-function getTabbableCandidates(container) {
-  const nodes = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node) => {
-      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
-      if (node.disabled || node.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
-      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-    }
-  });
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  return nodes;
-}
-function findVisible(elements, container) {
-  for (const element of elements) {
-    if (!isHidden(element, { upTo: container })) return element;
-  }
-}
-function isHidden(node, { upTo }) {
-  if (getComputedStyle(node).visibility === "hidden") return true;
-  while (node) {
-    if (upTo !== void 0 && node === upTo) return false;
-    if (getComputedStyle(node).display === "none") return true;
-    node = node.parentElement;
-  }
-  return false;
-}
-function isSelectableInput(element) {
-  return element instanceof HTMLInputElement && "select" in element;
-}
-function focus(element, { select = false } = {}) {
-  if (element && element.focus) {
-    const previouslyFocusedElement = document.activeElement;
-    element.focus({ preventScroll: true });
-    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
-      element.select();
-  }
-}
-var focusScopesStack = createFocusScopesStack();
-function createFocusScopesStack() {
-  let stack = [];
-  return {
-    add(focusScope) {
-      const activeFocusScope = stack[0];
-      if (focusScope !== activeFocusScope) {
-        activeFocusScope == null ? void 0 : activeFocusScope.pause();
-      }
-      stack = arrayRemove(stack, focusScope);
-      stack.unshift(focusScope);
-    },
-    remove(focusScope) {
-      var _a2;
-      stack = arrayRemove(stack, focusScope);
-      (_a2 = stack[0]) == null ? void 0 : _a2.resume();
-    }
-  };
-}
-function arrayRemove(array, item) {
-  const updatedArray = [...array];
-  const index2 = updatedArray.indexOf(item);
-  if (index2 !== -1) {
-    updatedArray.splice(index2, 1);
-  }
-  return updatedArray;
-}
-function removeLinks(items) {
-  return items.filter((item) => item.tagName !== "A");
-}
-const sides = ["top", "right", "bottom", "left"];
-const min = Math.min;
-const max = Math.max;
-const round = Math.round;
-const floor = Math.floor;
-const createCoords = (v2) => ({
-  x: v2,
-  y: v2
-});
-const oppositeSideMap = {
-  left: "right",
-  right: "left",
-  bottom: "top",
-  top: "bottom"
-};
-function clamp(start, value, end) {
-  return max(start, min(value, end));
-}
-function evaluate(value, param) {
-  return typeof value === "function" ? value(param) : value;
-}
-function getSide(placement) {
-  return placement.split("-")[0];
-}
-function getAlignment(placement) {
-  return placement.split("-")[1];
-}
-function getOppositeAxis(axis) {
-  return axis === "x" ? "y" : "x";
-}
-function getAxisLength(axis) {
-  return axis === "y" ? "height" : "width";
-}
-function getSideAxis(placement) {
-  const firstChar = placement[0];
-  return firstChar === "t" || firstChar === "b" ? "y" : "x";
-}
-function getAlignmentAxis(placement) {
-  return getOppositeAxis(getSideAxis(placement));
-}
-function getAlignmentSides(placement, rects, rtl) {
-  if (rtl === void 0) {
-    rtl = false;
-  }
-  const alignment = getAlignment(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const length = getAxisLength(alignmentAxis);
-  let mainAlignmentSide = alignmentAxis === "x" ? alignment === (rtl ? "end" : "start") ? "right" : "left" : alignment === "start" ? "bottom" : "top";
-  if (rects.reference[length] > rects.floating[length]) {
-    mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
-  }
-  return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
-}
-function getExpandedPlacements(placement) {
-  const oppositePlacement = getOppositePlacement(placement);
-  return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
-}
-function getOppositeAlignmentPlacement(placement) {
-  return placement.includes("start") ? placement.replace("start", "end") : placement.replace("end", "start");
-}
-const lrPlacement = ["left", "right"];
-const rlPlacement = ["right", "left"];
-const tbPlacement = ["top", "bottom"];
-const btPlacement = ["bottom", "top"];
-function getSideList(side, isStart, rtl) {
-  switch (side) {
-    case "top":
-    case "bottom":
-      if (rtl) return isStart ? rlPlacement : lrPlacement;
-      return isStart ? lrPlacement : rlPlacement;
-    case "left":
-    case "right":
-      return isStart ? tbPlacement : btPlacement;
-    default:
-      return [];
-  }
-}
-function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
-  const alignment = getAlignment(placement);
-  let list = getSideList(getSide(placement), direction === "start", rtl);
-  if (alignment) {
-    list = list.map((side) => side + "-" + alignment);
-    if (flipAlignment) {
-      list = list.concat(list.map(getOppositeAlignmentPlacement));
-    }
-  }
-  return list;
-}
-function getOppositePlacement(placement) {
-  const side = getSide(placement);
-  return oppositeSideMap[side] + placement.slice(side.length);
-}
-function expandPaddingObject(padding) {
-  return {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    ...padding
-  };
-}
-function getPaddingObject(padding) {
-  return typeof padding !== "number" ? expandPaddingObject(padding) : {
-    top: padding,
-    right: padding,
-    bottom: padding,
-    left: padding
-  };
-}
-function rectToClientRect(rect) {
-  const {
-    x: x2,
-    y: y2,
-    width,
-    height
-  } = rect;
-  return {
-    width,
-    height,
-    top: y2,
-    left: x2,
-    right: x2 + width,
-    bottom: y2 + height,
-    x: x2,
-    y: y2
-  };
-}
-function computeCoordsFromPlacement(_ref, placement, rtl) {
-  let {
-    reference,
-    floating
-  } = _ref;
-  const sideAxis = getSideAxis(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const alignLength = getAxisLength(alignmentAxis);
-  const side = getSide(placement);
-  const isVertical = sideAxis === "y";
-  const commonX = reference.x + reference.width / 2 - floating.width / 2;
-  const commonY = reference.y + reference.height / 2 - floating.height / 2;
-  const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
-  let coords;
-  switch (side) {
-    case "top":
-      coords = {
-        x: commonX,
-        y: reference.y - floating.height
-      };
-      break;
-    case "bottom":
-      coords = {
-        x: commonX,
-        y: reference.y + reference.height
-      };
-      break;
-    case "right":
-      coords = {
-        x: reference.x + reference.width,
-        y: commonY
-      };
-      break;
-    case "left":
-      coords = {
-        x: reference.x - floating.width,
-        y: commonY
-      };
-      break;
-    default:
-      coords = {
-        x: reference.x,
-        y: reference.y
-      };
-  }
-  switch (getAlignment(placement)) {
-    case "start":
-      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-    case "end":
-      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-  }
-  return coords;
-}
-async function detectOverflow(state, options) {
-  var _await$platform$isEle;
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    x: x2,
-    y: y2,
-    platform: platform2,
-    rects,
-    elements,
-    strategy
-  } = state;
-  const {
-    boundary = "clippingAncestors",
-    rootBoundary = "viewport",
-    elementContext = "floating",
-    altBoundary = false,
-    padding = 0
-  } = evaluate(options, state);
-  const paddingObject = getPaddingObject(padding);
-  const altContext = elementContext === "floating" ? "reference" : "floating";
-  const element = elements[altBoundary ? altContext : elementContext];
-  const clippingClientRect = rectToClientRect(await platform2.getClippingRect({
-    element: ((_await$platform$isEle = await (platform2.isElement == null ? void 0 : platform2.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || await (platform2.getDocumentElement == null ? void 0 : platform2.getDocumentElement(elements.floating)),
-    boundary,
-    rootBoundary,
-    strategy
-  }));
-  const rect = elementContext === "floating" ? {
-    x: x2,
-    y: y2,
-    width: rects.floating.width,
-    height: rects.floating.height
-  } : rects.reference;
-  const offsetParent = await (platform2.getOffsetParent == null ? void 0 : platform2.getOffsetParent(elements.floating));
-  const offsetScale = await (platform2.isElement == null ? void 0 : platform2.isElement(offsetParent)) ? await (platform2.getScale == null ? void 0 : platform2.getScale(offsetParent)) || {
-    x: 1,
-    y: 1
-  } : {
-    x: 1,
-    y: 1
-  };
-  const elementClientRect = rectToClientRect(platform2.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform2.convertOffsetParentRelativeRectToViewportRelativeRect({
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  }) : rect);
-  return {
-    top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
-    bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
-    left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
-    right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
-  };
-}
-const MAX_RESET_COUNT = 50;
-const computePosition$1 = async (reference, floating, config) => {
-  const {
-    placement = "bottom",
-    strategy = "absolute",
-    middleware = [],
-    platform: platform2
-  } = config;
-  const platformWithDetectOverflow = platform2.detectOverflow ? platform2 : {
-    ...platform2,
-    detectOverflow
-  };
-  const rtl = await (platform2.isRTL == null ? void 0 : platform2.isRTL(floating));
-  let rects = await platform2.getElementRects({
-    reference,
-    floating,
-    strategy
-  });
-  let {
-    x: x2,
-    y: y2
-  } = computeCoordsFromPlacement(rects, placement, rtl);
-  let statefulPlacement = placement;
-  let resetCount = 0;
-  const middlewareData = {};
-  for (let i = 0; i < middleware.length; i++) {
-    const currentMiddleware = middleware[i];
-    if (!currentMiddleware) {
-      continue;
-    }
-    const {
-      name,
-      fn
-    } = currentMiddleware;
-    const {
-      x: nextX,
-      y: nextY,
-      data,
-      reset
-    } = await fn({
-      x: x2,
-      y: y2,
-      initialPlacement: placement,
-      placement: statefulPlacement,
-      strategy,
-      middlewareData,
-      rects,
-      platform: platformWithDetectOverflow,
-      elements: {
-        reference,
-        floating
-      }
-    });
-    x2 = nextX != null ? nextX : x2;
-    y2 = nextY != null ? nextY : y2;
-    middlewareData[name] = {
-      ...middlewareData[name],
-      ...data
-    };
-    if (reset && resetCount < MAX_RESET_COUNT) {
-      resetCount++;
-      if (typeof reset === "object") {
-        if (reset.placement) {
-          statefulPlacement = reset.placement;
-        }
-        if (reset.rects) {
-          rects = reset.rects === true ? await platform2.getElementRects({
-            reference,
-            floating,
-            strategy
-          }) : reset.rects;
-        }
-        ({
-          x: x2,
-          y: y2
-        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
-      }
-      i = -1;
-    }
-  }
-  return {
-    x: x2,
-    y: y2,
-    placement: statefulPlacement,
-    strategy,
-    middlewareData
-  };
-};
-const arrow$3 = (options) => ({
-  name: "arrow",
-  options,
-  async fn(state) {
-    const {
-      x: x2,
-      y: y2,
-      placement,
-      rects,
-      platform: platform2,
-      elements,
-      middlewareData
-    } = state;
-    const {
-      element,
-      padding = 0
-    } = evaluate(options, state) || {};
-    if (element == null) {
-      return {};
-    }
-    const paddingObject = getPaddingObject(padding);
-    const coords = {
-      x: x2,
-      y: y2
-    };
-    const axis = getAlignmentAxis(placement);
-    const length = getAxisLength(axis);
-    const arrowDimensions = await platform2.getDimensions(element);
-    const isYAxis = axis === "y";
-    const minProp = isYAxis ? "top" : "left";
-    const maxProp = isYAxis ? "bottom" : "right";
-    const clientProp = isYAxis ? "clientHeight" : "clientWidth";
-    const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
-    const startDiff = coords[axis] - rects.reference[axis];
-    const arrowOffsetParent = await (platform2.getOffsetParent == null ? void 0 : platform2.getOffsetParent(element));
-    let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
-    if (!clientSize || !await (platform2.isElement == null ? void 0 : platform2.isElement(arrowOffsetParent))) {
-      clientSize = elements.floating[clientProp] || rects.floating[length];
-    }
-    const centerToReference = endDiff / 2 - startDiff / 2;
-    const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
-    const minPadding = min(paddingObject[minProp], largestPossiblePadding);
-    const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
-    const min$1 = minPadding;
-    const max2 = clientSize - arrowDimensions[length] - maxPadding;
-    const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
-    const offset2 = clamp(min$1, center, max2);
-    const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center !== offset2 && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
-    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max2 : 0;
-    return {
-      [axis]: coords[axis] + alignmentOffset,
-      data: {
-        [axis]: offset2,
-        centerOffset: center - offset2 - alignmentOffset,
-        ...shouldAddOffset && {
-          alignmentOffset
-        }
-      },
-      reset: shouldAddOffset
-    };
-  }
-});
-const flip$2 = function(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: "flip",
-    options,
-    async fn(state) {
-      var _middlewareData$arrow, _middlewareData$flip;
-      const {
-        placement,
-        middlewareData,
-        rects,
-        initialPlacement,
-        platform: platform2,
-        elements
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true,
-        fallbackPlacements: specifiedFallbackPlacements,
-        fallbackStrategy = "bestFit",
-        fallbackAxisSideDirection = "none",
-        flipAlignment = true,
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      const side = getSide(placement);
-      const initialSideAxis = getSideAxis(initialPlacement);
-      const isBasePlacement = getSide(initialPlacement) === initialPlacement;
-      const rtl = await (platform2.isRTL == null ? void 0 : platform2.isRTL(elements.floating));
-      const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
-      const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== "none";
-      if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) {
-        fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
-      }
-      const placements = [initialPlacement, ...fallbackPlacements];
-      const overflow = await platform2.detectOverflow(state, detectOverflowOptions);
-      const overflows = [];
-      let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
-      if (checkMainAxis) {
-        overflows.push(overflow[side]);
-      }
-      if (checkCrossAxis) {
-        const sides2 = getAlignmentSides(placement, rects, rtl);
-        overflows.push(overflow[sides2[0]], overflow[sides2[1]]);
-      }
-      overflowsData = [...overflowsData, {
-        placement,
-        overflows
-      }];
-      if (!overflows.every((side2) => side2 <= 0)) {
-        var _middlewareData$flip2, _overflowsData$filter;
-        const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
-        const nextPlacement = placements[nextIndex];
-        if (nextPlacement) {
-          const ignoreCrossAxisOverflow = checkCrossAxis === "alignment" ? initialSideAxis !== getSideAxis(nextPlacement) : false;
-          if (!ignoreCrossAxisOverflow || // We leave the current main axis only if every placement on that axis
-          // overflows the main axis.
-          overflowsData.every((d2) => getSideAxis(d2.placement) === initialSideAxis ? d2.overflows[0] > 0 : true)) {
-            return {
-              data: {
-                index: nextIndex,
-                overflows: overflowsData
-              },
-              reset: {
-                placement: nextPlacement
-              }
-            };
-          }
-        }
-        let resetPlacement = (_overflowsData$filter = overflowsData.filter((d2) => d2.overflows[0] <= 0).sort((a2, b2) => a2.overflows[1] - b2.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
-        if (!resetPlacement) {
-          switch (fallbackStrategy) {
-            case "bestFit": {
-              var _overflowsData$filter2;
-              const placement2 = (_overflowsData$filter2 = overflowsData.filter((d2) => {
-                if (hasFallbackAxisSideDirection) {
-                  const currentSideAxis = getSideAxis(d2.placement);
-                  return currentSideAxis === initialSideAxis || // Create a bias to the `y` side axis due to horizontal
-                  // reading directions favoring greater width.
-                  currentSideAxis === "y";
-                }
-                return true;
-              }).map((d2) => [d2.placement, d2.overflows.filter((overflow2) => overflow2 > 0).reduce((acc, overflow2) => acc + overflow2, 0)]).sort((a2, b2) => a2[1] - b2[1])[0]) == null ? void 0 : _overflowsData$filter2[0];
-              if (placement2) {
-                resetPlacement = placement2;
-              }
-              break;
-            }
-            case "initialPlacement":
-              resetPlacement = initialPlacement;
-              break;
-          }
-        }
-        if (placement !== resetPlacement) {
-          return {
-            reset: {
-              placement: resetPlacement
-            }
-          };
-        }
-      }
-      return {};
-    }
-  };
-};
-function getSideOffsets(overflow, rect) {
-  return {
-    top: overflow.top - rect.height,
-    right: overflow.right - rect.width,
-    bottom: overflow.bottom - rect.height,
-    left: overflow.left - rect.width
-  };
-}
-function isAnySideFullyClipped(overflow) {
-  return sides.some((side) => overflow[side] >= 0);
-}
-const hide$2 = function(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: "hide",
-    options,
-    async fn(state) {
-      const {
-        rects,
-        platform: platform2
-      } = state;
-      const {
-        strategy = "referenceHidden",
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      switch (strategy) {
-        case "referenceHidden": {
-          const overflow = await platform2.detectOverflow(state, {
-            ...detectOverflowOptions,
-            elementContext: "reference"
-          });
-          const offsets = getSideOffsets(overflow, rects.reference);
-          return {
-            data: {
-              referenceHiddenOffsets: offsets,
-              referenceHidden: isAnySideFullyClipped(offsets)
-            }
-          };
-        }
-        case "escaped": {
-          const overflow = await platform2.detectOverflow(state, {
-            ...detectOverflowOptions,
-            altBoundary: true
-          });
-          const offsets = getSideOffsets(overflow, rects.floating);
-          return {
-            data: {
-              escapedOffsets: offsets,
-              escaped: isAnySideFullyClipped(offsets)
-            }
-          };
-        }
-        default: {
-          return {};
-        }
-      }
-    }
-  };
-};
-const originSides = /* @__PURE__ */ new Set(["left", "top"]);
-async function convertValueToCoords(state, options) {
-  const {
-    placement,
-    platform: platform2,
-    elements
-  } = state;
-  const rtl = await (platform2.isRTL == null ? void 0 : platform2.isRTL(elements.floating));
-  const side = getSide(placement);
-  const alignment = getAlignment(placement);
-  const isVertical = getSideAxis(placement) === "y";
-  const mainAxisMulti = originSides.has(side) ? -1 : 1;
-  const crossAxisMulti = rtl && isVertical ? -1 : 1;
-  const rawValue = evaluate(options, state);
-  let {
-    mainAxis,
-    crossAxis,
-    alignmentAxis
-  } = typeof rawValue === "number" ? {
-    mainAxis: rawValue,
-    crossAxis: 0,
-    alignmentAxis: null
-  } : {
-    mainAxis: rawValue.mainAxis || 0,
-    crossAxis: rawValue.crossAxis || 0,
-    alignmentAxis: rawValue.alignmentAxis
-  };
-  if (alignment && typeof alignmentAxis === "number") {
-    crossAxis = alignment === "end" ? alignmentAxis * -1 : alignmentAxis;
-  }
-  return isVertical ? {
-    x: crossAxis * crossAxisMulti,
-    y: mainAxis * mainAxisMulti
-  } : {
-    x: mainAxis * mainAxisMulti,
-    y: crossAxis * crossAxisMulti
-  };
-}
-const offset$2 = function(options) {
-  if (options === void 0) {
-    options = 0;
-  }
-  return {
-    name: "offset",
-    options,
-    async fn(state) {
-      var _middlewareData$offse, _middlewareData$arrow;
-      const {
-        x: x2,
-        y: y2,
-        placement,
-        middlewareData
-      } = state;
-      const diffCoords = await convertValueToCoords(state, options);
-      if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      return {
-        x: x2 + diffCoords.x,
-        y: y2 + diffCoords.y,
-        data: {
-          ...diffCoords,
-          placement
-        }
-      };
-    }
-  };
-};
-const shift$2 = function(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: "shift",
-    options,
-    async fn(state) {
-      const {
-        x: x2,
-        y: y2,
-        placement,
-        platform: platform2
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = false,
-        limiter = {
-          fn: (_ref) => {
-            let {
-              x: x3,
-              y: y3
-            } = _ref;
-            return {
-              x: x3,
-              y: y3
-            };
-          }
-        },
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      const coords = {
-        x: x2,
-        y: y2
-      };
-      const overflow = await platform2.detectOverflow(state, detectOverflowOptions);
-      const crossAxis = getSideAxis(getSide(placement));
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      if (checkMainAxis) {
-        const minSide = mainAxis === "y" ? "top" : "left";
-        const maxSide = mainAxis === "y" ? "bottom" : "right";
-        const min2 = mainAxisCoord + overflow[minSide];
-        const max2 = mainAxisCoord - overflow[maxSide];
-        mainAxisCoord = clamp(min2, mainAxisCoord, max2);
-      }
-      if (checkCrossAxis) {
-        const minSide = crossAxis === "y" ? "top" : "left";
-        const maxSide = crossAxis === "y" ? "bottom" : "right";
-        const min2 = crossAxisCoord + overflow[minSide];
-        const max2 = crossAxisCoord - overflow[maxSide];
-        crossAxisCoord = clamp(min2, crossAxisCoord, max2);
-      }
-      const limitedCoords = limiter.fn({
-        ...state,
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      });
-      return {
-        ...limitedCoords,
-        data: {
-          x: limitedCoords.x - x2,
-          y: limitedCoords.y - y2,
-          enabled: {
-            [mainAxis]: checkMainAxis,
-            [crossAxis]: checkCrossAxis
-          }
-        }
-      };
-    }
-  };
-};
-const limitShift$2 = function(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    options,
-    fn(state) {
-      const {
-        x: x2,
-        y: y2,
-        placement,
-        rects,
-        middlewareData
-      } = state;
-      const {
-        offset: offset2 = 0,
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true
-      } = evaluate(options, state);
-      const coords = {
-        x: x2,
-        y: y2
-      };
-      const crossAxis = getSideAxis(placement);
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      const rawOffset = evaluate(offset2, state);
-      const computedOffset = typeof rawOffset === "number" ? {
-        mainAxis: rawOffset,
-        crossAxis: 0
-      } : {
-        mainAxis: 0,
-        crossAxis: 0,
-        ...rawOffset
-      };
-      if (checkMainAxis) {
-        const len = mainAxis === "y" ? "height" : "width";
-        const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
-        const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
-        if (mainAxisCoord < limitMin) {
-          mainAxisCoord = limitMin;
-        } else if (mainAxisCoord > limitMax) {
-          mainAxisCoord = limitMax;
-        }
-      }
-      if (checkCrossAxis) {
-        var _middlewareData$offse, _middlewareData$offse2;
-        const len = mainAxis === "y" ? "width" : "height";
-        const isOriginSide = originSides.has(getSide(placement));
-        const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
-        const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
-        if (crossAxisCoord < limitMin) {
-          crossAxisCoord = limitMin;
-        } else if (crossAxisCoord > limitMax) {
-          crossAxisCoord = limitMax;
-        }
-      }
-      return {
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      };
-    }
-  };
-};
-const size$2 = function(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: "size",
-    options,
-    async fn(state) {
-      var _state$middlewareData, _state$middlewareData2;
-      const {
-        placement,
-        rects,
-        platform: platform2,
-        elements
-      } = state;
-      const {
-        apply = () => {
-        },
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      const overflow = await platform2.detectOverflow(state, detectOverflowOptions);
-      const side = getSide(placement);
-      const alignment = getAlignment(placement);
-      const isYAxis = getSideAxis(placement) === "y";
-      const {
-        width,
-        height
-      } = rects.floating;
-      let heightSide;
-      let widthSide;
-      if (side === "top" || side === "bottom") {
-        heightSide = side;
-        widthSide = alignment === (await (platform2.isRTL == null ? void 0 : platform2.isRTL(elements.floating)) ? "start" : "end") ? "left" : "right";
-      } else {
-        widthSide = side;
-        heightSide = alignment === "end" ? "top" : "bottom";
-      }
-      const maximumClippingHeight = height - overflow.top - overflow.bottom;
-      const maximumClippingWidth = width - overflow.left - overflow.right;
-      const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
-      const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
-      const noShift = !state.middlewareData.shift;
-      let availableHeight = overflowAvailableHeight;
-      let availableWidth = overflowAvailableWidth;
-      if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) {
-        availableWidth = maximumClippingWidth;
-      }
-      if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) {
-        availableHeight = maximumClippingHeight;
-      }
-      if (noShift && !alignment) {
-        const xMin = max(overflow.left, 0);
-        const xMax = max(overflow.right, 0);
-        const yMin = max(overflow.top, 0);
-        const yMax = max(overflow.bottom, 0);
-        if (isYAxis) {
-          availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
-        } else {
-          availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
-        }
-      }
-      await apply({
-        ...state,
-        availableWidth,
-        availableHeight
-      });
-      const nextDimensions = await platform2.getDimensions(elements.floating);
-      if (width !== nextDimensions.width || height !== nextDimensions.height) {
-        return {
-          reset: {
-            rects: true
-          }
-        };
-      }
-      return {};
-    }
-  };
-};
-function hasWindow() {
-  return typeof window !== "undefined";
-}
-function getNodeName(node) {
-  if (isNode(node)) {
-    return (node.nodeName || "").toLowerCase();
-  }
-  return "#document";
-}
-function getWindow(node) {
-  var _node$ownerDocument;
-  return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
-}
-function getDocumentElement(node) {
-  var _ref;
-  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
-}
-function isNode(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Node || value instanceof getWindow(value).Node;
-}
-function isElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Element || value instanceof getWindow(value).Element;
-}
-function isHTMLElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
-}
-function isShadowRoot(value) {
-  if (!hasWindow() || typeof ShadowRoot === "undefined") {
-    return false;
-  }
-  return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
-}
-function isOverflowElement(element) {
-  const {
-    overflow,
-    overflowX,
-    overflowY,
-    display
-  } = getComputedStyle$1(element);
-  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && display !== "inline" && display !== "contents";
-}
-function isTableElement(element) {
-  return /^(table|td|th)$/.test(getNodeName(element));
-}
-function isTopLayer(element) {
-  try {
-    if (element.matches(":popover-open")) {
-      return true;
-    }
-  } catch (_e2) {
-  }
-  try {
-    return element.matches(":modal");
-  } catch (_e2) {
-    return false;
-  }
-}
-const willChangeRe = /transform|translate|scale|rotate|perspective|filter/;
-const containRe = /paint|layout|strict|content/;
-const isNotNone = (value) => !!value && value !== "none";
-let isWebKitValue;
-function isContainingBlock(elementOrCss) {
-  const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
-  return isNotNone(css.transform) || isNotNone(css.translate) || isNotNone(css.scale) || isNotNone(css.rotate) || isNotNone(css.perspective) || !isWebKit() && (isNotNone(css.backdropFilter) || isNotNone(css.filter)) || willChangeRe.test(css.willChange || "") || containRe.test(css.contain || "");
-}
-function getContainingBlock(element) {
-  let currentNode = getParentNode(element);
-  while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    if (isContainingBlock(currentNode)) {
-      return currentNode;
-    } else if (isTopLayer(currentNode)) {
-      return null;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  return null;
-}
-function isWebKit() {
-  if (isWebKitValue == null) {
-    isWebKitValue = typeof CSS !== "undefined" && CSS.supports && CSS.supports("-webkit-backdrop-filter", "none");
-  }
-  return isWebKitValue;
-}
-function isLastTraversableNode(node) {
-  return /^(html|body|#document)$/.test(getNodeName(node));
-}
-function getComputedStyle$1(element) {
-  return getWindow(element).getComputedStyle(element);
-}
-function getNodeScroll(element) {
-  if (isElement(element)) {
-    return {
-      scrollLeft: element.scrollLeft,
-      scrollTop: element.scrollTop
-    };
-  }
-  return {
-    scrollLeft: element.scrollX,
-    scrollTop: element.scrollY
-  };
-}
-function getParentNode(node) {
-  if (getNodeName(node) === "html") {
-    return node;
-  }
-  const result = (
-    // Step into the shadow DOM of the parent of a slotted node.
-    node.assignedSlot || // DOM Element detected.
-    node.parentNode || // ShadowRoot detected.
-    isShadowRoot(node) && node.host || // Fallback.
-    getDocumentElement(node)
-  );
-  return isShadowRoot(result) ? result.host : result;
-}
-function getNearestOverflowAncestor(node) {
-  const parentNode = getParentNode(node);
-  if (isLastTraversableNode(parentNode)) {
-    return node.ownerDocument ? node.ownerDocument.body : node.body;
-  }
-  if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
-    return parentNode;
-  }
-  return getNearestOverflowAncestor(parentNode);
-}
-function getOverflowAncestors(node, list, traverseIframes) {
-  var _node$ownerDocument2;
-  if (list === void 0) {
-    list = [];
-  }
-  if (traverseIframes === void 0) {
-    traverseIframes = true;
-  }
-  const scrollableAncestor = getNearestOverflowAncestor(node);
-  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
-  const win = getWindow(scrollableAncestor);
-  if (isBody) {
-    const frameElement = getFrameElement(win);
-    return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
-  } else {
-    return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
-  }
-}
-function getFrameElement(win) {
-  return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
-}
-function getCssDimensions(element) {
-  const css = getComputedStyle$1(element);
-  let width = parseFloat(css.width) || 0;
-  let height = parseFloat(css.height) || 0;
-  const hasOffset = isHTMLElement(element);
-  const offsetWidth = hasOffset ? element.offsetWidth : width;
-  const offsetHeight = hasOffset ? element.offsetHeight : height;
-  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
-  if (shouldFallback) {
-    width = offsetWidth;
-    height = offsetHeight;
-  }
-  return {
-    width,
-    height,
-    $: shouldFallback
-  };
-}
-function unwrapElement(element) {
-  return !isElement(element) ? element.contextElement : element;
-}
-function getScale(element) {
-  const domElement = unwrapElement(element);
-  if (!isHTMLElement(domElement)) {
-    return createCoords(1);
-  }
-  const rect = domElement.getBoundingClientRect();
-  const {
-    width,
-    height,
-    $: $2
-  } = getCssDimensions(domElement);
-  let x2 = ($2 ? round(rect.width) : rect.width) / width;
-  let y2 = ($2 ? round(rect.height) : rect.height) / height;
-  if (!x2 || !Number.isFinite(x2)) {
-    x2 = 1;
-  }
-  if (!y2 || !Number.isFinite(y2)) {
-    y2 = 1;
-  }
-  return {
-    x: x2,
-    y: y2
-  };
-}
-const noOffsets = /* @__PURE__ */ createCoords(0);
-function getVisualOffsets(element) {
-  const win = getWindow(element);
-  if (!isWebKit() || !win.visualViewport) {
-    return noOffsets;
-  }
-  return {
-    x: win.visualViewport.offsetLeft,
-    y: win.visualViewport.offsetTop
-  };
-}
-function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
-  if (isFixed === void 0) {
-    isFixed = false;
-  }
-  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
-    return false;
-  }
-  return isFixed;
-}
-function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
-  if (includeScale === void 0) {
-    includeScale = false;
-  }
-  if (isFixedStrategy === void 0) {
-    isFixedStrategy = false;
-  }
-  const clientRect = element.getBoundingClientRect();
-  const domElement = unwrapElement(element);
-  let scale = createCoords(1);
-  if (includeScale) {
-    if (offsetParent) {
-      if (isElement(offsetParent)) {
-        scale = getScale(offsetParent);
-      }
-    } else {
-      scale = getScale(element);
-    }
-  }
-  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
-  let x2 = (clientRect.left + visualOffsets.x) / scale.x;
-  let y2 = (clientRect.top + visualOffsets.y) / scale.y;
-  let width = clientRect.width / scale.x;
-  let height = clientRect.height / scale.y;
-  if (domElement) {
-    const win = getWindow(domElement);
-    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
-    let currentWin = win;
-    let currentIFrame = getFrameElement(currentWin);
-    while (currentIFrame && offsetParent && offsetWin !== currentWin) {
-      const iframeScale = getScale(currentIFrame);
-      const iframeRect = currentIFrame.getBoundingClientRect();
-      const css = getComputedStyle$1(currentIFrame);
-      const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
-      const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
-      x2 *= iframeScale.x;
-      y2 *= iframeScale.y;
-      width *= iframeScale.x;
-      height *= iframeScale.y;
-      x2 += left;
-      y2 += top;
-      currentWin = getWindow(currentIFrame);
-      currentIFrame = getFrameElement(currentWin);
-    }
-  }
-  return rectToClientRect({
-    width,
-    height,
-    x: x2,
-    y: y2
-  });
-}
-function getWindowScrollBarX(element, rect) {
-  const leftScroll = getNodeScroll(element).scrollLeft;
-  if (!rect) {
-    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
-  }
-  return rect.left + leftScroll;
-}
-function getHTMLOffset(documentElement, scroll) {
-  const htmlRect = documentElement.getBoundingClientRect();
-  const x2 = htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect);
-  const y2 = htmlRect.top + scroll.scrollTop;
-  return {
-    x: x2,
-    y: y2
-  };
-}
-function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
-  let {
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  } = _ref;
-  const isFixed = strategy === "fixed";
-  const documentElement = getDocumentElement(offsetParent);
-  const topLayer = elements ? isTopLayer(elements.floating) : false;
-  if (offsetParent === documentElement || topLayer && isFixed) {
-    return rect;
-  }
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  let scale = createCoords(1);
-  const offsets = createCoords(0);
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isOffsetParentAnElement) {
-      const offsetRect = getBoundingClientRect(offsetParent);
-      scale = getScale(offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    }
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  return {
-    width: rect.width * scale.x,
-    height: rect.height * scale.y,
-    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
-    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
-  };
-}
-function getClientRects(element) {
-  return Array.from(element.getClientRects());
-}
-function getDocumentRect(element) {
-  const html = getDocumentElement(element);
-  const scroll = getNodeScroll(element);
-  const body = element.ownerDocument.body;
-  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
-  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
-  let x2 = -scroll.scrollLeft + getWindowScrollBarX(element);
-  const y2 = -scroll.scrollTop;
-  if (getComputedStyle$1(body).direction === "rtl") {
-    x2 += max(html.clientWidth, body.clientWidth) - width;
-  }
-  return {
-    width,
-    height,
-    x: x2,
-    y: y2
-  };
-}
-const SCROLLBAR_MAX = 25;
-function getViewportRect(element, strategy) {
-  const win = getWindow(element);
-  const html = getDocumentElement(element);
-  const visualViewport = win.visualViewport;
-  let width = html.clientWidth;
-  let height = html.clientHeight;
-  let x2 = 0;
-  let y2 = 0;
-  if (visualViewport) {
-    width = visualViewport.width;
-    height = visualViewport.height;
-    const visualViewportBased = isWebKit();
-    if (!visualViewportBased || visualViewportBased && strategy === "fixed") {
-      x2 = visualViewport.offsetLeft;
-      y2 = visualViewport.offsetTop;
-    }
-  }
-  const windowScrollbarX = getWindowScrollBarX(html);
-  if (windowScrollbarX <= 0) {
-    const doc = html.ownerDocument;
-    const body = doc.body;
-    const bodyStyles = getComputedStyle(body);
-    const bodyMarginInline = doc.compatMode === "CSS1Compat" ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
-    const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
-    if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) {
-      width -= clippingStableScrollbarWidth;
-    }
-  } else if (windowScrollbarX <= SCROLLBAR_MAX) {
-    width += windowScrollbarX;
-  }
-  return {
-    width,
-    height,
-    x: x2,
-    y: y2
-  };
-}
-function getInnerBoundingClientRect(element, strategy) {
-  const clientRect = getBoundingClientRect(element, true, strategy === "fixed");
-  const top = clientRect.top + element.clientTop;
-  const left = clientRect.left + element.clientLeft;
-  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
-  const width = element.clientWidth * scale.x;
-  const height = element.clientHeight * scale.y;
-  const x2 = left * scale.x;
-  const y2 = top * scale.y;
-  return {
-    width,
-    height,
-    x: x2,
-    y: y2
-  };
-}
-function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
-  let rect;
-  if (clippingAncestor === "viewport") {
-    rect = getViewportRect(element, strategy);
-  } else if (clippingAncestor === "document") {
-    rect = getDocumentRect(getDocumentElement(element));
-  } else if (isElement(clippingAncestor)) {
-    rect = getInnerBoundingClientRect(clippingAncestor, strategy);
-  } else {
-    const visualOffsets = getVisualOffsets(element);
-    rect = {
-      x: clippingAncestor.x - visualOffsets.x,
-      y: clippingAncestor.y - visualOffsets.y,
-      width: clippingAncestor.width,
-      height: clippingAncestor.height
-    };
-  }
-  return rectToClientRect(rect);
-}
-function hasFixedPositionAncestor(element, stopNode) {
-  const parentNode = getParentNode(element);
-  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
-    return false;
-  }
-  return getComputedStyle$1(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
-}
-function getClippingElementAncestors(element, cache) {
-  const cachedResult = cache.get(element);
-  if (cachedResult) {
-    return cachedResult;
-  }
-  let result = getOverflowAncestors(element, [], false).filter((el) => isElement(el) && getNodeName(el) !== "body");
-  let currentContainingBlockComputedStyle = null;
-  const elementIsFixed = getComputedStyle$1(element).position === "fixed";
-  let currentNode = elementIsFixed ? getParentNode(element) : element;
-  while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    const computedStyle = getComputedStyle$1(currentNode);
-    const currentNodeIsContaining = isContainingBlock(currentNode);
-    if (!currentNodeIsContaining && computedStyle.position === "fixed") {
-      currentContainingBlockComputedStyle = null;
-    }
-    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && (currentContainingBlockComputedStyle.position === "absolute" || currentContainingBlockComputedStyle.position === "fixed") || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
-    if (shouldDropCurrentNode) {
-      result = result.filter((ancestor) => ancestor !== currentNode);
-    } else {
-      currentContainingBlockComputedStyle = computedStyle;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  cache.set(element, result);
-  return result;
-}
-function getClippingRect(_ref) {
-  let {
-    element,
-    boundary,
-    rootBoundary,
-    strategy
-  } = _ref;
-  const elementClippingAncestors = boundary === "clippingAncestors" ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary);
-  const clippingAncestors = [...elementClippingAncestors, rootBoundary];
-  const firstRect = getClientRectFromClippingAncestor(element, clippingAncestors[0], strategy);
-  let top = firstRect.top;
-  let right = firstRect.right;
-  let bottom = firstRect.bottom;
-  let left = firstRect.left;
-  for (let i = 1; i < clippingAncestors.length; i++) {
-    const rect = getClientRectFromClippingAncestor(element, clippingAncestors[i], strategy);
-    top = max(rect.top, top);
-    right = min(rect.right, right);
-    bottom = min(rect.bottom, bottom);
-    left = max(rect.left, left);
-  }
-  return {
-    width: right - left,
-    height: bottom - top,
-    x: left,
-    y: top
-  };
-}
-function getDimensions(element) {
-  const {
-    width,
-    height
-  } = getCssDimensions(element);
-  return {
-    width,
-    height
-  };
-}
-function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  const documentElement = getDocumentElement(offsetParent);
-  const isFixed = strategy === "fixed";
-  const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  const offsets = createCoords(0);
-  function setLeftRTLScrollbarOffset() {
-    offsets.x = getWindowScrollBarX(documentElement);
-  }
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isOffsetParentAnElement) {
-      const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    } else if (documentElement) {
-      setLeftRTLScrollbarOffset();
-    }
-  }
-  if (isFixed && !isOffsetParentAnElement && documentElement) {
-    setLeftRTLScrollbarOffset();
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  const x2 = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
-  const y2 = rect.top + scroll.scrollTop - offsets.y - htmlOffset.y;
-  return {
-    x: x2,
-    y: y2,
-    width: rect.width,
-    height: rect.height
-  };
-}
-function isStaticPositioned(element) {
-  return getComputedStyle$1(element).position === "static";
-}
-function getTrueOffsetParent(element, polyfill2) {
-  if (!isHTMLElement(element) || getComputedStyle$1(element).position === "fixed") {
-    return null;
-  }
-  if (polyfill2) {
-    return polyfill2(element);
-  }
-  let rawOffsetParent = element.offsetParent;
-  if (getDocumentElement(element) === rawOffsetParent) {
-    rawOffsetParent = rawOffsetParent.ownerDocument.body;
-  }
-  return rawOffsetParent;
-}
-function getOffsetParent(element, polyfill2) {
-  const win = getWindow(element);
-  if (isTopLayer(element)) {
-    return win;
-  }
-  if (!isHTMLElement(element)) {
-    let svgOffsetParent = getParentNode(element);
-    while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
-      if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) {
-        return svgOffsetParent;
-      }
-      svgOffsetParent = getParentNode(svgOffsetParent);
-    }
-    return win;
-  }
-  let offsetParent = getTrueOffsetParent(element, polyfill2);
-  while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) {
-    offsetParent = getTrueOffsetParent(offsetParent, polyfill2);
-  }
-  if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) {
-    return win;
-  }
-  return offsetParent || getContainingBlock(element) || win;
-}
-const getElementRects = async function(data) {
-  const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
-  const getDimensionsFn = this.getDimensions;
-  const floatingDimensions = await getDimensionsFn(data.floating);
-  return {
-    reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
-    floating: {
-      x: 0,
-      y: 0,
-      width: floatingDimensions.width,
-      height: floatingDimensions.height
-    }
-  };
-};
-function isRTL(element) {
-  return getComputedStyle$1(element).direction === "rtl";
-}
-const platform = {
-  convertOffsetParentRelativeRectToViewportRelativeRect,
-  getDocumentElement,
-  getClippingRect,
-  getOffsetParent,
-  getElementRects,
-  getClientRects,
-  getDimensions,
-  getScale,
-  isElement,
-  isRTL
-};
-function rectsAreEqual(a2, b2) {
-  return a2.x === b2.x && a2.y === b2.y && a2.width === b2.width && a2.height === b2.height;
-}
-function observeMove(element, onMove) {
-  let io = null;
-  let timeoutId;
-  const root2 = getDocumentElement(element);
-  function cleanup() {
-    var _io;
-    clearTimeout(timeoutId);
-    (_io = io) == null || _io.disconnect();
-    io = null;
-  }
-  function refresh(skip, threshold) {
-    if (skip === void 0) {
-      skip = false;
-    }
-    if (threshold === void 0) {
-      threshold = 1;
-    }
-    cleanup();
-    const elementRectForRootMargin = element.getBoundingClientRect();
-    const {
-      left,
-      top,
-      width,
-      height
-    } = elementRectForRootMargin;
-    if (!skip) {
-      onMove();
-    }
-    if (!width || !height) {
-      return;
-    }
-    const insetTop = floor(top);
-    const insetRight = floor(root2.clientWidth - (left + width));
-    const insetBottom = floor(root2.clientHeight - (top + height));
-    const insetLeft = floor(left);
-    const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
-    const options = {
-      rootMargin,
-      threshold: max(0, min(1, threshold)) || 1
-    };
-    let isFirstUpdate = true;
-    function handleObserve(entries) {
-      const ratio = entries[0].intersectionRatio;
-      if (ratio !== threshold) {
-        if (!isFirstUpdate) {
-          return refresh();
-        }
-        if (!ratio) {
-          timeoutId = setTimeout(() => {
-            refresh(false, 1e-7);
-          }, 1e3);
-        } else {
-          refresh(false, ratio);
-        }
-      }
-      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
-        refresh();
-      }
-      isFirstUpdate = false;
-    }
-    try {
-      io = new IntersectionObserver(handleObserve, {
-        ...options,
-        // Handle <iframe>s
-        root: root2.ownerDocument
-      });
-    } catch (_e2) {
-      io = new IntersectionObserver(handleObserve, options);
-    }
-    io.observe(element);
-  }
-  refresh(true);
-  return cleanup;
-}
-function autoUpdate(reference, floating, update, options) {
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    ancestorScroll = true,
-    ancestorResize = true,
-    elementResize = typeof ResizeObserver === "function",
-    layoutShift = typeof IntersectionObserver === "function",
-    animationFrame = false
-  } = options;
-  const referenceEl = unwrapElement(reference);
-  const ancestors = ancestorScroll || ancestorResize ? [...referenceEl ? getOverflowAncestors(referenceEl) : [], ...floating ? getOverflowAncestors(floating) : []] : [];
-  ancestors.forEach((ancestor) => {
-    ancestorScroll && ancestor.addEventListener("scroll", update, {
-      passive: true
-    });
-    ancestorResize && ancestor.addEventListener("resize", update);
-  });
-  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
-  let reobserveFrame = -1;
-  let resizeObserver = null;
-  if (elementResize) {
-    resizeObserver = new ResizeObserver((_ref) => {
-      let [firstEntry] = _ref;
-      if (firstEntry && firstEntry.target === referenceEl && resizeObserver && floating) {
-        resizeObserver.unobserve(floating);
-        cancelAnimationFrame(reobserveFrame);
-        reobserveFrame = requestAnimationFrame(() => {
-          var _resizeObserver;
-          (_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
-        });
-      }
-      update();
-    });
-    if (referenceEl && !animationFrame) {
-      resizeObserver.observe(referenceEl);
-    }
-    if (floating) {
-      resizeObserver.observe(floating);
-    }
-  }
-  let frameId;
-  let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
-  if (animationFrame) {
-    frameLoop();
-  }
-  function frameLoop() {
-    const nextRefRect = getBoundingClientRect(reference);
-    if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) {
-      update();
-    }
-    prevRefRect = nextRefRect;
-    frameId = requestAnimationFrame(frameLoop);
-  }
-  update();
-  return () => {
-    var _resizeObserver2;
-    ancestors.forEach((ancestor) => {
-      ancestorScroll && ancestor.removeEventListener("scroll", update);
-      ancestorResize && ancestor.removeEventListener("resize", update);
-    });
-    cleanupIo == null || cleanupIo();
-    (_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
-    resizeObserver = null;
-    if (animationFrame) {
-      cancelAnimationFrame(frameId);
-    }
-  };
-}
-const offset$1 = offset$2;
-const shift$1 = shift$2;
-const flip$1 = flip$2;
-const size$1 = size$2;
-const hide$1 = hide$2;
-const arrow$2 = arrow$3;
-const limitShift$1 = limitShift$2;
-const computePosition = (reference, floating, options) => {
-  const cache = /* @__PURE__ */ new Map();
-  const mergedOptions = {
-    platform,
-    ...options
-  };
-  const platformWithCache = {
-    ...mergedOptions.platform,
-    _c: cache
-  };
-  return computePosition$1(reference, floating, {
-    ...mergedOptions,
-    platform: platformWithCache
-  });
-};
-var isClient = typeof document !== "undefined";
-var noop = function noop2() {
-};
-var index = isClient ? reactExports.useLayoutEffect : noop;
-function deepEqual(a2, b2) {
-  if (a2 === b2) {
-    return true;
-  }
-  if (typeof a2 !== typeof b2) {
-    return false;
-  }
-  if (typeof a2 === "function" && a2.toString() === b2.toString()) {
-    return true;
-  }
-  let length;
-  let i;
-  let keys;
-  if (a2 && b2 && typeof a2 === "object") {
-    if (Array.isArray(a2)) {
-      length = a2.length;
-      if (length !== b2.length) return false;
-      for (i = length; i-- !== 0; ) {
-        if (!deepEqual(a2[i], b2[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    keys = Object.keys(a2);
-    length = keys.length;
-    if (length !== Object.keys(b2).length) {
-      return false;
-    }
-    for (i = length; i-- !== 0; ) {
-      if (!{}.hasOwnProperty.call(b2, keys[i])) {
-        return false;
-      }
-    }
-    for (i = length; i-- !== 0; ) {
-      const key = keys[i];
-      if (key === "_owner" && a2.$$typeof) {
-        continue;
-      }
-      if (!deepEqual(a2[key], b2[key])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return a2 !== a2 && b2 !== b2;
-}
-function getDPR(element) {
-  if (typeof window === "undefined") {
-    return 1;
-  }
-  const win = element.ownerDocument.defaultView || window;
-  return win.devicePixelRatio || 1;
-}
-function roundByDPR(element, value) {
-  const dpr = getDPR(element);
-  return Math.round(value * dpr) / dpr;
-}
-function useLatestRef(value) {
-  const ref = reactExports.useRef(value);
-  index(() => {
-    ref.current = value;
-  });
-  return ref;
-}
-function useFloating(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    placement = "bottom",
-    strategy = "absolute",
-    middleware = [],
-    platform: platform2,
-    elements: {
-      reference: externalReference,
-      floating: externalFloating
-    } = {},
-    transform = true,
-    whileElementsMounted,
-    open
-  } = options;
-  const [data, setData] = reactExports.useState({
-    x: 0,
-    y: 0,
-    strategy,
-    placement,
-    middlewareData: {},
-    isPositioned: false
-  });
-  const [latestMiddleware, setLatestMiddleware] = reactExports.useState(middleware);
-  if (!deepEqual(latestMiddleware, middleware)) {
-    setLatestMiddleware(middleware);
-  }
-  const [_reference, _setReference] = reactExports.useState(null);
-  const [_floating, _setFloating] = reactExports.useState(null);
-  const setReference = reactExports.useCallback((node) => {
-    if (node !== referenceRef.current) {
-      referenceRef.current = node;
-      _setReference(node);
-    }
-  }, []);
-  const setFloating = reactExports.useCallback((node) => {
-    if (node !== floatingRef.current) {
-      floatingRef.current = node;
-      _setFloating(node);
-    }
-  }, []);
-  const referenceEl = externalReference || _reference;
-  const floatingEl = externalFloating || _floating;
-  const referenceRef = reactExports.useRef(null);
-  const floatingRef = reactExports.useRef(null);
-  const dataRef = reactExports.useRef(data);
-  const hasWhileElementsMounted = whileElementsMounted != null;
-  const whileElementsMountedRef = useLatestRef(whileElementsMounted);
-  const platformRef = useLatestRef(platform2);
-  const openRef = useLatestRef(open);
-  const update = reactExports.useCallback(() => {
-    if (!referenceRef.current || !floatingRef.current) {
-      return;
-    }
-    const config = {
-      placement,
-      strategy,
-      middleware: latestMiddleware
-    };
-    if (platformRef.current) {
-      config.platform = platformRef.current;
-    }
-    computePosition(referenceRef.current, floatingRef.current, config).then((data2) => {
-      const fullData = {
-        ...data2,
-        // The floating element's position may be recomputed while it's closed
-        // but still mounted (such as when transitioning out). To ensure
-        // `isPositioned` will be `false` initially on the next open, avoid
-        // setting it to `true` when `open === false` (must be specified).
-        isPositioned: openRef.current !== false
-      };
-      if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
-        dataRef.current = fullData;
-        reactDomExports.flushSync(() => {
-          setData(fullData);
-        });
-      }
-    });
-  }, [latestMiddleware, placement, strategy, platformRef, openRef]);
-  index(() => {
-    if (open === false && dataRef.current.isPositioned) {
-      dataRef.current.isPositioned = false;
-      setData((data2) => ({
-        ...data2,
-        isPositioned: false
-      }));
-    }
-  }, [open]);
-  const isMountedRef = reactExports.useRef(false);
-  index(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-  index(() => {
-    if (referenceEl) referenceRef.current = referenceEl;
-    if (floatingEl) floatingRef.current = floatingEl;
-    if (referenceEl && floatingEl) {
-      if (whileElementsMountedRef.current) {
-        return whileElementsMountedRef.current(referenceEl, floatingEl, update);
-      }
-      update();
-    }
-  }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = reactExports.useMemo(() => ({
-    reference: referenceRef,
-    floating: floatingRef,
-    setReference,
-    setFloating
-  }), [setReference, setFloating]);
-  const elements = reactExports.useMemo(() => ({
-    reference: referenceEl,
-    floating: floatingEl
-  }), [referenceEl, floatingEl]);
-  const floatingStyles = reactExports.useMemo(() => {
-    const initialStyles = {
-      position: strategy,
-      left: 0,
-      top: 0
-    };
-    if (!elements.floating) {
-      return initialStyles;
-    }
-    const x2 = roundByDPR(elements.floating, data.x);
-    const y2 = roundByDPR(elements.floating, data.y);
-    if (transform) {
-      return {
-        ...initialStyles,
-        transform: "translate(" + x2 + "px, " + y2 + "px)",
-        ...getDPR(elements.floating) >= 1.5 && {
-          willChange: "transform"
-        }
-      };
-    }
-    return {
-      position: strategy,
-      left: x2,
-      top: y2
-    };
-  }, [strategy, transform, elements.floating, data.x, data.y]);
-  return reactExports.useMemo(() => ({
-    ...data,
-    update,
-    refs,
-    elements,
-    floatingStyles
-  }), [data, update, refs, elements, floatingStyles]);
-}
-const arrow$1 = (options) => {
-  function isRef(value) {
-    return {}.hasOwnProperty.call(value, "current");
-  }
-  return {
-    name: "arrow",
-    options,
-    fn(state) {
-      const {
-        element,
-        padding
-      } = typeof options === "function" ? options(state) : options;
-      if (element && isRef(element)) {
-        if (element.current != null) {
-          return arrow$2({
-            element: element.current,
-            padding
-          }).fn(state);
-        }
-        return {};
-      }
-      if (element) {
-        return arrow$2({
-          element,
-          padding
-        }).fn(state);
-      }
-      return {};
-    }
-  };
-};
-const offset = (options, deps) => {
-  const result = offset$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const shift = (options, deps) => {
-  const result = shift$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const limitShift = (options, deps) => {
-  const result = limitShift$1(options);
-  return {
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const flip = (options, deps) => {
-  const result = flip$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const size = (options, deps) => {
-  const result = size$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const hide = (options, deps) => {
-  const result = hide$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-const arrow = (options, deps) => {
-  const result = arrow$1(options);
-  return {
-    name: result.name,
-    fn: result.fn,
-    options: [options, deps]
-  };
-};
-var NAME$1 = "Arrow";
-var Arrow$1 = reactExports.forwardRef((props, forwardedRef) => {
-  const { children, width = 10, height = 5, ...arrowProps } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive.svg,
-    {
-      ...arrowProps,
-      ref: forwardedRef,
-      width,
-      height,
-      viewBox: "0 0 30 10",
-      preserveAspectRatio: "none",
-      children: props.asChild ? children : /* @__PURE__ */ jsxRuntimeExports.jsx("polygon", { points: "0,0 30,0 15,10" })
-    }
-  );
-});
-Arrow$1.displayName = NAME$1;
-var Root = Arrow$1;
-function useSize(element) {
-  const [size2, setSize] = reactExports.useState(void 0);
-  useLayoutEffect2(() => {
-    if (element) {
-      setSize({ width: element.offsetWidth, height: element.offsetHeight });
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!Array.isArray(entries)) {
-          return;
-        }
-        if (!entries.length) {
-          return;
-        }
-        const entry = entries[0];
-        let width;
-        let height;
-        if ("borderBoxSize" in entry) {
-          const borderSizeEntry = entry["borderBoxSize"];
-          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-          width = borderSize["inlineSize"];
-          height = borderSize["blockSize"];
-        } else {
-          width = element.offsetWidth;
-          height = element.offsetHeight;
-        }
-        setSize({ width, height });
-      });
-      resizeObserver.observe(element, { box: "border-box" });
-      return () => resizeObserver.unobserve(element);
-    } else {
-      setSize(void 0);
-    }
-  }, [element]);
-  return size2;
-}
-var POPPER_NAME = "Popper";
-var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
-var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
-var Popper = (props) => {
-  const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = reactExports.useState(null);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
-};
-Popper.displayName = POPPER_NAME;
-var ANCHOR_NAME = "PopperAnchor";
-var PopperAnchor = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopePopper, virtualRef, ...anchorProps } = props;
-    const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = reactExports.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = reactExports.useRef(null);
-    reactExports.useEffect(() => {
-      const previousAnchor = anchorRef.current;
-      anchorRef.current = (virtualRef == null ? void 0 : virtualRef.current) || ref.current;
-      if (previousAnchor !== anchorRef.current) {
-        context.onAnchorChange(anchorRef.current);
-      }
-    });
-    return virtualRef ? null : /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...anchorProps, ref: composedRefs });
-  }
-);
-PopperAnchor.displayName = ANCHOR_NAME;
-var CONTENT_NAME$1 = "PopperContent";
-var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$1);
-var PopperContent = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    var _a2, _b2, _c2, _d2, _e2, _f2;
-    const {
-      __scopePopper,
-      side = "bottom",
-      sideOffset = 0,
-      align = "center",
-      alignOffset = 0,
-      arrowPadding = 0,
-      avoidCollisions = true,
-      collisionBoundary = [],
-      collisionPadding: collisionPaddingProp = 0,
-      sticky = "partial",
-      hideWhenDetached = false,
-      updatePositionStrategy = "optimized",
-      onPlaced,
-      ...contentProps
-    } = props;
-    const context = usePopperContext(CONTENT_NAME$1, __scopePopper);
-    const [content, setContent] = reactExports.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow$12, setArrow] = reactExports.useState(null);
-    const arrowSize = useSize(arrow$12);
-    const arrowWidth = (arrowSize == null ? void 0 : arrowSize.width) ?? 0;
-    const arrowHeight = (arrowSize == null ? void 0 : arrowSize.height) ?? 0;
-    const desiredPlacement = side + (align !== "center" ? "-" + align : "");
-    const collisionPadding = typeof collisionPaddingProp === "number" ? collisionPaddingProp : { top: 0, right: 0, bottom: 0, left: 0, ...collisionPaddingProp };
-    const boundary = Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary];
-    const hasExplicitBoundaries = boundary.length > 0;
-    const detectOverflowOptions = {
-      padding: collisionPadding,
-      boundary: boundary.filter(isNotNull),
-      // with `strategy: 'fixed'`, this is the only way to get it to respect boundaries
-      altBoundary: hasExplicitBoundaries
-    };
-    const { refs, floatingStyles, placement, isPositioned, middlewareData } = useFloating({
-      // default to `fixed` strategy so users don't have to pick and we also avoid focus scroll issues
-      strategy: "fixed",
-      placement: desiredPlacement,
-      whileElementsMounted: (...args) => {
-        const cleanup = autoUpdate(...args, {
-          animationFrame: updatePositionStrategy === "always"
-        });
-        return cleanup;
-      },
-      elements: {
-        reference: context.anchor
-      },
-      middleware: [
-        offset({ mainAxis: sideOffset + arrowHeight, alignmentAxis: alignOffset }),
-        avoidCollisions && shift({
-          mainAxis: true,
-          crossAxis: false,
-          limiter: sticky === "partial" ? limitShift() : void 0,
-          ...detectOverflowOptions
-        }),
-        avoidCollisions && flip({ ...detectOverflowOptions }),
-        size({
-          ...detectOverflowOptions,
-          apply: ({ elements, rects, availableWidth, availableHeight }) => {
-            const { width: anchorWidth, height: anchorHeight } = rects.reference;
-            const contentStyle = elements.floating.style;
-            contentStyle.setProperty("--radix-popper-available-width", `${availableWidth}px`);
-            contentStyle.setProperty("--radix-popper-available-height", `${availableHeight}px`);
-            contentStyle.setProperty("--radix-popper-anchor-width", `${anchorWidth}px`);
-            contentStyle.setProperty("--radix-popper-anchor-height", `${anchorHeight}px`);
-          }
-        }),
-        arrow$12 && arrow({ element: arrow$12, padding: arrowPadding }),
-        transformOrigin({ arrowWidth, arrowHeight }),
-        hideWhenDetached && hide({ strategy: "referenceHidden", ...detectOverflowOptions })
-      ]
-    });
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const handlePlaced = useCallbackRef$1(onPlaced);
-    useLayoutEffect2(() => {
-      if (isPositioned) {
-        handlePlaced == null ? void 0 : handlePlaced();
-      }
-    }, [isPositioned, handlePlaced]);
-    const arrowX = (_a2 = middlewareData.arrow) == null ? void 0 : _a2.x;
-    const arrowY = (_b2 = middlewareData.arrow) == null ? void 0 : _b2.y;
-    const cannotCenterArrow = ((_c2 = middlewareData.arrow) == null ? void 0 : _c2.centerOffset) !== 0;
-    const [contentZIndex, setContentZIndex] = reactExports.useState();
-    useLayoutEffect2(() => {
-      if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
-    }, [content]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        ref: refs.setFloating,
-        "data-radix-popper-content-wrapper": "",
-        style: {
-          ...floatingStyles,
-          transform: isPositioned ? floatingStyles.transform : "translate(0, -200%)",
-          // keep off the page when measuring
-          minWidth: "max-content",
-          zIndex: contentZIndex,
-          ["--radix-popper-transform-origin"]: [
-            (_d2 = middlewareData.transformOrigin) == null ? void 0 : _d2.x,
-            (_e2 = middlewareData.transformOrigin) == null ? void 0 : _e2.y
-          ].join(" "),
-          // hide the content if using the hide middleware and should be hidden
-          // set visibility to hidden and disable pointer events so the UI behaves
-          // as if the PopperContent isn't there at all
-          ...((_f2 = middlewareData.hide) == null ? void 0 : _f2.referenceHidden) && {
-            visibility: "hidden",
-            pointerEvents: "none"
-          }
-        },
-        dir: props.dir,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          PopperContentProvider,
-          {
-            scope: __scopePopper,
-            placedSide,
-            onArrowChange: setArrow,
-            arrowX,
-            arrowY,
-            shouldHideArrow: cannotCenterArrow,
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Primitive.div,
-              {
-                "data-side": placedSide,
-                "data-align": placedAlign,
-                ...contentProps,
-                ref: composedRefs,
-                style: {
-                  ...contentProps.style,
-                  // if the PopperContent hasn't been placed yet (not all measurements done)
-                  // we prevent animations so that users's animation don't kick in too early referring wrong sides
-                  animation: !isPositioned ? "none" : void 0
-                }
-              }
-            )
-          }
-        )
-      }
-    );
-  }
-);
-PopperContent.displayName = CONTENT_NAME$1;
-var ARROW_NAME$1 = "PopperArrow";
-var OPPOSITE_SIDE = {
-  top: "bottom",
-  right: "left",
-  bottom: "top",
-  left: "right"
-};
-var PopperArrow = reactExports.forwardRef(function PopperArrow2(props, forwardedRef) {
-  const { __scopePopper, ...arrowProps } = props;
-  const contentContext = useContentContext(ARROW_NAME$1, __scopePopper);
-  const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
-  return (
-    // we have to use an extra wrapper because `ResizeObserver` (used by `useSize`)
-    // doesn't report size as we'd expect on SVG elements.
-    // it reports their bounding box which is effectively the largest path inside the SVG.
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "span",
-      {
-        ref: contentContext.onArrowChange,
-        style: {
-          position: "absolute",
-          left: contentContext.arrowX,
-          top: contentContext.arrowY,
-          [baseSide]: 0,
-          transformOrigin: {
-            top: "",
-            right: "0 0",
-            bottom: "center 0",
-            left: "100% 0"
-          }[contentContext.placedSide],
-          transform: {
-            top: "translateY(100%)",
-            right: "translateY(50%) rotate(90deg) translateX(-50%)",
-            bottom: `rotate(180deg)`,
-            left: "translateY(50%) rotate(-90deg) translateX(50%)"
-          }[contentContext.placedSide],
-          visibility: contentContext.shouldHideArrow ? "hidden" : void 0
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Root,
-          {
-            ...arrowProps,
-            ref: forwardedRef,
-            style: {
-              ...arrowProps.style,
-              // ensures the element can be measured correctly (mostly for if SVG)
-              display: "block"
-            }
-          }
-        )
-      }
-    )
-  );
-});
-PopperArrow.displayName = ARROW_NAME$1;
-function isNotNull(value) {
-  return value !== null;
-}
-var transformOrigin = (options) => ({
-  name: "transformOrigin",
-  options,
-  fn(data) {
-    var _a2, _b2, _c2;
-    const { placement, rects, middlewareData } = data;
-    const cannotCenterArrow = ((_a2 = middlewareData.arrow) == null ? void 0 : _a2.centerOffset) !== 0;
-    const isArrowHidden = cannotCenterArrow;
-    const arrowWidth = isArrowHidden ? 0 : options.arrowWidth;
-    const arrowHeight = isArrowHidden ? 0 : options.arrowHeight;
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const noArrowAlign = { start: "0%", center: "50%", end: "100%" }[placedAlign];
-    const arrowXCenter = (((_b2 = middlewareData.arrow) == null ? void 0 : _b2.x) ?? 0) + arrowWidth / 2;
-    const arrowYCenter = (((_c2 = middlewareData.arrow) == null ? void 0 : _c2.y) ?? 0) + arrowHeight / 2;
-    let x2 = "";
-    let y2 = "";
-    if (placedSide === "bottom") {
-      x2 = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y2 = `${-arrowHeight}px`;
-    } else if (placedSide === "top") {
-      x2 = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y2 = `${rects.floating.height + arrowHeight}px`;
-    } else if (placedSide === "right") {
-      x2 = `${-arrowHeight}px`;
-      y2 = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    } else if (placedSide === "left") {
-      x2 = `${rects.floating.width + arrowHeight}px`;
-      y2 = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    }
-    return { data: { x: x2, y: y2 } };
-  }
-});
-function getSideAndAlignFromPlacement(placement) {
-  const [side, align = "center"] = placement.split("-");
-  return [side, align];
-}
-var Root2$1 = Popper;
-var Anchor = PopperAnchor;
-var Content = PopperContent;
-var Arrow = PopperArrow;
-var PORTAL_NAME$1 = "Portal";
-var Portal$1 = reactExports.forwardRef((props, forwardedRef) => {
-  var _a2;
-  const { container: containerProp, ...portalProps } = props;
-  const [mounted, setMounted] = reactExports.useState(false);
-  useLayoutEffect2(() => setMounted(true), []);
-  const container = containerProp || mounted && ((_a2 = globalThis == null ? void 0 : globalThis.document) == null ? void 0 : _a2.body);
-  return container ? ReactDOM$2.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
-});
-Portal$1.displayName = PORTAL_NAME$1;
-function usePrevious(value) {
-  const ref = reactExports.useRef({ value, previous: value });
-  return reactExports.useMemo(() => {
-    if (ref.current.value !== value) {
-      ref.current.previous = ref.current.value;
-      ref.current.value = value;
-    }
-    return ref.current.previous;
-  }, [value]);
-}
-var VISUALLY_HIDDEN_STYLES = Object.freeze({
-  // See: https://github.com/twbs/bootstrap/blob/main/scss/mixins/_visually-hidden.scss
-  position: "absolute",
-  border: 0,
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  wordWrap: "normal"
-});
-var NAME = "VisuallyHidden";
-var VisuallyHidden = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.span,
-      {
-        ...props,
-        ref: forwardedRef,
-        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
-      }
-    );
-  }
-);
-VisuallyHidden.displayName = NAME;
-var getDefaultParent = function(originalTarget) {
-  if (typeof document === "undefined") {
-    return null;
-  }
-  var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
-  return sampleTarget.ownerDocument.body;
-};
-var counterMap = /* @__PURE__ */ new WeakMap();
-var uncontrolledNodes = /* @__PURE__ */ new WeakMap();
-var markerMap = {};
-var lockCount = 0;
-var unwrapHost = function(node) {
-  return node && (node.host || unwrapHost(node.parentNode));
-};
-var correctTargets = function(parent, targets) {
-  return targets.map(function(target) {
-    if (parent.contains(target)) {
-      return target;
-    }
-    var correctedTarget = unwrapHost(target);
-    if (correctedTarget && parent.contains(correctedTarget)) {
-      return correctedTarget;
-    }
-    console.error("aria-hidden", target, "in not contained inside", parent, ". Doing nothing");
-    return null;
-  }).filter(function(x2) {
-    return Boolean(x2);
-  });
-};
-var applyAttributeToOthers = function(originalTarget, parentNode, markerName, controlAttribute) {
-  var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  if (!markerMap[markerName]) {
-    markerMap[markerName] = /* @__PURE__ */ new WeakMap();
-  }
-  var markerCounter = markerMap[markerName];
-  var hiddenNodes = [];
-  var elementsToKeep = /* @__PURE__ */ new Set();
-  var elementsToStop = new Set(targets);
-  var keep = function(el) {
-    if (!el || elementsToKeep.has(el)) {
-      return;
-    }
-    elementsToKeep.add(el);
-    keep(el.parentNode);
-  };
-  targets.forEach(keep);
-  var deep = function(parent) {
-    if (!parent || elementsToStop.has(parent)) {
-      return;
-    }
-    Array.prototype.forEach.call(parent.children, function(node) {
-      if (elementsToKeep.has(node)) {
-        deep(node);
-      } else {
-        try {
-          var attr = node.getAttribute(controlAttribute);
-          var alreadyHidden = attr !== null && attr !== "false";
-          var counterValue = (counterMap.get(node) || 0) + 1;
-          var markerValue = (markerCounter.get(node) || 0) + 1;
-          counterMap.set(node, counterValue);
-          markerCounter.set(node, markerValue);
-          hiddenNodes.push(node);
-          if (counterValue === 1 && alreadyHidden) {
-            uncontrolledNodes.set(node, true);
-          }
-          if (markerValue === 1) {
-            node.setAttribute(markerName, "true");
-          }
-          if (!alreadyHidden) {
-            node.setAttribute(controlAttribute, "true");
-          }
-        } catch (e) {
-          console.error("aria-hidden: cannot operate on ", node, e);
-        }
-      }
-    });
-  };
-  deep(parentNode);
-  elementsToKeep.clear();
-  lockCount++;
-  return function() {
-    hiddenNodes.forEach(function(node) {
-      var counterValue = counterMap.get(node) - 1;
-      var markerValue = markerCounter.get(node) - 1;
-      counterMap.set(node, counterValue);
-      markerCounter.set(node, markerValue);
-      if (!counterValue) {
-        if (!uncontrolledNodes.has(node)) {
-          node.removeAttribute(controlAttribute);
-        }
-        uncontrolledNodes.delete(node);
-      }
-      if (!markerValue) {
-        node.removeAttribute(markerName);
-      }
-    });
-    lockCount--;
-    if (!lockCount) {
-      counterMap = /* @__PURE__ */ new WeakMap();
-      counterMap = /* @__PURE__ */ new WeakMap();
-      uncontrolledNodes = /* @__PURE__ */ new WeakMap();
-      markerMap = {};
-    }
-  };
-};
-var hideOthers = function(originalTarget, parentNode, markerName) {
-  if (markerName === void 0) {
-    markerName = "data-aria-hidden";
-  }
-  var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  var activeParentNode = getDefaultParent(originalTarget);
-  if (!activeParentNode) {
-    return function() {
-      return null;
-    };
-  }
-  targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
-  return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
-};
-var __assign = function() {
-  __assign = Object.assign || function __assign2(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-      s = arguments[i];
-      for (var p2 in s) if (Object.prototype.hasOwnProperty.call(s, p2)) t[p2] = s[p2];
-    }
-    return t;
-  };
-  return __assign.apply(this, arguments);
-};
-function __rest(s, e) {
-  var t = {};
-  for (var p2 in s) if (Object.prototype.hasOwnProperty.call(s, p2) && e.indexOf(p2) < 0)
-    t[p2] = s[p2];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i = 0, p2 = Object.getOwnPropertySymbols(s); i < p2.length; i++) {
-      if (e.indexOf(p2[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p2[i]))
-        t[p2[i]] = s[p2[i]];
-    }
-  return t;
-}
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2) for (var i = 0, l2 = from.length, ar; i < l2; i++) {
-    if (ar || !(i in from)) {
-      if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-      ar[i] = from[i];
-    }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-var zeroRightClassName = "right-scroll-bar-position";
-var fullWidthClassName = "width-before-scroll-bar";
-var noScrollbarsClassName = "with-scroll-bars-hidden";
-var removedBarSizeVariable = "--removed-body-scroll-bar-size";
-function assignRef(ref, value) {
-  if (typeof ref === "function") {
-    ref(value);
-  } else if (ref) {
-    ref.current = value;
-  }
-  return ref;
-}
-function useCallbackRef(initialValue, callback) {
-  var ref = reactExports.useState(function() {
-    return {
-      // value
-      value: initialValue,
-      // last callback
-      callback,
-      // "memoized" public interface
-      facade: {
-        get current() {
-          return ref.value;
-        },
-        set current(value) {
-          var last = ref.value;
-          if (last !== value) {
-            ref.value = value;
-            ref.callback(value, last);
-          }
-        }
-      }
-    };
-  })[0];
-  ref.callback = callback;
-  return ref.facade;
-}
-var useIsomorphicLayoutEffect = typeof window !== "undefined" ? reactExports.useLayoutEffect : reactExports.useEffect;
-var currentValues = /* @__PURE__ */ new WeakMap();
-function useMergeRefs(refs, defaultValue) {
-  var callbackRef = useCallbackRef(null, function(newValue) {
-    return refs.forEach(function(ref) {
-      return assignRef(ref, newValue);
-    });
-  });
-  useIsomorphicLayoutEffect(function() {
-    var oldValue = currentValues.get(callbackRef);
-    if (oldValue) {
-      var prevRefs_1 = new Set(oldValue);
-      var nextRefs_1 = new Set(refs);
-      var current_1 = callbackRef.current;
-      prevRefs_1.forEach(function(ref) {
-        if (!nextRefs_1.has(ref)) {
-          assignRef(ref, null);
-        }
-      });
-      nextRefs_1.forEach(function(ref) {
-        if (!prevRefs_1.has(ref)) {
-          assignRef(ref, current_1);
-        }
-      });
-    }
-    currentValues.set(callbackRef, refs);
-  }, [refs]);
-  return callbackRef;
-}
-function ItoI(a2) {
-  return a2;
-}
-function innerCreateMedium(defaults, middleware) {
-  if (middleware === void 0) {
-    middleware = ItoI;
-  }
-  var buffer = [];
-  var assigned = false;
-  var medium = {
-    read: function() {
-      if (assigned) {
-        throw new Error("Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.");
-      }
-      if (buffer.length) {
-        return buffer[buffer.length - 1];
-      }
-      return defaults;
-    },
-    useMedium: function(data) {
-      var item = middleware(data, assigned);
-      buffer.push(item);
-      return function() {
-        buffer = buffer.filter(function(x2) {
-          return x2 !== item;
-        });
-      };
-    },
-    assignSyncMedium: function(cb) {
-      assigned = true;
-      while (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-      }
-      buffer = {
-        push: function(x2) {
-          return cb(x2);
-        },
-        filter: function() {
-          return buffer;
-        }
-      };
-    },
-    assignMedium: function(cb) {
-      assigned = true;
-      var pendingQueue = [];
-      if (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-        pendingQueue = buffer;
-      }
-      var executeQueue = function() {
-        var cbs2 = pendingQueue;
-        pendingQueue = [];
-        cbs2.forEach(cb);
-      };
-      var cycle = function() {
-        return Promise.resolve().then(executeQueue);
-      };
-      cycle();
-      buffer = {
-        push: function(x2) {
-          pendingQueue.push(x2);
-          cycle();
-        },
-        filter: function(filter) {
-          pendingQueue = pendingQueue.filter(filter);
-          return buffer;
-        }
-      };
-    }
-  };
-  return medium;
-}
-function createSidecarMedium(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  var medium = innerCreateMedium(null);
-  medium.options = __assign({ async: true, ssr: false }, options);
-  return medium;
-}
-var SideCar$1 = function(_a2) {
-  var sideCar = _a2.sideCar, rest = __rest(_a2, ["sideCar"]);
-  if (!sideCar) {
-    throw new Error("Sidecar: please provide `sideCar` property to import the right car");
-  }
-  var Target = sideCar.read();
-  if (!Target) {
-    throw new Error("Sidecar medium not found");
-  }
-  return reactExports.createElement(Target, __assign({}, rest));
-};
-SideCar$1.isSideCarExport = true;
-function exportSidecar(medium, exported) {
-  medium.useMedium(exported);
-  return SideCar$1;
-}
-var effectCar = createSidecarMedium();
-var nothing = function() {
-  return;
-};
-var RemoveScroll = reactExports.forwardRef(function(props, parentRef) {
-  var ref = reactExports.useRef(null);
-  var _a2 = reactExports.useState({
-    onScrollCapture: nothing,
-    onWheelCapture: nothing,
-    onTouchMoveCapture: nothing
-  }), callbacks = _a2[0], setCallbacks = _a2[1];
-  var forwardProps = props.forwardProps, children = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b2 = props.as, Container2 = _b2 === void 0 ? "div" : _b2, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
-  var SideCar2 = sideCar;
-  var containerRef = useMergeRefs([ref, parentRef]);
-  var containerProps = __assign(__assign({}, rest), callbacks);
-  return reactExports.createElement(
-    reactExports.Fragment,
-    null,
-    enabled && reactExports.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }),
-    forwardProps ? reactExports.cloneElement(reactExports.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : reactExports.createElement(Container2, __assign({}, containerProps, { className, ref: containerRef }), children)
-  );
-});
-RemoveScroll.defaultProps = {
-  enabled: true,
-  removeScrollBar: true,
-  inert: false
-};
-RemoveScroll.classNames = {
-  fullWidth: fullWidthClassName,
-  zeroRight: zeroRightClassName
-};
-var getNonce = function() {
-  if (typeof __webpack_nonce__ !== "undefined") {
-    return __webpack_nonce__;
-  }
-  return void 0;
-};
-function makeStyleTag() {
-  if (!document)
-    return null;
-  var tag = document.createElement("style");
-  tag.type = "text/css";
-  var nonce = getNonce();
-  if (nonce) {
-    tag.setAttribute("nonce", nonce);
-  }
-  return tag;
-}
-function injectStyles(tag, css) {
-  if (tag.styleSheet) {
-    tag.styleSheet.cssText = css;
-  } else {
-    tag.appendChild(document.createTextNode(css));
-  }
-}
-function insertStyleTag(tag) {
-  var head = document.head || document.getElementsByTagName("head")[0];
-  head.appendChild(tag);
-}
-var stylesheetSingleton = function() {
-  var counter = 0;
-  var stylesheet = null;
-  return {
-    add: function(style2) {
-      if (counter == 0) {
-        if (stylesheet = makeStyleTag()) {
-          injectStyles(stylesheet, style2);
-          insertStyleTag(stylesheet);
-        }
-      }
-      counter++;
-    },
-    remove: function() {
-      counter--;
-      if (!counter && stylesheet) {
-        stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
-        stylesheet = null;
-      }
-    }
-  };
-};
-var styleHookSingleton = function() {
-  var sheet = stylesheetSingleton();
-  return function(styles, isDynamic) {
-    reactExports.useEffect(function() {
-      sheet.add(styles);
-      return function() {
-        sheet.remove();
-      };
-    }, [styles && isDynamic]);
-  };
-};
-var styleSingleton = function() {
-  var useStyle = styleHookSingleton();
-  var Sheet = function(_a2) {
-    var styles = _a2.styles, dynamic = _a2.dynamic;
-    useStyle(styles, dynamic);
-    return null;
-  };
-  return Sheet;
-};
-var zeroGap = {
-  left: 0,
-  top: 0,
-  right: 0,
-  gap: 0
-};
-var parse = function(x2) {
-  return parseInt(x2 || "", 10) || 0;
-};
-var getOffset = function(gapMode) {
-  var cs = window.getComputedStyle(document.body);
-  var left = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
-  var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
-  var right = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
-  return [parse(left), parse(top), parse(right)];
-};
-var getGapWidth = function(gapMode) {
-  if (gapMode === void 0) {
-    gapMode = "margin";
-  }
-  if (typeof window === "undefined") {
-    return zeroGap;
-  }
-  var offsets = getOffset(gapMode);
-  var documentWidth = document.documentElement.clientWidth;
-  var windowWidth = window.innerWidth;
-  return {
-    left: offsets[0],
-    top: offsets[1],
-    right: offsets[2],
-    gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0])
-  };
-};
-var Style = styleSingleton();
-var lockAttribute = "data-scroll-locked";
-var getStyles = function(_a2, allowRelative, gapMode, important) {
-  var left = _a2.left, top = _a2.top, right = _a2.right, gap = _a2.gap;
-  if (gapMode === void 0) {
-    gapMode = "margin";
-  }
-  return "\n  .".concat(noScrollbarsClassName, " {\n   overflow: hidden ").concat(important, ";\n   padding-right: ").concat(gap, "px ").concat(important, ";\n  }\n  body[").concat(lockAttribute, "] {\n    overflow: hidden ").concat(important, ";\n    overscroll-behavior: contain;\n    ").concat([
-    allowRelative && "position: relative ".concat(important, ";"),
-    gapMode === "margin" && "\n    padding-left: ".concat(left, "px;\n    padding-top: ").concat(top, "px;\n    padding-right: ").concat(right, "px;\n    margin-left:0;\n    margin-top:0;\n    margin-right: ").concat(gap, "px ").concat(important, ";\n    "),
-    gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
-  ].filter(Boolean).join(""), "\n  }\n  \n  .").concat(zeroRightClassName, " {\n    right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " {\n    margin-right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(zeroRightClassName, " .").concat(zeroRightClassName, " {\n    right: 0 ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " .").concat(fullWidthClassName, " {\n    margin-right: 0 ").concat(important, ";\n  }\n  \n  body[").concat(lockAttribute, "] {\n    ").concat(removedBarSizeVariable, ": ").concat(gap, "px;\n  }\n");
-};
-var getCurrentUseCounter = function() {
-  var counter = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
-  return isFinite(counter) ? counter : 0;
-};
-var useLockAttribute = function() {
-  reactExports.useEffect(function() {
-    document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
-    return function() {
-      var newCounter = getCurrentUseCounter() - 1;
-      if (newCounter <= 0) {
-        document.body.removeAttribute(lockAttribute);
-      } else {
-        document.body.setAttribute(lockAttribute, newCounter.toString());
-      }
-    };
-  }, []);
-};
-var RemoveScrollBar = function(_a2) {
-  var noRelative = _a2.noRelative, noImportant = _a2.noImportant, _b2 = _a2.gapMode, gapMode = _b2 === void 0 ? "margin" : _b2;
-  useLockAttribute();
-  var gap = reactExports.useMemo(function() {
-    return getGapWidth(gapMode);
-  }, [gapMode]);
-  return reactExports.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
-};
-var passiveSupported = false;
-if (typeof window !== "undefined") {
-  try {
-    var options = Object.defineProperty({}, "passive", {
-      get: function() {
-        passiveSupported = true;
-        return true;
-      }
-    });
-    window.addEventListener("test", options, options);
-    window.removeEventListener("test", options, options);
-  } catch (err) {
-    passiveSupported = false;
-  }
-}
-var nonPassive = passiveSupported ? { passive: false } : false;
-var alwaysContainsScroll = function(node) {
-  return node.tagName === "TEXTAREA";
-};
-var elementCanBeScrolled = function(node, overflow) {
-  if (!(node instanceof Element)) {
-    return false;
-  }
-  var styles = window.getComputedStyle(node);
-  return (
-    // not-not-scrollable
-    styles[overflow] !== "hidden" && // contains scroll inside self
-    !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === "visible")
-  );
-};
-var elementCouldBeVScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowY");
-};
-var elementCouldBeHScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowX");
-};
-var locationCouldBeScrolled = function(axis, node) {
-  var ownerDocument = node.ownerDocument;
-  var current = node;
-  do {
-    if (typeof ShadowRoot !== "undefined" && current instanceof ShadowRoot) {
-      current = current.host;
-    }
-    var isScrollable = elementCouldBeScrolled(axis, current);
-    if (isScrollable) {
-      var _a2 = getScrollVariables(axis, current), scrollHeight = _a2[1], clientHeight = _a2[2];
-      if (scrollHeight > clientHeight) {
-        return true;
-      }
-    }
-    current = current.parentNode;
-  } while (current && current !== ownerDocument.body);
-  return false;
-};
-var getVScrollVariables = function(_a2) {
-  var scrollTop = _a2.scrollTop, scrollHeight = _a2.scrollHeight, clientHeight = _a2.clientHeight;
-  return [
-    scrollTop,
-    scrollHeight,
-    clientHeight
-  ];
-};
-var getHScrollVariables = function(_a2) {
-  var scrollLeft = _a2.scrollLeft, scrollWidth = _a2.scrollWidth, clientWidth = _a2.clientWidth;
-  return [
-    scrollLeft,
-    scrollWidth,
-    clientWidth
-  ];
-};
-var elementCouldBeScrolled = function(axis, node) {
-  return axis === "v" ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
-};
-var getScrollVariables = function(axis, node) {
-  return axis === "v" ? getVScrollVariables(node) : getHScrollVariables(node);
-};
-var getDirectionFactor = function(axis, direction) {
-  return axis === "h" && direction === "rtl" ? -1 : 1;
-};
-var handleScroll = function(axis, endTarget, event, sourceDelta, noOverscroll) {
-  var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
-  var delta = directionFactor * sourceDelta;
-  var target = event.target;
-  var targetInLock = endTarget.contains(target);
-  var shouldCancelScroll = false;
-  var isDeltaPositive = delta > 0;
-  var availableScroll = 0;
-  var availableScrollTop = 0;
-  do {
-    if (!target) {
-      break;
-    }
-    var _a2 = getScrollVariables(axis, target), position = _a2[0], scroll_1 = _a2[1], capacity = _a2[2];
-    var elementScroll = scroll_1 - capacity - directionFactor * position;
-    if (position || elementScroll) {
-      if (elementCouldBeScrolled(axis, target)) {
-        availableScroll += elementScroll;
-        availableScrollTop += position;
-      }
-    }
-    var parent_1 = target.parentNode;
-    target = parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1;
-  } while (
-    // portaled content
-    !targetInLock && target !== document.body || // self content
-    targetInLock && (endTarget.contains(target) || endTarget === target)
-  );
-  if (isDeltaPositive && (Math.abs(availableScroll) < 1 || false)) {
-    shouldCancelScroll = true;
-  } else if (!isDeltaPositive && (Math.abs(availableScrollTop) < 1 || false)) {
-    shouldCancelScroll = true;
-  }
-  return shouldCancelScroll;
-};
-var getTouchXY = function(event) {
-  return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
-};
-var getDeltaXY = function(event) {
-  return [event.deltaX, event.deltaY];
-};
-var extractRef = function(ref) {
-  return ref && "current" in ref ? ref.current : ref;
-};
-var deltaCompare = function(x2, y2) {
-  return x2[0] === y2[0] && x2[1] === y2[1];
-};
-var generateStyle = function(id) {
-  return "\n  .block-interactivity-".concat(id, " {pointer-events: none;}\n  .allow-interactivity-").concat(id, " {pointer-events: all;}\n");
-};
-var idCounter = 0;
-var lockStack = [];
-function RemoveScrollSideCar(props) {
-  var shouldPreventQueue = reactExports.useRef([]);
-  var touchStartRef = reactExports.useRef([0, 0]);
-  var activeAxis = reactExports.useRef();
-  var id = reactExports.useState(idCounter++)[0];
-  var Style2 = reactExports.useState(styleSingleton)[0];
-  var lastProps = reactExports.useRef(props);
-  reactExports.useEffect(function() {
-    lastProps.current = props;
-  }, [props]);
-  reactExports.useEffect(function() {
-    if (props.inert) {
-      document.body.classList.add("block-interactivity-".concat(id));
-      var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
-      allow_1.forEach(function(el) {
-        return el.classList.add("allow-interactivity-".concat(id));
-      });
-      return function() {
-        document.body.classList.remove("block-interactivity-".concat(id));
-        allow_1.forEach(function(el) {
-          return el.classList.remove("allow-interactivity-".concat(id));
-        });
-      };
-    }
-    return;
-  }, [props.inert, props.lockRef.current, props.shards]);
-  var shouldCancelEvent = reactExports.useCallback(function(event, parent) {
-    if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
-      return !lastProps.current.allowPinchZoom;
-    }
-    var touch = getTouchXY(event);
-    var touchStart = touchStartRef.current;
-    var deltaX = "deltaX" in event ? event.deltaX : touchStart[0] - touch[0];
-    var deltaY = "deltaY" in event ? event.deltaY : touchStart[1] - touch[1];
-    var currentAxis;
-    var target = event.target;
-    var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? "h" : "v";
-    if ("touches" in event && moveDirection === "h" && target.type === "range") {
-      return false;
-    }
-    var selection = window.getSelection();
-    var anchorNode = selection && selection.anchorNode;
-    var isTouchingSelection = anchorNode ? anchorNode === target || anchorNode.contains(target) : false;
-    if (isTouchingSelection) {
-      return false;
-    }
-    var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    if (!canBeScrolledInMainDirection) {
-      return true;
-    }
-    if (canBeScrolledInMainDirection) {
-      currentAxis = moveDirection;
-    } else {
-      currentAxis = moveDirection === "v" ? "h" : "v";
-      canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    }
-    if (!canBeScrolledInMainDirection) {
-      return false;
-    }
-    if (!activeAxis.current && "changedTouches" in event && (deltaX || deltaY)) {
-      activeAxis.current = currentAxis;
-    }
-    if (!currentAxis) {
-      return true;
-    }
-    var cancelingAxis = activeAxis.current || currentAxis;
-    return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY);
-  }, []);
-  var shouldPrevent = reactExports.useCallback(function(_event) {
-    var event = _event;
-    if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
-      return;
-    }
-    var delta = "deltaY" in event ? getDeltaXY(event) : getTouchXY(event);
-    var sourceEvent = shouldPreventQueue.current.filter(function(e) {
-      return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta);
-    })[0];
-    if (sourceEvent && sourceEvent.should) {
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      return;
-    }
-    if (!sourceEvent) {
-      var shardNodes = (lastProps.current.shards || []).map(extractRef).filter(Boolean).filter(function(node) {
-        return node.contains(event.target);
-      });
-      var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
-      if (shouldStop) {
-        if (event.cancelable) {
-          event.preventDefault();
-        }
-      }
-    }
-  }, []);
-  var shouldCancel = reactExports.useCallback(function(name, delta, target, should) {
-    var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
-    shouldPreventQueue.current.push(event);
-    setTimeout(function() {
-      shouldPreventQueue.current = shouldPreventQueue.current.filter(function(e) {
-        return e !== event;
-      });
-    }, 1);
-  }, []);
-  var scrollTouchStart = reactExports.useCallback(function(event) {
-    touchStartRef.current = getTouchXY(event);
-    activeAxis.current = void 0;
-  }, []);
-  var scrollWheel = reactExports.useCallback(function(event) {
-    shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-  }, []);
-  var scrollTouchMove = reactExports.useCallback(function(event) {
-    shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-  }, []);
-  reactExports.useEffect(function() {
-    lockStack.push(Style2);
-    props.setCallbacks({
-      onScrollCapture: scrollWheel,
-      onWheelCapture: scrollWheel,
-      onTouchMoveCapture: scrollTouchMove
-    });
-    document.addEventListener("wheel", shouldPrevent, nonPassive);
-    document.addEventListener("touchmove", shouldPrevent, nonPassive);
-    document.addEventListener("touchstart", scrollTouchStart, nonPassive);
-    return function() {
-      lockStack = lockStack.filter(function(inst) {
-        return inst !== Style2;
-      });
-      document.removeEventListener("wheel", shouldPrevent, nonPassive);
-      document.removeEventListener("touchmove", shouldPrevent, nonPassive);
-      document.removeEventListener("touchstart", scrollTouchStart, nonPassive);
-    };
-  }, []);
-  var removeScrollBar = props.removeScrollBar, inert = props.inert;
-  return reactExports.createElement(
-    reactExports.Fragment,
-    null,
-    inert ? reactExports.createElement(Style2, { styles: generateStyle(id) }) : null,
-    removeScrollBar ? reactExports.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null
-  );
-}
-function getOutermostShadowParent(node) {
-  var shadowParent = null;
-  while (node !== null) {
-    if (node instanceof ShadowRoot) {
-      shadowParent = node.host;
-      node = node.host;
-    }
-    node = node.parentNode;
-  }
-  return shadowParent;
-}
-const SideCar = exportSidecar(effectCar, RemoveScrollSideCar);
-var ReactRemoveScroll = reactExports.forwardRef(function(props, ref) {
-  return reactExports.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: SideCar }));
-});
-ReactRemoveScroll.classNames = RemoveScroll.classNames;
-var OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
-var SELECTION_KEYS = [" ", "Enter"];
-var SELECT_NAME = "Select";
-var [Collection, useCollection, createCollectionScope] = createCollection(SELECT_NAME);
-var [createSelectContext] = createContextScope(SELECT_NAME, [
-  createCollectionScope,
-  createPopperScope
-]);
-var usePopperScope = createPopperScope();
-var [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
-var [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
-var Select$1 = (props) => {
-  const {
-    __scopeSelect,
-    children,
-    open: openProp,
-    defaultOpen,
-    onOpenChange,
-    value: valueProp,
-    defaultValue,
-    onValueChange,
-    dir,
-    name,
-    autoComplete,
-    disabled,
-    required,
-    form
-  } = props;
-  const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = reactExports.useState(null);
-  const [valueNode, setValueNode] = reactExports.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = reactExports.useState(false);
-  const direction = useDirection(dir);
-  const [open, setOpen] = useControllableState({
-    prop: openProp,
-    defaultProp: defaultOpen ?? false,
-    onChange: onOpenChange,
-    caller: SELECT_NAME
-  });
-  const [value, setValue] = useControllableState({
-    prop: valueProp,
-    defaultProp: defaultValue,
-    onChange: onValueChange,
-    caller: SELECT_NAME
-  });
-  const triggerPointerDownPosRef = reactExports.useRef(null);
-  const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = reactExports.useState(/* @__PURE__ */ new Set());
-  const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2$1, { ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    SelectProvider,
-    {
-      required,
-      scope: __scopeSelect,
-      trigger,
-      onTriggerChange: setTrigger,
-      valueNode,
-      onValueNodeChange: setValueNode,
-      valueNodeHasChildren,
-      onValueNodeHasChildrenChange: setValueNodeHasChildren,
-      contentId: useId(),
-      value,
-      onValueChange: setValue,
-      open,
-      onOpenChange: setOpen,
-      dir: direction,
-      triggerPointerDownPosRef,
-      disabled,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          SelectNativeOptionsProvider,
-          {
-            scope: props.__scopeSelect,
-            onNativeOptionAdd: reactExports.useCallback((option) => {
-              setNativeOptionsSet((prev) => new Set(prev).add(option));
-            }, []),
-            onNativeOptionRemove: reactExports.useCallback((option) => {
-              setNativeOptionsSet((prev) => {
-                const optionsSet = new Set(prev);
-                optionsSet.delete(option);
-                return optionsSet;
-              });
-            }, []),
-            children
-          }
-        ) }),
-        isFormControl ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          SelectBubbleInput,
-          {
-            "aria-hidden": true,
-            required,
-            tabIndex: -1,
-            name,
-            autoComplete,
-            value,
-            onChange: (event) => setValue(event.target.value),
-            disabled,
-            form,
-            children: [
-              value === void 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "" }) : null,
-              Array.from(nativeOptionsSet)
-            ]
-          },
-          nativeSelectKey
-        ) : null
-      ]
-    }
-  ) });
-};
-Select$1.displayName = SELECT_NAME;
-var TRIGGER_NAME = "SelectTrigger";
-var SelectTrigger$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, disabled = false, ...triggerProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(TRIGGER_NAME, __scopeSelect);
-    const isDisabled = context.disabled || disabled;
-    const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
-    const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = reactExports.useRef("touch");
-    const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.value === context.value);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem !== void 0) {
-        context.onValueChange(nextItem.value);
-      }
-    });
-    const handleOpen = (pointerEvent) => {
-      if (!isDisabled) {
-        context.onOpenChange(true);
-        resetTypeahead();
-      }
-      if (pointerEvent) {
-        context.triggerPointerDownPosRef.current = {
-          x: Math.round(pointerEvent.pageX),
-          y: Math.round(pointerEvent.pageY)
-        };
-      }
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.button,
-      {
-        type: "button",
-        role: "combobox",
-        "aria-controls": context.contentId,
-        "aria-expanded": context.open,
-        "aria-required": context.required,
-        "aria-autocomplete": "none",
-        dir: context.dir,
-        "data-state": context.open ? "open" : "closed",
-        disabled: isDisabled,
-        "data-disabled": isDisabled ? "" : void 0,
-        "data-placeholder": shouldShowPlaceholder(context.value) ? "" : void 0,
-        ...triggerProps,
-        ref: composedRefs,
-        onClick: composeEventHandlers(triggerProps.onClick, (event) => {
-          event.currentTarget.focus();
-          if (pointerTypeRef.current !== "mouse") {
-            handleOpen(event);
-          }
-        }),
-        onPointerDown: composeEventHandlers(triggerProps.onPointerDown, (event) => {
-          pointerTypeRef.current = event.pointerType;
-          const target = event.target;
-          if (target.hasPointerCapture(event.pointerId)) {
-            target.releasePointerCapture(event.pointerId);
-          }
-          if (event.button === 0 && event.ctrlKey === false && event.pointerType === "mouse") {
-            handleOpen(event);
-            event.preventDefault();
-          }
-        }),
-        onKeyDown: composeEventHandlers(triggerProps.onKeyDown, (event) => {
-          const isTypingAhead = searchRef.current !== "";
-          const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-          if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
-          if (isTypingAhead && event.key === " ") return;
-          if (OPEN_KEYS.includes(event.key)) {
-            handleOpen();
-            event.preventDefault();
-          }
-        })
-      }
-    ) });
-  }
-);
-SelectTrigger$1.displayName = TRIGGER_NAME;
-var VALUE_NAME = "SelectValue";
-var SelectValue$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, className, style: style2, children, placeholder = "", ...valueProps } = props;
-    const context = useSelectContext(VALUE_NAME, __scopeSelect);
-    const { onValueNodeHasChildrenChange } = context;
-    const hasChildren = children !== void 0;
-    const composedRefs = useComposedRefs(forwardedRef, context.onValueNodeChange);
-    useLayoutEffect2(() => {
-      onValueNodeHasChildrenChange(hasChildren);
-    }, [onValueNodeHasChildrenChange, hasChildren]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.span,
-      {
-        ...valueProps,
-        ref: composedRefs,
-        style: { pointerEvents: "none" },
-        children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: placeholder }) : children
-      }
-    );
-  }
-);
-SelectValue$1.displayName = VALUE_NAME;
-var ICON_NAME = "SelectIcon";
-var SelectIcon = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, children, ...iconProps } = props;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "▼" });
-  }
-);
-SelectIcon.displayName = ICON_NAME;
-var PORTAL_NAME = "SelectPortal";
-var SelectPortal = (props) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Portal$1, { asChild: true, ...props });
-};
-SelectPortal.displayName = PORTAL_NAME;
-var CONTENT_NAME = "SelectContent";
-var SelectContent$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const context = useSelectContext(CONTENT_NAME, props.__scopeSelect);
-    const [fragment, setFragment] = reactExports.useState();
-    useLayoutEffect2(() => {
-      setFragment(new DocumentFragment());
-    }, []);
-    if (!context.open) {
-      const frag = fragment;
-      return frag ? reactDomExports.createPortal(
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentProvider, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: props.children }) }) }),
-        frag
-      ) : null;
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentImpl, { ...props, ref: forwardedRef });
-  }
-);
-SelectContent$1.displayName = CONTENT_NAME;
-var CONTENT_MARGIN = 10;
-var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME);
-var CONTENT_IMPL_NAME = "SelectContentImpl";
-var Slot = /* @__PURE__ */ createSlot("SelectContent.RemoveScroll");
-var SelectContentImpl = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      position = "item-aligned",
-      onCloseAutoFocus,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      //
-      // PopperContent props
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions,
-      //
-      ...contentProps
-    } = props;
-    const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-    const [content, setContent] = reactExports.useState(null);
-    const [viewport, setViewport] = reactExports.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = reactExports.useState(null);
-    const [selectedItemText, setSelectedItemText] = reactExports.useState(
-      null
-    );
-    const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = reactExports.useState(false);
-    const firstValidItemFoundRef = reactExports.useRef(false);
-    reactExports.useEffect(() => {
-      if (content) return hideOthers(content);
-    }, [content]);
-    useFocusGuards();
-    const focusFirst2 = reactExports.useCallback(
-      (candidates) => {
-        const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
-        const [lastItem] = restItems.slice(-1);
-        const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
-        for (const candidate of candidates) {
-          if (candidate === PREVIOUSLY_FOCUSED_ELEMENT) return;
-          candidate == null ? void 0 : candidate.scrollIntoView({ block: "nearest" });
-          if (candidate === firstItem && viewport) viewport.scrollTop = 0;
-          if (candidate === lastItem && viewport) viewport.scrollTop = viewport.scrollHeight;
-          candidate == null ? void 0 : candidate.focus();
-          if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT) return;
-        }
-      },
-      [getItems, viewport]
-    );
-    const focusSelectedItem = reactExports.useCallback(
-      () => focusFirst2([selectedItem, content]),
-      [focusFirst2, selectedItem, content]
-    );
-    reactExports.useEffect(() => {
-      if (isPositioned) {
-        focusSelectedItem();
-      }
-    }, [isPositioned, focusSelectedItem]);
-    const { onOpenChange, triggerPointerDownPosRef } = context;
-    reactExports.useEffect(() => {
-      if (content) {
-        let pointerMoveDelta = { x: 0, y: 0 };
-        const handlePointerMove = (event) => {
-          var _a2, _b2;
-          pointerMoveDelta = {
-            x: Math.abs(Math.round(event.pageX) - (((_a2 = triggerPointerDownPosRef.current) == null ? void 0 : _a2.x) ?? 0)),
-            y: Math.abs(Math.round(event.pageY) - (((_b2 = triggerPointerDownPosRef.current) == null ? void 0 : _b2.y) ?? 0))
-          };
-        };
-        const handlePointerUp = (event) => {
-          if (pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10) {
-            event.preventDefault();
-          } else {
-            if (!content.contains(event.target)) {
-              onOpenChange(false);
-            }
-          }
-          document.removeEventListener("pointermove", handlePointerMove);
-          triggerPointerDownPosRef.current = null;
-        };
-        if (triggerPointerDownPosRef.current !== null) {
-          document.addEventListener("pointermove", handlePointerMove);
-          document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
-        }
-        return () => {
-          document.removeEventListener("pointermove", handlePointerMove);
-          document.removeEventListener("pointerup", handlePointerUp, { capture: true });
-        };
-      }
-    }, [content, onOpenChange, triggerPointerDownPosRef]);
-    reactExports.useEffect(() => {
-      const close = () => onOpenChange(false);
-      window.addEventListener("blur", close);
-      window.addEventListener("resize", close);
-      return () => {
-        window.removeEventListener("blur", close);
-        window.removeEventListener("resize", close);
-      };
-    }, [onOpenChange]);
-    const [searchRef, handleTypeaheadSearch] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.ref.current === document.activeElement);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem) {
-        setTimeout(() => nextItem.ref.current.focus());
-      }
-    });
-    const itemRefCallback = reactExports.useCallback(
-      (node, value, disabled) => {
-        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-        const isSelectedItem = context.value !== void 0 && context.value === value;
-        if (isSelectedItem || isFirstValidItem) {
-          setSelectedItem(node);
-          if (isFirstValidItem) firstValidItemFoundRef.current = true;
-        }
-      },
-      [context.value]
-    );
-    const handleItemLeave = reactExports.useCallback(() => content == null ? void 0 : content.focus(), [content]);
-    const itemTextRefCallback = reactExports.useCallback(
-      (node, value, disabled) => {
-        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-        const isSelectedItem = context.value !== void 0 && context.value === value;
-        if (isSelectedItem || isFirstValidItem) {
-          setSelectedItemText(node);
-        }
-      },
-      [context.value]
-    );
-    const SelectPosition = position === "popper" ? SelectPopperPosition : SelectItemAlignedPosition;
-    const popperContentProps = SelectPosition === SelectPopperPosition ? {
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions
-    } : {};
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      SelectContentProvider,
-      {
-        scope: __scopeSelect,
-        content,
-        viewport,
-        onViewportChange: setViewport,
-        itemRefCallback,
-        selectedItem,
-        onItemLeave: handleItemLeave,
-        itemTextRefCallback,
-        focusSelectedItem,
-        selectedItemText,
-        position,
-        isPositioned,
-        searchRef,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(ReactRemoveScroll, { as: Slot, allowPinchZoom: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FocusScope,
-          {
-            asChild: true,
-            trapped: context.open,
-            onMountAutoFocus: (event) => {
-              event.preventDefault();
-            },
-            onUnmountAutoFocus: composeEventHandlers(onCloseAutoFocus, (event) => {
-              var _a2;
-              (_a2 = context.trigger) == null ? void 0 : _a2.focus({ preventScroll: true });
-              event.preventDefault();
-            }),
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              DismissableLayer,
-              {
-                asChild: true,
-                disableOutsidePointerEvents: true,
-                onEscapeKeyDown,
-                onPointerDownOutside,
-                onFocusOutside: (event) => event.preventDefault(),
-                onDismiss: () => context.onOpenChange(false),
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  SelectPosition,
-                  {
-                    role: "listbox",
-                    id: context.contentId,
-                    "data-state": context.open ? "open" : "closed",
-                    dir: context.dir,
-                    onContextMenu: (event) => event.preventDefault(),
-                    ...contentProps,
-                    ...popperContentProps,
-                    onPlaced: () => setIsPositioned(true),
-                    ref: composedRefs,
-                    style: {
-                      // flex layout so we can place the scroll buttons properly
-                      display: "flex",
-                      flexDirection: "column",
-                      // reset the outline by default as the content MAY get focused
-                      outline: "none",
-                      ...contentProps.style
-                    },
-                    onKeyDown: composeEventHandlers(contentProps.onKeyDown, (event) => {
-                      const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-                      if (event.key === "Tab") event.preventDefault();
-                      if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
-                      if (["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
-                        const items = getItems().filter((item) => !item.disabled);
-                        let candidateNodes = items.map((item) => item.ref.current);
-                        if (["ArrowUp", "End"].includes(event.key)) {
-                          candidateNodes = candidateNodes.slice().reverse();
-                        }
-                        if (["ArrowUp", "ArrowDown"].includes(event.key)) {
-                          const currentElement = event.target;
-                          const currentIndex = candidateNodes.indexOf(currentElement);
-                          candidateNodes = candidateNodes.slice(currentIndex + 1);
-                        }
-                        setTimeout(() => focusFirst2(candidateNodes));
-                        event.preventDefault();
-                      }
-                    })
-                  }
-                )
-              }
-            )
-          }
-        ) })
-      }
-    );
-  }
-);
-SelectContentImpl.displayName = CONTENT_IMPL_NAME;
-var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
-var SelectItemAlignedPosition = reactExports.forwardRef((props, forwardedRef) => {
-  const { __scopeSelect, onPlaced, ...popperProps } = props;
-  const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-  const contentContext = useSelectContentContext(CONTENT_NAME, __scopeSelect);
-  const [contentWrapper, setContentWrapper] = reactExports.useState(null);
-  const [content, setContent] = reactExports.useState(null);
-  const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-  const getItems = useCollection(__scopeSelect);
-  const shouldExpandOnScrollRef = reactExports.useRef(false);
-  const shouldRepositionRef = reactExports.useRef(true);
-  const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-  const position = reactExports.useCallback(() => {
-    if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
-      const triggerRect = context.trigger.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-      const valueNodeRect = context.valueNode.getBoundingClientRect();
-      const itemTextRect = selectedItemText.getBoundingClientRect();
-      if (context.dir !== "rtl") {
-        const itemTextOffset = itemTextRect.left - contentRect.left;
-        const left = valueNodeRect.left - itemTextOffset;
-        const leftDelta = triggerRect.left - left;
-        const minContentWidth = triggerRect.width + leftDelta;
-        const contentWidth = Math.max(minContentWidth, contentRect.width);
-        const rightEdge = window.innerWidth - CONTENT_MARGIN;
-        const clampedLeft = clamp$1(left, [
-          CONTENT_MARGIN,
-          // Prevents the content from going off the starting edge of the
-          // viewport. It may still go off the ending edge, but this can be
-          // controlled by the user since they may want to manage overflow in a
-          // specific way.
-          // https://github.com/radix-ui/primitives/issues/2049
-          Math.max(CONTENT_MARGIN, rightEdge - contentWidth)
-        ]);
-        contentWrapper.style.minWidth = minContentWidth + "px";
-        contentWrapper.style.left = clampedLeft + "px";
-      } else {
-        const itemTextOffset = contentRect.right - itemTextRect.right;
-        const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
-        const rightDelta = window.innerWidth - triggerRect.right - right;
-        const minContentWidth = triggerRect.width + rightDelta;
-        const contentWidth = Math.max(minContentWidth, contentRect.width);
-        const leftEdge = window.innerWidth - CONTENT_MARGIN;
-        const clampedRight = clamp$1(right, [
-          CONTENT_MARGIN,
-          Math.max(CONTENT_MARGIN, leftEdge - contentWidth)
-        ]);
-        contentWrapper.style.minWidth = minContentWidth + "px";
-        contentWrapper.style.right = clampedRight + "px";
-      }
-      const items = getItems();
-      const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-      const itemsHeight = viewport.scrollHeight;
-      const contentStyles = window.getComputedStyle(content);
-      const contentBorderTopWidth = parseInt(contentStyles.borderTopWidth, 10);
-      const contentPaddingTop = parseInt(contentStyles.paddingTop, 10);
-      const contentBorderBottomWidth = parseInt(contentStyles.borderBottomWidth, 10);
-      const contentPaddingBottom = parseInt(contentStyles.paddingBottom, 10);
-      const fullContentHeight = contentBorderTopWidth + contentPaddingTop + itemsHeight + contentPaddingBottom + contentBorderBottomWidth;
-      const minContentHeight = Math.min(selectedItem.offsetHeight * 5, fullContentHeight);
-      const viewportStyles = window.getComputedStyle(viewport);
-      const viewportPaddingTop = parseInt(viewportStyles.paddingTop, 10);
-      const viewportPaddingBottom = parseInt(viewportStyles.paddingBottom, 10);
-      const topEdgeToTriggerMiddle = triggerRect.top + triggerRect.height / 2 - CONTENT_MARGIN;
-      const triggerMiddleToBottomEdge = availableHeight - topEdgeToTriggerMiddle;
-      const selectedItemHalfHeight = selectedItem.offsetHeight / 2;
-      const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
-      const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
-      const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
-      const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
-      if (willAlignWithoutTopOverflow) {
-        const isLastItem = items.length > 0 && selectedItem === items[items.length - 1].ref.current;
-        contentWrapper.style.bottom = "0px";
-        const viewportOffsetBottom = content.clientHeight - viewport.offsetTop - viewport.offsetHeight;
-        const clampedTriggerMiddleToBottomEdge = Math.max(
-          triggerMiddleToBottomEdge,
-          selectedItemHalfHeight + // viewport might have padding bottom, include it to avoid a scrollable viewport
-          (isLastItem ? viewportPaddingBottom : 0) + viewportOffsetBottom + contentBorderBottomWidth
-        );
-        const height = contentTopToItemMiddle + clampedTriggerMiddleToBottomEdge;
-        contentWrapper.style.height = height + "px";
-      } else {
-        const isFirstItem = items.length > 0 && selectedItem === items[0].ref.current;
-        contentWrapper.style.top = "0px";
-        const clampedTopEdgeToTriggerMiddle = Math.max(
-          topEdgeToTriggerMiddle,
-          contentBorderTopWidth + viewport.offsetTop + // viewport might have padding top, include it to avoid a scrollable viewport
-          (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight
-        );
-        const height = clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom;
-        contentWrapper.style.height = height + "px";
-        viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
-      }
-      contentWrapper.style.margin = `${CONTENT_MARGIN}px 0`;
-      contentWrapper.style.minHeight = minContentHeight + "px";
-      contentWrapper.style.maxHeight = availableHeight + "px";
-      onPlaced == null ? void 0 : onPlaced();
-      requestAnimationFrame(() => shouldExpandOnScrollRef.current = true);
-    }
-  }, [
-    getItems,
-    context.trigger,
-    context.valueNode,
-    contentWrapper,
-    content,
-    viewport,
-    selectedItem,
-    selectedItemText,
-    context.dir,
-    onPlaced
-  ]);
-  useLayoutEffect2(() => position(), [position]);
-  const [contentZIndex, setContentZIndex] = reactExports.useState();
-  useLayoutEffect2(() => {
-    if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
-  }, [content]);
-  const handleScrollButtonChange = reactExports.useCallback(
-    (node) => {
-      if (node && shouldRepositionRef.current === true) {
-        position();
-        focusSelectedItem == null ? void 0 : focusSelectedItem();
-        shouldRepositionRef.current = false;
-      }
-    },
-    [position, focusSelectedItem]
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectViewportProvider,
-    {
-      scope: __scopeSelect,
-      contentWrapper,
-      shouldExpandOnScrollRef,
-      onScrollButtonChange: handleScrollButtonChange,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          ref: setContentWrapper,
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            position: "fixed",
-            zIndex: contentZIndex
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Primitive.div,
-            {
-              ...popperProps,
-              ref: composedRefs,
-              style: {
-                // When we get the height of the content, it includes borders. If we were to set
-                // the height without having `boxSizing: 'border-box'` it would be too big.
-                boxSizing: "border-box",
-                // We need to ensure the content doesn't get taller than the wrapper
-                maxHeight: "100%",
-                ...popperProps.style
-              }
-            }
-          )
-        }
-      )
-    }
-  );
-});
-SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
-var POPPER_POSITION_NAME = "SelectPopperPosition";
-var SelectPopperPosition = reactExports.forwardRef((props, forwardedRef) => {
-  const {
-    __scopeSelect,
-    align = "start",
-    collisionPadding = CONTENT_MARGIN,
-    ...popperProps
-  } = props;
-  const popperScope = usePopperScope(__scopeSelect);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Content,
-    {
-      ...popperScope,
-      ...popperProps,
-      ref: forwardedRef,
-      align,
-      collisionPadding,
-      style: {
-        // Ensure border-box for floating-ui calculations
-        boxSizing: "border-box",
-        ...popperProps.style,
-        // re-namespace exposed content custom properties
-        ...{
-          "--radix-select-content-transform-origin": "var(--radix-popper-transform-origin)",
-          "--radix-select-content-available-width": "var(--radix-popper-available-width)",
-          "--radix-select-content-available-height": "var(--radix-popper-available-height)",
-          "--radix-select-trigger-width": "var(--radix-popper-anchor-width)",
-          "--radix-select-trigger-height": "var(--radix-popper-anchor-height)"
-        }
-      }
-    }
-  );
-});
-SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME, {});
-var VIEWPORT_NAME = "SelectViewport";
-var SelectViewport = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, nonce, ...viewportProps } = props;
-    const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
-    const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
-    const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = reactExports.useRef(0);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "style",
-        {
-          dangerouslySetInnerHTML: {
-            __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}`
-          },
-          nonce
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Primitive.div,
-        {
-          "data-radix-select-viewport": "",
-          role: "presentation",
-          ...viewportProps,
-          ref: composedRefs,
-          style: {
-            // we use position: 'relative' here on the `viewport` so that when we call
-            // `selectedItem.offsetTop` in calculations, the offset is relative to the viewport
-            // (independent of the scrollUpButton).
-            position: "relative",
-            flex: 1,
-            // Viewport should only be scrollable in the vertical direction.
-            // This won't work in vertical writing modes, so we'll need to
-            // revisit this if/when that is supported
-            // https://developer.chrome.com/blog/vertical-form-controls
-            overflow: "hidden auto",
-            ...viewportProps.style
-          },
-          onScroll: composeEventHandlers(viewportProps.onScroll, (event) => {
-            const viewport = event.currentTarget;
-            const { contentWrapper, shouldExpandOnScrollRef } = viewportContext;
-            if ((shouldExpandOnScrollRef == null ? void 0 : shouldExpandOnScrollRef.current) && contentWrapper) {
-              const scrolledBy = Math.abs(prevScrollTopRef.current - viewport.scrollTop);
-              if (scrolledBy > 0) {
-                const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-                const cssMinHeight = parseFloat(contentWrapper.style.minHeight);
-                const cssHeight = parseFloat(contentWrapper.style.height);
-                const prevHeight = Math.max(cssMinHeight, cssHeight);
-                if (prevHeight < availableHeight) {
-                  const nextHeight = prevHeight + scrolledBy;
-                  const clampedNextHeight = Math.min(availableHeight, nextHeight);
-                  const heightDiff = nextHeight - clampedNextHeight;
-                  contentWrapper.style.height = clampedNextHeight + "px";
-                  if (contentWrapper.style.bottom === "0px") {
-                    viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
-                    contentWrapper.style.justifyContent = "flex-end";
-                  }
-                }
-              }
-            }
-            prevScrollTopRef.current = viewport.scrollTop;
-          })
-        }
-      ) })
-    ] });
-  }
-);
-SelectViewport.displayName = VIEWPORT_NAME;
-var GROUP_NAME = "SelectGroup";
-var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-var SelectGroup = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...groupProps } = props;
-    const groupId = useId();
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
-  }
-);
-SelectGroup.displayName = GROUP_NAME;
-var LABEL_NAME = "SelectLabel";
-var SelectLabel = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...labelProps } = props;
-    const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
-  }
-);
-SelectLabel.displayName = LABEL_NAME;
-var ITEM_NAME = "SelectItem";
-var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-var SelectItem$1 = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      value,
-      disabled = false,
-      textValue: textValueProp,
-      ...itemProps
-    } = props;
-    const context = useSelectContext(ITEM_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
-    const isSelected = context.value === value;
-    const [textValue, setTextValue] = reactExports.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = reactExports.useState(false);
-    const composedRefs = useComposedRefs(
-      forwardedRef,
-      (node) => {
-        var _a2;
-        return (_a2 = contentContext.itemRefCallback) == null ? void 0 : _a2.call(contentContext, node, value, disabled);
-      }
-    );
-    const textId = useId();
-    const pointerTypeRef = reactExports.useRef("touch");
-    const handleSelect = () => {
-      if (!disabled) {
-        context.onValueChange(value);
-        context.onOpenChange(false);
-      }
-    };
-    if (value === "") {
-      throw new Error(
-        "A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder."
-      );
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      SelectItemContextProvider,
-      {
-        scope: __scopeSelect,
-        value,
-        disabled,
-        textId,
-        isSelected,
-        onItemTextChange: reactExports.useCallback((node) => {
-          setTextValue((prevTextValue) => prevTextValue || ((node == null ? void 0 : node.textContent) ?? "").trim());
-        }, []),
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Collection.ItemSlot,
-          {
-            scope: __scopeSelect,
-            value,
-            disabled,
-            textValue,
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Primitive.div,
-              {
-                role: "option",
-                "aria-labelledby": textId,
-                "data-highlighted": isFocused ? "" : void 0,
-                "aria-selected": isSelected && isFocused,
-                "data-state": isSelected ? "checked" : "unchecked",
-                "aria-disabled": disabled || void 0,
-                "data-disabled": disabled ? "" : void 0,
-                tabIndex: disabled ? void 0 : -1,
-                ...itemProps,
-                ref: composedRefs,
-                onFocus: composeEventHandlers(itemProps.onFocus, () => setIsFocused(true)),
-                onBlur: composeEventHandlers(itemProps.onBlur, () => setIsFocused(false)),
-                onClick: composeEventHandlers(itemProps.onClick, () => {
-                  if (pointerTypeRef.current !== "mouse") handleSelect();
-                }),
-                onPointerUp: composeEventHandlers(itemProps.onPointerUp, () => {
-                  if (pointerTypeRef.current === "mouse") handleSelect();
-                }),
-                onPointerDown: composeEventHandlers(itemProps.onPointerDown, (event) => {
-                  pointerTypeRef.current = event.pointerType;
-                }),
-                onPointerMove: composeEventHandlers(itemProps.onPointerMove, (event) => {
-                  var _a2;
-                  pointerTypeRef.current = event.pointerType;
-                  if (disabled) {
-                    (_a2 = contentContext.onItemLeave) == null ? void 0 : _a2.call(contentContext);
-                  } else if (pointerTypeRef.current === "mouse") {
-                    event.currentTarget.focus({ preventScroll: true });
-                  }
-                }),
-                onPointerLeave: composeEventHandlers(itemProps.onPointerLeave, (event) => {
-                  var _a2;
-                  if (event.currentTarget === document.activeElement) {
-                    (_a2 = contentContext.onItemLeave) == null ? void 0 : _a2.call(contentContext);
-                  }
-                }),
-                onKeyDown: composeEventHandlers(itemProps.onKeyDown, (event) => {
-                  var _a2;
-                  const isTypingAhead = ((_a2 = contentContext.searchRef) == null ? void 0 : _a2.current) !== "";
-                  if (isTypingAhead && event.key === " ") return;
-                  if (SELECTION_KEYS.includes(event.key)) handleSelect();
-                  if (event.key === " ") event.preventDefault();
-                })
-              }
-            )
-          }
-        )
-      }
-    );
-  }
-);
-SelectItem$1.displayName = ITEM_NAME;
-var ITEM_TEXT_NAME = "SelectItemText";
-var SelectItemText = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, className, style: style2, ...itemTextProps } = props;
-    const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
-    const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
-    const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = reactExports.useState(null);
-    const composedRefs = useComposedRefs(
-      forwardedRef,
-      (node) => setItemTextNode(node),
-      itemContext.onItemTextChange,
-      (node) => {
-        var _a2;
-        return (_a2 = contentContext.itemTextRefCallback) == null ? void 0 : _a2.call(contentContext, node, itemContext.value, itemContext.disabled);
-      }
-    );
-    const textContent = itemTextNode == null ? void 0 : itemTextNode.textContent;
-    const nativeOption = reactExports.useMemo(
-      () => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value),
-      [itemContext.disabled, itemContext.value, textContent]
-    );
-    const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
-    useLayoutEffect2(() => {
-      onNativeOptionAdd(nativeOption);
-      return () => onNativeOptionRemove(nativeOption);
-    }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
-      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? reactDomExports.createPortal(itemTextProps.children, context.valueNode) : null
-    ] });
-  }
-);
-SelectItemText.displayName = ITEM_TEXT_NAME;
-var ITEM_INDICATOR_NAME = "SelectItemIndicator";
-var SelectItemIndicator = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...itemIndicatorProps } = props;
-    const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
-    return itemContext.isSelected ? /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
-  }
-);
-SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
-var SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton";
-var SelectScrollUpButton$1 = reactExports.forwardRef((props, forwardedRef) => {
-  const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-  const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollUp, setCanScrollUp] = reactExports.useState(false);
-  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-  useLayoutEffect2(() => {
-    if (contentContext.viewport && contentContext.isPositioned) {
-      let handleScroll2 = function() {
-        const canScrollUp2 = viewport.scrollTop > 0;
-        setCanScrollUp(canScrollUp2);
-      };
-      const viewport = contentContext.viewport;
-      handleScroll2();
-      viewport.addEventListener("scroll", handleScroll2);
-      return () => viewport.removeEventListener("scroll", handleScroll2);
-    }
-  }, [contentContext.viewport, contentContext.isPositioned]);
-  return canScrollUp ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectScrollButtonImpl,
-    {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop - selectedItem.offsetHeight;
-        }
-      }
-    }
-  ) : null;
-});
-SelectScrollUpButton$1.displayName = SCROLL_UP_BUTTON_NAME;
-var SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton";
-var SelectScrollDownButton$1 = reactExports.forwardRef((props, forwardedRef) => {
-  const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-  const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollDown, setCanScrollDown] = reactExports.useState(false);
-  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-  useLayoutEffect2(() => {
-    if (contentContext.viewport && contentContext.isPositioned) {
-      let handleScroll2 = function() {
-        const maxScroll = viewport.scrollHeight - viewport.clientHeight;
-        const canScrollDown2 = Math.ceil(viewport.scrollTop) < maxScroll;
-        setCanScrollDown(canScrollDown2);
-      };
-      const viewport = contentContext.viewport;
-      handleScroll2();
-      viewport.addEventListener("scroll", handleScroll2);
-      return () => viewport.removeEventListener("scroll", handleScroll2);
-    }
-  }, [contentContext.viewport, contentContext.isPositioned]);
-  return canScrollDown ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectScrollButtonImpl,
-    {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop + selectedItem.offsetHeight;
-        }
-      }
-    }
-  ) : null;
-});
-SelectScrollDownButton$1.displayName = SCROLL_DOWN_BUTTON_NAME;
-var SelectScrollButtonImpl = reactExports.forwardRef((props, forwardedRef) => {
-  const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
-  const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-  const autoScrollTimerRef = reactExports.useRef(null);
-  const getItems = useCollection(__scopeSelect);
-  const clearAutoScrollTimer = reactExports.useCallback(() => {
-    if (autoScrollTimerRef.current !== null) {
-      window.clearInterval(autoScrollTimerRef.current);
-      autoScrollTimerRef.current = null;
-    }
-  }, []);
-  reactExports.useEffect(() => {
-    return () => clearAutoScrollTimer();
-  }, [clearAutoScrollTimer]);
-  useLayoutEffect2(() => {
-    var _a2;
-    const activeItem = getItems().find((item) => item.ref.current === document.activeElement);
-    (_a2 = activeItem == null ? void 0 : activeItem.ref.current) == null ? void 0 : _a2.scrollIntoView({ block: "nearest" });
-  }, [getItems]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive.div,
-    {
-      "aria-hidden": true,
-      ...scrollIndicatorProps,
-      ref: forwardedRef,
-      style: { flexShrink: 0, ...scrollIndicatorProps.style },
-      onPointerDown: composeEventHandlers(scrollIndicatorProps.onPointerDown, () => {
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerMove: composeEventHandlers(scrollIndicatorProps.onPointerMove, () => {
-        var _a2;
-        (_a2 = contentContext.onItemLeave) == null ? void 0 : _a2.call(contentContext);
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerLeave: composeEventHandlers(scrollIndicatorProps.onPointerLeave, () => {
-        clearAutoScrollTimer();
-      })
-    }
-  );
-});
-var SEPARATOR_NAME = "SelectSeparator";
-var SelectSeparator = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...separatorProps } = props;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
-  }
-);
-SelectSeparator.displayName = SEPARATOR_NAME;
-var ARROW_NAME = "SelectArrow";
-var SelectArrow = reactExports.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...arrowProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(ARROW_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ARROW_NAME, __scopeSelect);
-    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ jsxRuntimeExports.jsx(Arrow, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
-  }
-);
-SelectArrow.displayName = ARROW_NAME;
-var BUBBLE_INPUT_NAME = "SelectBubbleInput";
-var SelectBubbleInput = reactExports.forwardRef(
-  ({ __scopeSelect, value, ...props }, forwardedRef) => {
-    const ref = reactExports.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const prevValue = usePrevious(value);
-    reactExports.useEffect(() => {
-      const select = ref.current;
-      if (!select) return;
-      const selectProto = window.HTMLSelectElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(
-        selectProto,
-        "value"
-      );
-      const setValue = descriptor.set;
-      if (prevValue !== value && setValue) {
-        const event = new Event("change", { bubbles: true });
-        setValue.call(select, value);
-        select.dispatchEvent(event);
-      }
-    }, [prevValue, value]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.select,
-      {
-        ...props,
-        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style },
-        ref: composedRefs,
-        defaultValue: value
-      }
-    );
-  }
-);
-SelectBubbleInput.displayName = BUBBLE_INPUT_NAME;
-function shouldShowPlaceholder(value) {
-  return value === "" || value === void 0;
-}
-function useTypeaheadSearch(onSearchChange) {
-  const handleSearchChange = useCallbackRef$1(onSearchChange);
-  const searchRef = reactExports.useRef("");
-  const timerRef = reactExports.useRef(0);
-  const handleTypeaheadSearch = reactExports.useCallback(
-    (key) => {
-      const search = searchRef.current + key;
-      handleSearchChange(search);
-      (function updateSearch(value) {
-        searchRef.current = value;
-        window.clearTimeout(timerRef.current);
-        if (value !== "") timerRef.current = window.setTimeout(() => updateSearch(""), 1e3);
-      })(search);
-    },
-    [handleSearchChange]
-  );
-  const resetTypeahead = reactExports.useCallback(() => {
-    searchRef.current = "";
-    window.clearTimeout(timerRef.current);
-  }, []);
-  reactExports.useEffect(() => {
-    return () => window.clearTimeout(timerRef.current);
-  }, []);
-  return [searchRef, handleTypeaheadSearch, resetTypeahead];
-}
-function findNextItem(items, search, currentItem) {
-  const isRepeated = search.length > 1 && Array.from(search).every((char) => char === search[0]);
-  const normalizedSearch = isRepeated ? search[0] : search;
-  const currentItemIndex = currentItem ? items.indexOf(currentItem) : -1;
-  let wrappedItems = wrapArray(items, Math.max(currentItemIndex, 0));
-  const excludeCurrentItem = normalizedSearch.length === 1;
-  if (excludeCurrentItem) wrappedItems = wrappedItems.filter((v2) => v2 !== currentItem);
-  const nextItem = wrappedItems.find(
-    (item) => item.textValue.toLowerCase().startsWith(normalizedSearch.toLowerCase())
-  );
-  return nextItem !== currentItem ? nextItem : void 0;
-}
-function wrapArray(array, startIndex) {
-  return array.map((_2, index2) => array[(startIndex + index2) % array.length]);
-}
-var Root2 = Select$1;
-var Trigger = SelectTrigger$1;
-var Value = SelectValue$1;
-var Icon = SelectIcon;
-var Portal = SelectPortal;
-var Content2 = SelectContent$1;
-var Viewport = SelectViewport;
-var Item = SelectItem$1;
-var ItemText = SelectItemText;
-var ItemIndicator = SelectItemIndicator;
-var ScrollUpButton = SelectScrollUpButton$1;
-var ScrollDownButton = SelectScrollDownButton$1;
-function Select({
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2, { "data-slot": "select", ...props });
-}
-function SelectValue({
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Value, { "data-slot": "select-value", ...props });
-}
-function SelectTrigger({
-  className,
-  size: size2 = "default",
-  children,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    Trigger,
-    {
-      "data-slot": "select-trigger",
-      "data-size": size2,
-      className: cn(
-        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      ),
-      ...props,
-      children: [
-        children,
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "size-4 opacity-50" }) })
-      ]
-    }
-  );
-}
-function SelectContent({
-  className,
-  children,
-  position = "popper",
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Portal, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    Content2,
-    {
-      "data-slot": "select-content",
-      className: cn(
-        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md",
-        position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className
-      ),
-      position,
-      ...props,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectScrollUpButton, {}),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Viewport,
-          {
-            className: cn(
-              "p-1",
-              position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
-            ),
-            children
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectScrollDownButton, {})
-      ]
-    }
-  ) });
-}
-function SelectItem({
-  className,
-  children,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    Item,
-    {
-      "data-slot": "select-item",
-      className: cn(
-        "focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className
-      ),
-      ...props,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute right-2 flex size-3.5 items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ItemIndicator, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { className: "size-4" }) }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(ItemText, { children })
-      ]
-    }
-  );
-}
-function SelectScrollUpButton({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    ScrollUpButton,
-    {
-      "data-slot": "select-scroll-up-button",
-      className: cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      ),
-      ...props,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "size-4" })
-    }
-  );
-}
-function SelectScrollDownButton({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    ScrollDownButton,
-    {
-      "data-slot": "select-scroll-down-button",
-      className: cn(
-        "flex cursor-default items-center justify-center py-1",
-        className
-      ),
-      ...props,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "size-4" })
-    }
-  );
-}
-const ROLE_LABELS = {
-  [AdminRole.owner]: "Owner",
-  [AdminRole.editor]: "Editor",
-  [AdminRole.viewer]: "Viewer"
-};
-function AdminTeamList({
-  admins,
-  isLoading,
-  isError,
-  onRetry,
-  onRemove,
-  onRoleChange,
-  removingPrincipal,
-  changingPrincipal,
-  canManage
-}) {
-  if (isLoading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        "data-ocid": "admin.team.loading_state",
-        className: "space-y-2",
-        "aria-busy": "true",
-        children: Array.from({ length: 3 }, (_2, i) => `admin-skeleton-${i}`).map(
-          (id) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              className: "rounded-sm border border-border bg-card p-5",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "h-4 w-48" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Skeleton, { className: "mt-3 h-3 w-32" })
-              ]
-            },
-            id
-          )
-        )
-      }
-    );
-  }
-  if (isError) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.team.error_state",
-        className: "rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-display text-base font-semibold", children: "Could not load the team" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: "The admin roster is unavailable right now." }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            SecondaryButton,
-            {
-              type: "button",
-              className: "mt-4",
-              "data-ocid": "admin.team.retry_button",
-              onClick: onRetry,
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                "Retry"
-              ]
-            }
-          )
-        ]
-      }
-    );
-  }
-  if (admins.length === 0) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        "data-ocid": "admin.team.empty_state",
-        className: "rounded-sm border border-dashed border-border bg-muted/30 px-6 py-14 text-center",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Users,
-            {
-              "aria-hidden": "true",
-              className: "mx-auto h-6 w-6 text-muted-foreground"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 font-display text-base font-semibold", children: "No admins yet" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mx-auto mt-2 max-w-xs text-sm text-muted-foreground", children: "Add an admin by principal to grant access to the dashboard." })
-        ]
-      }
-    );
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { "data-ocid": "admin.team.list", className: "space-y-2", "aria-label": "Admins", children: admins.map((admin, index2) => {
-    const principalText = admin.principal.toText();
-    const isRemoving = removingPrincipal === principalText;
-    const isChanging = changingPrincipal === principalText;
-    const role = admin.role;
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "li",
-      {
-        "data-ocid": `admin.team.item.${index2 + 1}`,
-        className: "flex flex-wrap items-center justify-between gap-4 rounded-sm border border-border bg-card p-5",
-        children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs break-all text-foreground", children: principalText }),
-              admin.isOwner ? /* @__PURE__ */ jsxRuntimeExports.jsxs(MicroBadge, { className: "border-primary/40 text-primary", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(ShieldCheck, { "aria-hidden": "true", className: "mr-1 h-3 w-3" }),
-                "Owner"
-              ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(MicroBadge, { children: ROLE_LABELS[role] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-2 text-xs text-muted-foreground", children: [
-              admin.email ? `${admin.email} · ` : "",
-              admin.addedAt > 0n ? `Added ${formatDate(admin.addedAt)}` : "Founding admin"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-wrap items-center gap-2", children: canManage && !admin.isOwner ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Select,
-              {
-                value: role,
-                onValueChange: (value) => onRoleChange(admin.principal, value),
-                disabled: isChanging || isRemoving,
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    SelectTrigger,
-                    {
-                      "data-ocid": `admin.team.role_select.${index2 + 1}`,
-                      "aria-label": `Role for ${principalText}`,
-                      className: "h-9 w-[8.5rem] rounded-sm font-mono text-xs",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, {})
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs(SelectContent, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: AdminRole.editor, children: ROLE_LABELS[AdminRole.editor] }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: AdminRole.viewer, children: ROLE_LABELS[AdminRole.viewer] })
-                  ] })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              SecondaryButton,
-              {
-                type: "button",
-                className: cn(
-                  "border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive"
-                ),
-                "data-ocid": `admin.team.remove_button.${index2 + 1}`,
-                onClick: () => onRemove(admin.principal),
-                disabled: isRemoving || isChanging,
-                children: [
-                  isRemoving ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    LoaderCircle,
-                    {
-                      "aria-hidden": "true",
-                      className: "mr-2 h-4 w-4 animate-spin"
-                    }
-                  ) : /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                  "Remove"
-                ]
-              }
-            )
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground", children: admin.isOwner ? "Protected" : "Owner only" }) })
-        ]
-      },
-      principalText
-    );
-  }) });
-}
-function friendlyError(error) {
-  const raw = error instanceof Error ? error.message : String(error);
-  if (/owner access required/i.test(raw)) {
-    return "Only the owner can manage admins.";
-  }
-  if (/unauthor|not.?admin|forbidden|access required/i.test(raw)) {
-    return "Only the owner can manage admins.";
-  }
-  if (/not.?ready|backend/i.test(raw)) {
-    return "The backend is not ready yet. Try again in a moment.";
-  }
-  return "Something went wrong. Please try again.";
-}
-function AdminTeam() {
-  const [principalInput, setPrincipalInput] = reactExports.useState("");
-  const [newRole, setNewRole] = reactExports.useState(AdminRole.editor);
-  const [formError, setFormError] = reactExports.useState(null);
-  const [actionError, setActionError] = reactExports.useState(null);
-  const [removingPrincipal, setRemovingPrincipal] = reactExports.useState(
-    null
-  );
-  const [changingPrincipal, setChangingPrincipal] = reactExports.useState(
-    null
-  );
-  const { data: isOwner = false, isLoading: isOwnerLoading } = useIsOwner();
-  const { data: isOwnerClaimed } = useIsOwnerClaimed();
-  const { data: admins = [], isLoading, isError, refetch } = useAdminTeam();
-  const addAdmin = useAddAdmin();
-  const setAdminRole = useSetAdminRole();
-  const removeAdmin = useRemoveAdmin();
-  function handleAdd(event) {
-    event.preventDefault();
-    setFormError(null);
-    setActionError(null);
-    const trimmed = principalInput.trim();
-    if (!trimmed) {
-      setFormError("Enter a principal to add.");
-      return;
-    }
-    let principal;
-    try {
-      principal = Principal$1.fromText(trimmed);
-    } catch {
-      setFormError("That is not a valid principal. Check the value and retry.");
-      return;
-    }
-    setPrincipalInput("");
-    addAdmin.mutate(
-      { principal, role: newRole },
-      {
-        onError: (error) => {
-          setPrincipalInput((current) => current === "" ? trimmed : current);
-          setFormError(friendlyError(error));
-        }
-      }
-    );
-  }
-  function handleRoleChange(principal, role) {
-    setActionError(null);
-    setChangingPrincipal(principal.toText());
-    setAdminRole.mutate(
-      { principal, role },
-      {
-        onSettled: () => setChangingPrincipal(null),
-        onError: (error) => setActionError(friendlyError(error))
-      }
-    );
-  }
-  function handleRemove(principal) {
-    setActionError(null);
-    setRemovingPrincipal(principal.toText());
-    removeAdmin.mutate(principal, {
-      onSettled: () => setRemovingPrincipal(null),
-      onError: (error) => setActionError(friendlyError(error))
-    });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      PageMeta,
-      {
-        title: "Team",
-        description: "Manage Ovanite administrators and their access."
-      }
-    ),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "border-b border-border bg-card", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Container, { className: "py-10 md:py-14", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-end justify-between gap-4", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "eyebrow", children: "Admin · Access" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "mt-3 font-display text-3xl font-bold tracking-tight md:text-4xl", children: "Team" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-3 max-w-xl text-sm text-muted-foreground", children: "Admins can review submissions and manage site content. Every admin action is authorised on the server." })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(MicroBadge, { "data-ocid": "admin.team.count_badge", children: [
-        admins.length,
-        " ",
-        admins.length === 1 ? "admin" : "admins"
-      ] })
-    ] }) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs(Container, { className: "py-10 md:py-14", children: [
-      isOwnerClaimed === false ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "div",
-        {
-          "data-ocid": "admin.team.claim_owner_state",
-          className: "mb-8 flex flex-wrap items-center gap-3 rounded-sm border border-primary/30 bg-primary/5 px-5 py-4",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(ShieldCheck, { "aria-hidden": "true", className: "h-5 w-5 text-primary" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-foreground", children: "No owner has been claimed yet. The first signed-in visitor with the configured owner email can claim ownership from the admin gate." })
-          ]
-        }
-      ) : null,
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-lg font-semibold tracking-tight", children: "Administrators" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-5", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            AdminTeamList,
-            {
-              admins,
-              isLoading,
-              isError,
-              onRetry: () => void refetch(),
-              onRemove: handleRemove,
-              onRoleChange: handleRoleChange,
-              removingPrincipal,
-              changingPrincipal,
-              canManage: isOwner
-            }
-          ) }),
-          actionError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              "data-ocid": "admin.team.error_state",
-              role: "alert",
-              className: "mt-4 rounded-sm border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive",
-              children: actionError
-            }
-          ) : null
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("aside", { className: "min-w-0", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-sm border border-border bg-card p-6", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-display text-lg font-semibold tracking-tight", children: "Add an admin" }),
-          isOwnerLoading ? /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-3 flex items-center gap-2 text-sm text-muted-foreground", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              LoaderCircle,
-              {
-                "aria-hidden": "true",
-                className: "h-4 w-4 animate-spin"
-              }
-            ),
-            "Checking permissions…"
-          ] }) : isOwner ? /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { className: "mt-5", onSubmit: handleAdd, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "admin-principal", className: "eyebrow", children: "Principal" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Input,
-              {
-                id: "admin-principal",
-                "data-ocid": "admin.team.principal_input",
-                value: principalInput,
-                onChange: (event) => setPrincipalInput(event.target.value),
-                placeholder: "aaaaa-aa…",
-                autoComplete: "off",
-                spellCheck: false,
-                className: "mt-2 rounded-sm font-mono text-xs",
-                "aria-invalid": formError ? true : void 0,
-                "aria-describedby": formError ? "admin-principal-error" : void 0
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground", children: "The new admin signs in with their own Internet Identity." }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Label, { htmlFor: "admin-role", className: "eyebrow mt-5 block", children: "Role" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Select,
-              {
-                value: newRole,
-                onValueChange: (value) => setNewRole(value),
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    SelectTrigger,
-                    {
-                      id: "admin-role",
-                      "data-ocid": "admin.team.role_select",
-                      className: "mt-2 h-9 w-full rounded-sm font-mono text-xs",
-                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectValue, {})
-                    }
-                  ),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs(SelectContent, { children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: AdminRole.editor, children: "Editor — manage content and submissions" }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(SelectItem, { value: AdminRole.viewer, children: "Viewer — read-only access" })
-                  ] })
-                ]
-              }
-            ),
-            formError ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "p",
-              {
-                id: "admin-principal-error",
-                "data-ocid": "admin.team.form_error",
-                role: "alert",
-                className: "mt-3 text-sm text-destructive",
-                children: formError
-              }
-            ) : null,
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              PrimaryButton,
-              {
-                type: "submit",
-                className: "mt-5 w-full",
-                "data-ocid": "admin.team.add_button",
-                disabled: addAdmin.isPending,
-                children: [
-                  addAdmin.isPending ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                    LoaderCircle,
-                    {
-                      "aria-hidden": "true",
-                      className: "mr-2 h-4 w-4 animate-spin"
-                    }
-                  ) : /* @__PURE__ */ jsxRuntimeExports.jsx(UserPlus, { "aria-hidden": "true", className: "mr-2 h-4 w-4" }),
-                  "Add admin"
-                ]
-              }
-            )
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "p",
-            {
-              "data-ocid": "admin.team.owner_only_state",
-              className: "mt-3 text-sm text-muted-foreground",
-              children: "Only the owner can add, re-role, or remove admins. You can review the roster here."
-            }
-          )
-        ] }) })
-      ] })
-    ] })
-  ] });
-}
+const Home = reactExports.lazy(() => __vitePreload(() => import("./Home-KCxhQM2j.js"), true ? __vite__mapDeps([0,1,2,3,4,5,6,7,8,9,10]) : void 0));
+const Products = reactExports.lazy(() => __vitePreload(() => import("./Products-BosFE1oB.js"), true ? __vite__mapDeps([11,12,10,8,9,6,2,13]) : void 0));
+const About = reactExports.lazy(() => __vitePreload(() => import("./About-B91MdynM.js"), true ? __vite__mapDeps([14,12,10,1,7]) : void 0));
+const Contact = reactExports.lazy(() => __vitePreload(() => import("./Contact-BWXBHapd.js"), true ? __vite__mapDeps([15,16,17,12,10,7]) : void 0));
+const Waitlist = reactExports.lazy(() => __vitePreload(() => import("./Waitlist-BdcDZhSv.js"), true ? __vite__mapDeps([18,16,17,12,10,7]) : void 0));
+const ThankYou = reactExports.lazy(() => __vitePreload(() => import("./ThankYou-Daz_owFK.js"), true ? __vite__mapDeps([19,10,2]) : void 0));
+const Privacy = reactExports.lazy(() => __vitePreload(() => import("./Privacy-LgqKYeK7.js"), true ? __vite__mapDeps([20,12,10,7]) : void 0));
+const Terms = reactExports.lazy(() => __vitePreload(() => import("./Terms-DBx6IygE.js"), true ? __vite__mapDeps([21,12,10,7]) : void 0));
+const NotFound = reactExports.lazy(() => __vitePreload(() => import("./NotFound-BT3xv7uj.js"), true ? __vite__mapDeps([22,12,10]) : void 0));
+const AdminDashboard = reactExports.lazy(() => __vitePreload(() => import("./AdminDashboard-XfC3KKaf.js"), true ? __vite__mapDeps([23,24,10,6,25,26,27,9,2]) : void 0));
+const AdminFaqs = reactExports.lazy(() => __vitePreload(() => import("./AdminFaqs-Dwg3-mjo.js"), true ? __vite__mapDeps([28,24,16,10,6,25,9,29,30]) : void 0));
+const AdminProducts = reactExports.lazy(() => __vitePreload(() => import("./AdminProducts-B9YDAugK.js"), true ? __vite__mapDeps([31,24,16,10,6,26,9,29,30]) : void 0));
+const AdminSiteCopy = reactExports.lazy(() => __vitePreload(() => import("./AdminSiteCopy-BzT8hia-.js"), true ? __vite__mapDeps([32,24,16,10,6]) : void 0));
+const AdminSubmissions = reactExports.lazy(() => __vitePreload(() => import("./AdminSubmissions-BL7e9-JU.js"), true ? __vite__mapDeps([33,9,13,34,30,6,10,3,4,27]) : void 0));
+const AdminTeam = reactExports.lazy(() => __vitePreload(() => import("./AdminTeam-Dwzc-El8.js"), true ? __vite__mapDeps([35,3,34,5,6,9,30,10]) : void 0));
 function App() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Routes, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Route, { element: /* @__PURE__ */ jsxRuntimeExports.jsx(SiteLayout, {}), children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(reactExports.Suspense, { fallback: /* @__PURE__ */ jsxRuntimeExports.jsx(RouteFallback, {}), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Routes, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Route, { element: /* @__PURE__ */ jsxRuntimeExports.jsx(SiteLayout, {}), children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Home, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/products", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Products, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/about", element: /* @__PURE__ */ jsxRuntimeExports.jsx(About, {}) }),
@@ -51306,7 +41294,7 @@ function App() {
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "*", element: /* @__PURE__ */ jsxRuntimeExports.jsx(NotFound, {}) })
-  ] }) }) });
+  ] }) }) }) });
 }
 BigInt.prototype.toJSON = function() {
   return this.toString();
@@ -51315,3 +41303,51 @@ const queryClient = new QueryClient();
 ReactDOM.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ jsxRuntimeExports.jsx(InternetIdentityProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) }) })
 );
+export {
+  AdminRole as A,
+  Button as B,
+  Container as C,
+  useIsOwner as D,
+  ExternalBlob$1 as E,
+  useIsOwnerClaimed as F,
+  useAddAdmin as G,
+  useSetAdminRole as H,
+  Input as I,
+  useRemoveAdmin as J,
+  Principal$1 as K,
+  Link as L,
+  MicroBadge as M,
+  NavLink as N,
+  composeRefs as O,
+  PrimaryButton as P,
+  React$3 as Q,
+  React$2 as R,
+  SecondaryButton as S,
+  X,
+  useActor as a,
+  useQuery as b,
+  cn as c,
+  createActor as d,
+  useSiteContent as e,
+  createLucideIcon as f,
+  StatusDot as g,
+  SurfaceCard as h,
+  useNavigate as i,
+  jsxRuntimeExports as j,
+  useMutation as k,
+  Label as l,
+  useLocation as m,
+  useAdminTeam as n,
+  SubmissionStatus as o,
+  PublishState as p,
+  useQueryClient as q,
+  reactExports as r,
+  LoaderCircle as s,
+  siteContentQueryKey as t,
+  useComposedRefs as u,
+  useAdmin as v,
+  SubmissionKind as w,
+  reactDomExports as x,
+  ReactDOM$2 as y,
+  ShieldCheck as z
+};

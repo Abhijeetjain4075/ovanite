@@ -17,9 +17,11 @@ import BlobValue "mo:caffeineai-oql/BlobValue";
 import ContentTypes "types/content";
 import SubmissionTypes "types/submissions";
 import AdminTypes "types/admin";
+import AnalyticsTypes "types/analytics";
 import ContentApi "mixins/content-api";
 import SubmissionsApi "mixins/submissions-api";
 import AdminApi "mixins/admin-api";
+import AnalyticsApi "mixins/analytics-api";
 import ApiDocMixin "mixins/api-doc";
 
 actor {
@@ -83,6 +85,7 @@ actor {
   let nextProductId : { var value : Nat };
   let nextFaqId : { var value : Nat };
   let nextSubmissionId : { var value : Nat };
+  let pageViews : Map.Map<Text, AnalyticsTypes.RouteViews>;
 
   include MixinObjectStorage();
   include MixinAuthorization(accessControlState, null);
@@ -91,6 +94,7 @@ actor {
   // redeclare it.
   include ContentApi(accessControlState, admins, products, faqs, siteContent, nextProductId, nextFaqId);
   include SubmissionsApi(accessControlState, admins, submissions, nextSubmissionId);
+  include AnalyticsApi(pageViews);
   include ApiDocMixin();
 
   include Expose({

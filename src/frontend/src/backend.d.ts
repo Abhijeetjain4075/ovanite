@@ -114,6 +114,13 @@ export interface ProductPatch {
     description?: string;
     imageKey?: ExternalBlob;
 }
+export type RecordViewResult = {
+    __kind__: "recorded";
+    recorded: RouteViews;
+} | {
+    __kind__: "ignored";
+    ignored: null;
+};
 export interface Result {
     hasMore: boolean;
     rows: Array<Array<Cell>>;
@@ -125,6 +132,13 @@ export type Result__1 = {
     __kind__: "err";
     err: Error_;
 };
+export type RoutePath = string;
+export interface RouteViews {
+    lastSeenAt: Timestamp;
+    views: bigint;
+    firstSeenAt: Timestamp;
+    path: RoutePath;
+}
 export interface SiteContent {
     contactBody?: string;
     privacyBody?: string;
@@ -284,6 +298,11 @@ export interface backendInterface {
      */
     getFaq(id: bigint): Promise<Faq | null>;
     /**
+     * / Returns the aggregate view total for a single route, or `null` when the
+     * / route has never been recorded.
+     */
+    getPageViews(path: string): Promise<RouteViews | null>;
+    /**
      * / A single product by id. Admin only.
      */
     getProduct(id: bigint): Promise<Product | null>;
@@ -318,6 +337,10 @@ export interface backendInterface {
      */
     listAllProducts(): Promise<Array<Product>>;
     /**
+     * / Returns every recorded route with its aggregate total, ordered by path.
+     */
+    listPageViews(): Promise<Array<RouteViews>>;
+    /**
      * / Up to `limit` published FAQs in admin-defined order.
      */
     listPublishedFaqs(limit: bigint): Promise<Array<Faq>>;
@@ -329,6 +352,17 @@ export interface backendInterface {
      * / Submissions matching `filter`, newest first. Admin only.
      */
     listSubmissions(filter: SubmissionFilter): Promise<Array<Submission>>;
+    /**
+     * / Records one view of a public route. Callable by anyone, including
+     * / anonymous callers, because the frontend only calls it after the visitor
+     * / has consented to analytics.
+     * /
+     * / The path is normalized and validated by the backend; an invalid path or an
+     * / admin route is ignored and stores nothing. The counter is additive and
+     * / stores only an aggregate total — no IP, user agent, principal, or session
+     * / identifier is ever read or stored.
+     */
+    recordPageView(path: string): Promise<RecordViewResult>;
     /**
      * / Revokes admin access from `principal`. Owner only; the owner cannot be
      * / removed.

@@ -139,7 +139,12 @@ describe("Home page", () => {
     await user.click(trigger);
 
     expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(await screen.findByText("Software products.")).toBeInTheDocument();
+    // The answer is intentionally present twice once expanded: once in the
+    // accordion panel and once in the always-mounted crawlable copy. Scope the
+    // assertion to the accordion so it still proves the panel revealed it.
+    expect(
+      within(accordion).getByText("Software products."),
+    ).toBeInTheDocument();
   });
 
   it("requests at most five published FAQs and renders every one returned", async () => {

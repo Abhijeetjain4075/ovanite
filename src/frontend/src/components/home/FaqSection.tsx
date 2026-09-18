@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 import { Section } from "@/components/layout/Section";
 import {
   Accordion,
@@ -7,13 +9,58 @@ import {
 } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFaqs } from "@/hooks/useFaqs";
+import { buildFaqJsonLd } from "@/lib/faqJsonLd";
 
 const SKELETON_IDS = Array.from({ length: 4 }, (_, i) => `faq-skeleton-${i}`);
 
-/** Up to five published FAQs in an accessible, keyboard-operable accordion. */
+const JSON_LD_ELEMENT_ID = "faq-jsonld";
+
+/**
+ * Inject the FAQPage JSON-LD into the document head imperatively.
+ *
+ * React 19 does not apply `dangerouslySetInnerHTML` to a rendered `<script>`
+ * element (it builds the node via `innerHTML` and drops the content), so a
+ * declarative script never carries the JSON. Creating the element directly and
+ * setting `textContent` guarantees the structured data reaches the DOM. The
+ * element is removed on cleanup so it never outlives the FAQ content.
+ *
+ * The serialized string is the effect dependency: it is a primitive that stays
+ * stable while the FAQ data is unchanged, so the script is not re-created on
+ * every render.
+ */
+function useFaqJsonLd(jsonLd: ReturnType<typeof buildFaqJsonLd>) {
+  const serialized = jsonLd ? JSON.stringify(jsonLd) : null;
+
+  useEffect(() => {
+    if (!serialized) return;
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = JSON_LD_ELEMENT_ID;
+    script.setAttribute("data-ocid", "home.faq_jsonld");
+    script.textContent = serialized;
+    document.head.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+  }, [serialized]);
+}
+
+/**
+ * Up to five published FAQs in an accessible, keyboard-operable accordion.
+ *
+ * The accordion answers are unmounted while collapsed, so a visually-hidden
+ * copy of every question and answer is rendered alongside it. That copy stays
+ * in the DOM at all times, keeping the FAQ content crawlable without changing
+ * the accordion's interaction, ARIA semantics, or keyboard behavior.
+ */
 export function FaqSection() {
   const { data: faqs, isLoading, isError, refetch } = useFaqs(5);
   const visible = (faqs ?? []).slice(0, 5);
+  const jsonLd = buildFaqJsonLd(visible);
+
+  useFaqJsonLd(jsonLd);
 
   return (
     <Section
@@ -68,27 +115,43 @@ export function FaqSection() {
               </p>
             </div>
           ) : (
-            <Accordion
-              type="single"
-              collapsible
-              data-ocid="home.faq_accordion"
-              className="border-t border-border"
-            >
-              {visible.map((faq, i) => (
-                <AccordionItem
-                  key={String(faq.id)}
-                  value={`faq-${faq.id}`}
-                  data-ocid={`home.faq.item.${i + 1}`}
-                >
-                  <AccordionTrigger className="py-5 font-display text-base font-semibold tracking-tight hover:no-underline md:text-lg">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <>
+              <Accordion
+                type="single"
+                collapsible
+                data-ocid="home.faq_accordion"
+                className="border-t border-border"
+              >
+                {visible.map((faq, i) => (
+                  <AccordionItem
+                    key={String(faq.id)}
+                    value={`faq-${faq.id}`}
+                    data-ocid={`home.faq.item.${i + 1}`}
+                  >
+                    <AccordionTrigger className="py-5 font-display text-base font-semibold tracking-tight hover:no-underline md:text-lg">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+
+              {/* Crawlable copy: always in the DOM, never visible or focusable. */}
+              <div className="sr-only" data-ocid="home.faq_crawlable_content">
+                {visible.map((faq, i) => (
+                  <div key={`crawlable-${String(faq.id)}`}>
+                    <h3 data-ocid={`home.faq.crawlable_question.${i + 1}`}>
+                      {faq.question}
+                    </h3>
+                    <p data-ocid={`home.faq.crawlable_answer.${i + 1}`}>
+                      {faq.answer}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

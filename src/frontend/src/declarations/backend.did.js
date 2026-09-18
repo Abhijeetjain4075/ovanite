@@ -110,6 +110,13 @@ export const Admin = IDL.Record({
   'addedAt' : Timestamp,
   'isOwner' : IDL.Bool,
 });
+export const RoutePath = IDL.Text;
+export const RouteViews = IDL.Record({
+  'lastSeenAt' : Timestamp,
+  'views' : IDL.Nat,
+  'firstSeenAt' : Timestamp,
+  'path' : RoutePath,
+});
 export const SiteContent = IDL.Record({
   'contactBody' : IDL.Opt(IDL.Text),
   'privacyBody' : IDL.Opt(IDL.Text),
@@ -154,6 +161,10 @@ export const Submission = IDL.Record({
 export const SubmissionFilter = IDL.Record({
   'status' : IDL.Opt(SubmissionStatus),
   'kind' : IDL.Opt(SubmissionKind),
+});
+export const RecordViewResult = IDL.Variant({
+  'recorded' : RouteViews,
+  'ignored' : IDL.Null,
 });
 export const ContactInput = IDL.Record({
   'name' : IDL.Text,
@@ -246,6 +257,7 @@ export const idlService = IDL.Service({
   'getCallerAdmin' : IDL.Func([], [IDL.Opt(Admin)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getFaq' : IDL.Func([IDL.Nat], [IDL.Opt(Faq)], ['query']),
+  'getPageViews' : IDL.Func([IDL.Text], [IDL.Opt(RouteViews)], ['query']),
   'getProduct' : IDL.Func([IDL.Nat], [IDL.Opt(Product)], ['query']),
   'getSiteContent' : IDL.Func([], [SiteContent], ['query']),
   'getSubmission' : IDL.Func([IDL.Nat], [IDL.Opt(Submission)], ['query']),
@@ -255,6 +267,7 @@ export const idlService = IDL.Service({
   'listAdmins' : IDL.Func([], [IDL.Vec(Admin)], ['query']),
   'listAllFaqs' : IDL.Func([], [IDL.Vec(Faq)], ['query']),
   'listAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+  'listPageViews' : IDL.Func([], [IDL.Vec(RouteViews)], ['query']),
   'listPublishedFaqs' : IDL.Func([IDL.Nat], [IDL.Vec(Faq)], ['query']),
   'listPublishedProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'listSubmissions' : IDL.Func(
@@ -262,6 +275,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(Submission)],
       ['query'],
     ),
+  'recordPageView' : IDL.Func([IDL.Text], [RecordViewResult], []),
   'removeAdmin' : IDL.Func([IDL.Principal], [IDL.Bool], []),
   'schema' : IDL.Func([], [IDL.Text], ['query']),
   'setAdminRole' : IDL.Func([IDL.Principal, AdminRole], [IDL.Opt(Admin)], []),
@@ -384,6 +398,13 @@ export const idlFactory = ({ IDL }) => {
     'addedAt' : Timestamp,
     'isOwner' : IDL.Bool,
   });
+  const RoutePath = IDL.Text;
+  const RouteViews = IDL.Record({
+    'lastSeenAt' : Timestamp,
+    'views' : IDL.Nat,
+    'firstSeenAt' : Timestamp,
+    'path' : RoutePath,
+  });
   const SiteContent = IDL.Record({
     'contactBody' : IDL.Opt(IDL.Text),
     'privacyBody' : IDL.Opt(IDL.Text),
@@ -428,6 +449,10 @@ export const idlFactory = ({ IDL }) => {
   const SubmissionFilter = IDL.Record({
     'status' : IDL.Opt(SubmissionStatus),
     'kind' : IDL.Opt(SubmissionKind),
+  });
+  const RecordViewResult = IDL.Variant({
+    'recorded' : RouteViews,
+    'ignored' : IDL.Null,
   });
   const ContactInput = IDL.Record({
     'name' : IDL.Text,
@@ -520,6 +545,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerAdmin' : IDL.Func([], [IDL.Opt(Admin)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getFaq' : IDL.Func([IDL.Nat], [IDL.Opt(Faq)], ['query']),
+    'getPageViews' : IDL.Func([IDL.Text], [IDL.Opt(RouteViews)], ['query']),
     'getProduct' : IDL.Func([IDL.Nat], [IDL.Opt(Product)], ['query']),
     'getSiteContent' : IDL.Func([], [SiteContent], ['query']),
     'getSubmission' : IDL.Func([IDL.Nat], [IDL.Opt(Submission)], ['query']),
@@ -529,6 +555,7 @@ export const idlFactory = ({ IDL }) => {
     'listAdmins' : IDL.Func([], [IDL.Vec(Admin)], ['query']),
     'listAllFaqs' : IDL.Func([], [IDL.Vec(Faq)], ['query']),
     'listAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
+    'listPageViews' : IDL.Func([], [IDL.Vec(RouteViews)], ['query']),
     'listPublishedFaqs' : IDL.Func([IDL.Nat], [IDL.Vec(Faq)], ['query']),
     'listPublishedProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'listSubmissions' : IDL.Func(
@@ -536,6 +563,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Submission)],
         ['query'],
       ),
+    'recordPageView' : IDL.Func([IDL.Text], [RecordViewResult], []),
     'removeAdmin' : IDL.Func([IDL.Principal], [IDL.Bool], []),
     'schema' : IDL.Func([], [IDL.Text], ['query']),
     'setAdminRole' : IDL.Func([IDL.Principal, AdminRole], [IDL.Opt(Admin)], []),
