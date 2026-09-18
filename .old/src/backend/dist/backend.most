@@ -1,0 +1,306 @@
+// Version: 4.0.0
+type AccessControlState__201339279 =
+  {
+    var adminAssigned : Bool;
+    userRoles : Map__230067015<Principal, UserRole__91647283>
+  };
+type AdminRole__1048149468 = {#editor; #owner; #viewer};
+type AdminRole__188511608 = {#editor; #owner; #viewer};
+type AdminRole__282361506 = {#editor; #owner; #viewer};
+type Admin__1066016972 =
+  {
+    addedAt : Nat;
+    email : ?Text;
+    isOwner : Bool;
+    principal : Principal;
+    role : AdminRole__1048149468
+  };
+type Admin__164786473 =
+  {
+    addedAt : Nat;
+    email : ?Text;
+    isOwner : Bool;
+    principal : Principal;
+    role : AdminRole__282361506
+  };
+type Admin__502605672 =
+  {
+    addedAt : Timestamp__481935476;
+    email : ?Text;
+    isOwner : Bool;
+    principal : Principal;
+    role : AdminRole__188511608
+  };
+type Data__44217153<K, V> = {var count : Nat__227979830; kvs : [var ?(K, V)]};
+type ExternalBlob__671167343 = Blob;
+type Faq__269823021 =
+  {
+    answer : Text;
+    createdAt : Nat;
+    id : Nat;
+    question : Text;
+    sortOrder : Nat;
+    state : PublishState__97546103;
+    updatedAt : Nat
+  };
+type Faq__41576200 =
+  {
+    answer : Text;
+    createdAt : Timestamp__622751799;
+    id : Id__614397628;
+    question : Text;
+    sortOrder : Nat;
+    state : PublishState__335868144;
+    updatedAt : Timestamp__622751799
+  };
+type Faq__919548330 =
+  {
+    answer : Text;
+    createdAt : Nat;
+    id : Nat;
+    question : Text;
+    sortOrder : Nat;
+    state : PublishState__923480042;
+    updatedAt : Nat
+  };
+type Id__389469852 = Nat;
+type Id__614397628 = Id__389469852;
+type Id__936297509 = Id__389469852;
+type Internal__283199666<K, V> =
+  {children : [var ?Node__204828119<K, V>]; data : Data__44217153<K, V>};
+type Leaf__598469445<K, V> = {data : Data__44217153<K, V>};
+type Map__230067015<K, V> = Map__405889023<K, V>;
+type Map__405889023<K, V> = Map__603270868<K, V>;
+type Map__603270868<K, V> =
+  {var root : Node__204828119<K, V>; var size : Nat__227979830};
+type Nat__227979830 = Nat__920180692;
+type Nat__920180692 = Nat;
+type NewActor__1050493409 =
+  {
+    accessControlState : AccessControlState__201339279;
+    admins : Map__230067015<Principal, Admin__164786473>;
+    faqs : Map__230067015<Nat, Faq__269823021>;
+    nextFaqId : {var value : Nat};
+    nextProductId : {var value : Nat};
+    nextSubmissionId : {var value : Nat};
+    products : Map__230067015<Nat, Product__903118678>;
+    siteContent : {var value : SiteContent__661860637};
+    submissions : Map__230067015<Nat, Submission__989587704>
+  };
+type NewActor__203844680 =
+  {
+    accessControlState : AccessControlState__201339279;
+    admins : Map__230067015<Principal, Admin__1066016972>;
+    faqs : Map__230067015<Nat, Faq__919548330>;
+    nextFaqId : {var value : Nat};
+    nextProductId : {var value : Nat};
+    nextSubmissionId : {var value : Nat};
+    products : Map__230067015<Nat, Product__265470414>;
+    siteContent : {var value : SiteContent__239459790};
+    submissions : Map__230067015<Nat, Submission__164109516>
+  };
+type Node__204828119<K, V> =
+  {#internal : Internal__283199666<K, V>; #leaf : Leaf__598469445<K, V>};
+type OldActor__1057821239 = {};
+type OldActor__312849499 =
+  {
+    accessControlState : AccessControlState__201339279;
+    admins : Map__230067015<Principal, Admin__164786473>;
+    faqs : Map__230067015<Nat, Faq__269823021>;
+    nextFaqId : {var value : Nat};
+    nextProductId : {var value : Nat};
+    nextSubmissionId : {var value : Nat};
+    products : Map__230067015<Nat, Product__903118678>;
+    siteContent : {var value : SiteContent__661860637};
+    submissions : Map__230067015<Nat, Submission__989587704>
+  };
+type Product__265470414 =
+  {
+    createdAt : Nat;
+    description : Text;
+    id : Nat;
+    imageKey : ?Blob;
+    link : ?Text;
+    name : Text;
+    sortOrder : Nat;
+    state : PublishState__923480042;
+    updatedAt : Nat
+  };
+type Product__532689755 =
+  {
+    createdAt : Timestamp__622751799;
+    description : Text;
+    id : Id__614397628;
+    imageKey : ?ExternalBlob__671167343;
+    link : ?Text;
+    name : Text;
+    sortOrder : Nat;
+    state : PublishState__335868144;
+    updatedAt : Timestamp__622751799
+  };
+type Product__903118678 =
+  {
+    createdAt : Nat;
+    description : Text;
+    id : Nat;
+    imageKey : ?Blob;
+    link : ?Text;
+    name : Text;
+    sortOrder : Nat;
+    state : PublishState__97546103;
+    updatedAt : Nat
+  };
+type PublishState__335868144 = PublishState__376178435;
+type PublishState__376178435 = {#draft; #published};
+type PublishState__923480042 = {#draft; #published};
+type PublishState__97546103 = {#draft; #published};
+type SiteContent__239459790 =
+  {
+    aboutBody : ?Text;
+    aboutTitle : ?Text;
+    approachBody : ?Text;
+    approachTitle : ?Text;
+    contactBody : ?Text;
+    contactTitle : ?Text;
+    footerText : ?Text;
+    heroDescription : ?Text;
+    heroHeadline : ?Text;
+    philosophyBody : ?Text;
+    philosophyTitle : ?Text;
+    primaryCtaHref : ?Text;
+    primaryCtaLabel : ?Text;
+    privacyBody : ?Text;
+    secondaryCtaHref : ?Text;
+    secondaryCtaLabel : ?Text;
+    termsBody : ?Text;
+    updatedAt : Nat;
+    waitlistBody : ?Text;
+    waitlistTitle : ?Text
+  };
+type SiteContent__661860637 =
+  {
+    aboutBody : ?Text;
+    aboutTitle : ?Text;
+    approachBody : ?Text;
+    approachTitle : ?Text;
+    contactBody : ?Text;
+    contactTitle : ?Text;
+    footerText : ?Text;
+    heroDescription : ?Text;
+    heroHeadline : ?Text;
+    philosophyBody : ?Text;
+    philosophyTitle : ?Text;
+    primaryCtaHref : ?Text;
+    primaryCtaLabel : ?Text;
+    privacyBody : ?Text;
+    secondaryCtaHref : ?Text;
+    secondaryCtaLabel : ?Text;
+    termsBody : ?Text;
+    updatedAt : Nat;
+    waitlistBody : ?Text;
+    waitlistTitle : ?Text
+  };
+type SiteContent__881732346 =
+  {
+    aboutBody : ?Text;
+    aboutTitle : ?Text;
+    approachBody : ?Text;
+    approachTitle : ?Text;
+    contactBody : ?Text;
+    contactTitle : ?Text;
+    footerText : ?Text;
+    heroDescription : ?Text;
+    heroHeadline : ?Text;
+    philosophyBody : ?Text;
+    philosophyTitle : ?Text;
+    primaryCtaHref : ?Text;
+    primaryCtaLabel : ?Text;
+    privacyBody : ?Text;
+    secondaryCtaHref : ?Text;
+    secondaryCtaLabel : ?Text;
+    termsBody : ?Text;
+    updatedAt : Timestamp__622751799;
+    waitlistBody : ?Text;
+    waitlistTitle : ?Text
+  };
+type SubmissionKind__651138402 = {#contact; #waitlist};
+type SubmissionKind__765154560 = {#contact; #waitlist};
+type SubmissionKind__81070844 = SubmissionKind__651138402;
+type SubmissionKind__84594115 = {#contact; #waitlist};
+type SubmissionStatus__373353961 = {#handled; #new; #read};
+type SubmissionStatus__403064977 = SubmissionStatus__373353961;
+type SubmissionStatus__857238658 = {#handled; #new; #read};
+type SubmissionStatus__929060904 = {#handled; #new; #read};
+type Submission__164109516 =
+  {
+    createdAt : Nat;
+    email : Text;
+    id : Nat;
+    kind : SubmissionKind__84594115;
+    message : ?Text;
+    name : Text;
+    status : SubmissionStatus__857238658;
+    updatedAt : Nat
+  };
+type Submission__406789549 =
+  {
+    createdAt : Timestamp__460331043;
+    email : Text;
+    id : Id__936297509;
+    kind : SubmissionKind__81070844;
+    message : ?Text;
+    name : Text;
+    status : SubmissionStatus__403064977;
+    updatedAt : Timestamp__460331043
+  };
+type Submission__989587704 =
+  {
+    createdAt : Nat;
+    email : Text;
+    id : Nat;
+    kind : SubmissionKind__765154560;
+    message : ?Text;
+    name : Text;
+    status : SubmissionStatus__929060904;
+    updatedAt : Nat
+  };
+type Timestamp__301639476 = Nat;
+type Timestamp__460331043 = Timestamp__301639476;
+type Timestamp__481935476 = Timestamp__301639476;
+type Timestamp__622751799 = Timestamp__301639476;
+type UserRole__91647283 = {#admin; #guest; #user};
+{
+  "20260918_120000" : (old : OldActor__1057821239) -> NewActor__203844680;
+  "20260918_130000" : (old : OldActor__312849499) -> NewActor__1050493409
+}
+actor  {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__230067015<Principal, UserRole__91647283>
+    };
+  stable admins :
+    {
+      var root : Node__204828119<Principal, Admin__502605672>;
+      var size : Nat__227979830
+    };
+  stable faqs :
+    {
+      var root : Node__204828119<Nat, Faq__41576200>;
+      var size : Nat__227979830
+    };
+  stable nextFaqId : {var value : Nat};
+  stable nextProductId : {var value : Nat};
+  stable nextSubmissionId : {var value : Nat};
+  stable products :
+    {
+      var root : Node__204828119<Nat, Product__532689755>;
+      var size : Nat__227979830
+    };
+  stable siteContent : {var value : SiteContent__881732346};
+  stable submissions :
+    {
+      var root : Node__204828119<Nat, Submission__406789549>;
+      var size : Nat__227979830
+    }
+};

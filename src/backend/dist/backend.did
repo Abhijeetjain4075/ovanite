@@ -1,0 +1,316 @@
+type _ImmutableObjectStorageRefillResult = 
+ record {
+   success: opt bool;
+   topped_up_amount: opt nat;
+ };
+type _ImmutableObjectStorageRefillInformation = record {
+                                                  proposed_top_up_amount:
+                                                   opt nat;};
+type _ImmutableObjectStorageCreateCertificateResult = 
+ record {
+   blob_hash: text;
+   method: text;
+ };
+type WaitlistInput = 
+ record {
+   email: text;
+   name: text;
+   note: opt text;
+ };
+type Value = 
+ variant {
+   "bool": bool;
+   float: float64;
+   "int": int;
+   "nat": nat;
+   "null";
+   "text": text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type Timestamp = nat;
+type SubmitResult = 
+ variant {
+   created: Submission;
+   duplicate: Submission;
+ };
+type SubmissionStatus = 
+ variant {
+   handled;
+   new;
+   read;
+ };
+type SubmissionKind = 
+ variant {
+   contact;
+   waitlist;
+ };
+type SubmissionFilter = 
+ record {
+   kind: opt SubmissionKind;
+   status: opt SubmissionStatus;
+ };
+type Submission = 
+ record {
+   createdAt: Timestamp;
+   email: text;
+   id: Id;
+   kind: SubmissionKind;
+   message: opt text;
+   name: text;
+   status: SubmissionStatus;
+   updatedAt: Timestamp;
+ };
+type SiteContentPatch = 
+ record {
+   aboutBody: opt text;
+   aboutTitle: opt text;
+   approachBody: opt text;
+   approachTitle: opt text;
+   contactBody: opt text;
+   contactTitle: opt text;
+   footerText: opt text;
+   heroDescription: opt text;
+   heroHeadline: opt text;
+   philosophyBody: opt text;
+   philosophyTitle: opt text;
+   primaryCtaHref: opt text;
+   primaryCtaLabel: opt text;
+   privacyBody: opt text;
+   secondaryCtaHref: opt text;
+   secondaryCtaLabel: opt text;
+   termsBody: opt text;
+   waitlistBody: opt text;
+   waitlistTitle: opt text;
+ };
+type SiteContent = 
+ record {
+   aboutBody: opt text;
+   aboutTitle: opt text;
+   approachBody: opt text;
+   approachTitle: opt text;
+   contactBody: opt text;
+   contactTitle: opt text;
+   footerText: opt text;
+   heroDescription: opt text;
+   heroHeadline: opt text;
+   philosophyBody: opt text;
+   philosophyTitle: opt text;
+   primaryCtaHref: opt text;
+   primaryCtaLabel: opt text;
+   privacyBody: opt text;
+   secondaryCtaHref: opt text;
+   secondaryCtaLabel: opt text;
+   termsBody: opt text;
+   updatedAt: Timestamp;
+   waitlistBody: opt text;
+   waitlistTitle: opt text;
+ };
+type Result__1 = 
+ variant {
+   err: Error;
+   ok;
+ };
+type Result = 
+ record {
+   hasMore: bool;
+   rows: vec vec Cell;
+ };
+type PublishState = 
+ variant {
+   draft;
+   published;
+ };
+type ProductPatch = 
+ record {
+   description: opt text;
+   imageKey: opt ExternalBlob;
+   link: opt text;
+   name: opt text;
+   sortOrder: opt nat;
+ };
+type ProductInput = 
+ record {
+   description: text;
+   imageKey: opt ExternalBlob;
+   link: opt text;
+   name: text;
+   sortOrder: nat;
+ };
+type Product = 
+ record {
+   createdAt: Timestamp;
+   description: text;
+   id: Id;
+   imageKey: opt ExternalBlob;
+   link: opt text;
+   name: text;
+   sortOrder: nat;
+   state: PublishState;
+   updatedAt: Timestamp;
+ };
+type Id = nat;
+type FaqPatch = 
+ record {
+   answer: opt text;
+   question: opt text;
+   sortOrder: opt nat;
+ };
+type FaqInput = 
+ record {
+   answer: text;
+   question: text;
+   sortOrder: nat;
+ };
+type Faq = 
+ record {
+   answer: text;
+   createdAt: Timestamp;
+   id: Id;
+   question: text;
+   sortOrder: nat;
+   state: PublishState;
+   updatedAt: Timestamp;
+ };
+type ExternalBlob = blob;
+type Error = 
+ variant {
+   AmbiguousAttribute: record {
+                         field: text;
+                         sources: vec text;
+                       };
+   FrontendOriginMismatch: record {
+                             expected: vec text;
+                             got: text;
+                           };
+   FrontendOriginsNotConfigured;
+   MalformedCandid;
+   MissingField: text;
+   MixedSsoSources: record {
+                      otherKeys: vec text;
+                      ssoKeys: vec text;
+                    };
+   NoAttributes;
+   Stale: record {ageNs: nat;};
+   UnknownNonce;
+   UntrustedSsoSource: record {domain: text;};
+ };
+type ContactInput = 
+ record {
+   email: text;
+   message: text;
+   name: text;
+ };
+type Cell = 
+ record {
+   name: text;
+   value: Value;
+ };
+type AdminRole = 
+ variant {
+   editor;
+   owner;
+   viewer;
+ };
+type Admin = 
+ record {
+   addedAt: Timestamp;
+   email: opt text;
+   isOwner: bool;
+   "principal": principal;
+   role: AdminRole;
+ };
+service : {
+  _immutableObjectStorageBlobsAreLive: (hashes: vec blob) -> (vec bool) query;
+  _immutableObjectStorageBlobsToDelete: () -> (vec blob) query;
+  _immutableObjectStorageConfirmBlobDeletion: (blobs: vec blob) -> ();
+  _immutableObjectStorageCreateCertificate: (blobHash: text) ->
+   (_ImmutableObjectStorageCreateCertificateResult);
+  _immutableObjectStorageRefillCashier: (refillInformation:
+   opt _ImmutableObjectStorageRefillInformation) ->
+   (_ImmutableObjectStorageRefillResult);
+  _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
+  _initialize_access_control: () -> ();
+  _internet_identity_sign_in_finish: () -> (Result__1);
+  _internet_identity_sign_in_start: () -> (blob);
+  /// Grants admin access to `principal` with `role`. Owner only.
+  addAdmin: ("principal": principal, role: AdminRole) -> (bool);
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  /// One-time ownership bootstrap. Succeeds only when no owner exists yet and
+  /// `email` matches the configured owner email. After the owner exists this
+  /// always returns `false`, so no caller can self-grant admin access.
+  claimOwner: (email: text) -> (bool);
+  /// Creates an FAQ. Admin only.
+  createFaq: (input: FaqInput) -> (Faq);
+  /// Creates a product. Admin only.
+  createProduct: (input: ProductInput) -> (Product);
+  /// Deletes an FAQ. Admin only.
+  deleteFaq: (id: nat) -> (bool);
+  /// Deletes a product. Admin only.
+  deleteProduct: (id: nat) -> (bool);
+  /// Deletes a submission. Admin only.
+  deleteSubmission: (id: nat) -> (bool);
+  execute: (qJson: text) -> (Result) query;
+  /// Returns the backend's public API documentation as Markdown.
+  getApiDoc: () -> (text) query;
+  /// Returns the caller's admin record, or `null` when not an admin.
+  getCallerAdmin: () -> (opt Admin) query;
+  getCallerUserRole: () -> (UserRole) query;
+  /// A single FAQ by id. Admin only.
+  getFaq: (id: nat) -> (opt Faq) query;
+  /// A single product by id. Admin only.
+  getProduct: (id: nat) -> (opt Product) query;
+  /// Editable site copy for the public website.
+  getSiteContent: () -> (SiteContent) query;
+  /// A single submission by id. Admin only.
+  getSubmission: (id: nat) -> (opt Submission) query;
+  isCallerAdmin: () -> (bool) query;
+  /// Returns whether the caller is the owner.
+  isCallerOwner: () -> (bool) query;
+  /// Returns whether the owner has been claimed yet. While this is `false`,
+  /// `claimOwner` is open to the configured owner email.
+  isOwnerClaimed: () -> (bool) query;
+  /// Every admin. Admin only.
+  listAdmins: () -> (vec Admin) query;
+  /// Every FAQ, published or not. Admin only.
+  listAllFaqs: () -> (vec Faq) query;
+  /// Every product, published or not. Admin only.
+  listAllProducts: () -> (vec Product) query;
+  /// Up to `limit` published FAQs in admin-defined order.
+  listPublishedFaqs: (limit: nat) -> (vec Faq) query;
+  /// Published products in admin-defined order.
+  listPublishedProducts: () -> (vec Product) query;
+  /// Submissions matching `filter`, newest first. Admin only.
+  listSubmissions: (filter: SubmissionFilter) -> (vec Submission) query;
+  /// Revokes admin access from `principal`. Owner only; the owner cannot be
+  /// removed.
+  removeAdmin: ("principal": principal) -> (bool);
+  schema: () -> (text) query;
+  /// Changes an admin's role. Owner only; the owner's own role cannot change.
+  setAdminRole: ("principal": principal, role: AdminRole) -> (opt Admin);
+  /// Publishes or unpublishes an FAQ. Admin only.
+  setFaqState: (id: nat, state: PublishState) -> (opt Faq);
+  /// Publishes or unpublishes a product. Admin only.
+  setProductState: (id: nat, state: PublishState) -> (opt Product);
+  /// Sets a submission's review status. Admin only.
+  setSubmissionStatus: (id: nat, status: SubmissionStatus) ->
+   (opt Submission);
+  /// Stores a Contact submission. Callable by anyone, including anonymous.
+  /// Returns `#created` with the new record, or `#duplicate` with the existing
+  /// record when the same normalized email and message were already received.
+  submitContact: (input: ContactInput) -> (SubmitResult);
+  /// Stores a Waitlist submission. Callable by anyone, including anonymous.
+  /// Returns `#created` with the new record, or `#duplicate` with the existing
+  /// record when the same normalized email and note were already received.
+  submitWaitlist: (input: WaitlistInput) -> (SubmitResult);
+  /// Applies a partial update to an FAQ. Admin only.
+  updateFaq: (id: nat, patch: FaqPatch) -> (opt Faq);
+  /// Applies a partial update to a product. Admin only.
+  updateProduct: (id: nat, patch: ProductPatch) -> (opt Product);
+  /// Merges a partial patch into the editable site copy. Admin only.
+  updateSiteContent: (patch: SiteContentPatch) -> (SiteContent);
+}

@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/assets/fonts/SpaceGrotesk.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 300 700;
+}
+
+@font-face {
+  font-family: "General Sans";
+  src: url("/assets/fonts/GeneralSans.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 200 700;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono.woff2") format("woff2");
+  font-display: swap;
+  font-weight: 300 700;
+}
+
+@layer base {
+  :root {
+    --font-display: "Space Grotesk";
+    --font-body: "General Sans";
+    --font-mono: "Geist Mono";
+    --radius: 0.25rem;
+
+    /* Light-first: white surfaces, deep-navy ink */
+    --background: 0.995 0.002 250;
+    --foreground: 0.19 0.028 258;
+    --card: 1 0 0;
+    --card-foreground: 0.19 0.028 258;
+    --popover: 1 0 0;
+    --popover-foreground: 0.19 0.028 258;
+
+    /* Restrained deep cobalt accent */
+    --primary: 0.45 0.17 258;
+    --primary-foreground: 0.99 0.004 258;
+
+    --secondary: 0.955 0.006 255;
+    --secondary-foreground: 0.26 0.026 258;
+    --muted: 0.965 0.005 255;
+    --muted-foreground: 0.5 0.018 258;
+
+    /* Subtle warm orange highlight */
+    --accent: 0.68 0.16 52;
+    --accent-foreground: 0.2 0.03 52;
+
+    --destructive: 0.55 0.21 27;
+    --destructive-foreground: 0.99 0.004 27;
+    --success: 0.55 0.14 158;
+    --warning: 0.7 0.14 78;
+
+    --border: 0.9 0.008 255;
+    --input: 0.9 0.008 255;
+    --ring: 0.45 0.17 258;
+
+    /* Deep navy used for ink bands (footer, contrast blocks) */
+    --ink: 0.2 0.032 258;
+    --ink-foreground: 0.96 0.008 255;
+
+    --chart-1: 0.45 0.17 258;
+    --chart-2: 0.68 0.16 52;
+    --chart-3: 0.55 0.14 158;
+    --chart-4: 0.55 0.1 232;
+    --chart-5: 0.62 0.13 305;
+
+    --sidebar: 0.99 0.003 255;
+    --sidebar-foreground: 0.19 0.028 258;
+    --sidebar-primary: 0.45 0.17 258;
+    --sidebar-primary-foreground: 0.99 0.004 258;
+    --sidebar-accent: 0.955 0.006 255;
+    --sidebar-accent-foreground: 0.26 0.026 258;
+    --sidebar-border: 0.9 0.008 255;
+    --sidebar-ring: 0.45 0.17 258;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      oklch(0.45 0.17 258) 0%,
+      oklch(0.38 0.15 264) 100%
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      oklch(0.995 0.002 250) 0%,
+      oklch(0.965 0.005 255) 100%
+    );
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 0.16 0.026 258;
+    --foreground: 0.95 0.008 255;
+    --card: 0.2 0.03 258;
+    --card-foreground: 0.95 0.008 255;
+    --popover: 0.2 0.03 258;
+    --popover-foreground: 0.95 0.008 255;
+
+    --primary: 0.68 0.15 256;
+    --primary-foreground: 0.16 0.026 258;
+
+    --secondary: 0.24 0.03 258;
+    --secondary-foreground: 0.88 0.008 255;
+    --muted: 0.24 0.03 258;
+    --muted-foreground: 0.64 0.014 255;
+
+    --accent: 0.74 0.15 55;
+    --accent-foreground: 0.18 0.03 55;
+
+    --destructive: 0.62 0.2 25;
+    --destructive-foreground: 0.16 0.026 25;
+    --success: 0.66 0.15 158;
+    --warning: 0.76 0.14 78;
+
+    --border: 0.28 0.028 258;
+    --input: 0.28 0.028 258;
+    --ring: 0.68 0.15 256;
+
+    --ink: 0.14 0.024 258;
+    --ink-foreground: 0.95 0.008 255;
+
+    --chart-1: 0.68 0.15 256;
+    --chart-2: 0.74 0.15 55;
+    --chart-3: 0.66 0.15 158;
+    --chart-4: 0.68 0.11 232;
+    --chart-5: 0.7 0.14 305;
+
+    --sidebar: 0.18 0.028 258;
+    --sidebar-foreground: 0.95 0.008 255;
+    --sidebar-primary: 0.68 0.15 256;
+    --sidebar-primary-foreground: 0.16 0.026 258;
+    --sidebar-accent: 0.24 0.03 258;
+    --sidebar-accent-foreground: 0.88 0.008 255;
+    --sidebar-border: 0.28 0.028 258;
+    --sidebar-ring: 0.68 0.15 256;
+
+    --gradient-primary: linear-gradient(
+      135deg,
+      oklch(0.68 0.15 256) 0%,
+      oklch(0.58 0.14 262) 100%
+    );
+    --gradient-subtle: linear-gradient(
+      180deg,
+      oklch(0.16 0.026 258) 0%,
+      oklch(0.2 0.03 258) 100%
+    );
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "ss01" 1, "cv01" 1;
+  }
+  ::selection {
+    background-color: oklch(0.45 0.17 258 / 0.16);
+  }
+}
+
+@layer utilities {
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  .font-display {
+    font-family: var(--font-display), sans-serif;
+  }
+  .font-body {
+    font-family: var(--font-body), sans-serif;
+  }
+  .font-mono {
+    font-family: var(--font-mono), monospace;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  /* Small uppercase mono eyebrow labels — the Ovanite signature */
+  .eyebrow {
+    font-family: var(--font-mono), monospace;
+    @apply text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground;
+  }
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+  .bg-gradient-subtle {
+    background-image: var(--gradient-subtle);
+  }
+  /* Fine technical grid — depth without gradients */
+  .bg-grid {
+    background-image: linear-gradient(
+        to right,
+        oklch(0.9 0.008 255 / 0.6) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        oklch(0.9 0.008 255 / 0.6) 1px,
+        transparent 1px
+      );
+    background-size: 56px 56px;
+  }
+  .bg-dot-grid {
+    background-image: radial-gradient(
+      oklch(0.5 0.018 258 / 0.14) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+  .shadow-subtle {
+    box-shadow: 0 1px 2px 0 oklch(0.19 0.028 258 / 0.04);
+  }
+  .shadow-elevated {
+    box-shadow: 0 1px 2px 0 oklch(0.19 0.028 258 / 0.05), 0 8px 24px -12px
+      oklch(0.19 0.028 258 / 0.12);
+  }
+}
+
+/* Honor the user's reduced-motion preference: keep state changes instant and
+   remove decorative entrance, drift, rule, and accordion motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-fade-up,
+  .animate-drift,
+  .animate-rule-in,
+  .animate-accordion-down,
+  .animate-accordion-up {
+    animation: none !important;
+  }
+  .transition-smooth {
+    transition: none !important;
+  }
+}

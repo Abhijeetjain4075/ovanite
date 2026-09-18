@@ -1,0 +1,21 @@
+{
+  "overview": "The public website for Ovanite, a software company building thoughtful digital products, with a CMS-driven product showcase and contact and waitlist forms.",
+  "features": [
+    "Home page with hero, philosophy, products in development, approach, about, FAQs and closing CTA",
+    "Products page that automatically shows products published from the admin CMS",
+    "About, Contact, Waitlist, Thank You, Privacy, Terms and a custom 404 page",
+    "Contact and waitlist forms with validation, loading, success and error states",
+    "Duplicate submission protection with an already received message",
+    "Responsive navigation, breadcrumbs and a consistent footer on every page",
+    "Admin CMS for products, FAQs, site copy, submissions and team"
+  ],
+  "category": "company-website",
+  "tags": [
+    "software-company",
+    "marketing-site",
+    "cms",
+    "products",
+    "waitlist"
+  ],
+  "last_updated": "2026-09-18T09:07:15.286Z"
+}
