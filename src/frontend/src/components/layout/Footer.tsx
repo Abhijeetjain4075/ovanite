@@ -112,17 +112,6 @@ export function Footer() {
             >
               Cookie preferences
             </button>
-            <p>
-              © {year}. Built with love using{" "}
-              <a
-                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-sm underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-              >
-                caffeine.ai
-              </a>
-            </p>
           </div>
         </div>
       </Container>
