@@ -7,7 +7,7 @@ type PageMetaProps = {
   image?: string;
 };
 
-const DEFAULT_IMAGE = "/og-image.png";
+const DEFAULT_IMAGE = "/og-image.svg";
 
 function setMeta(selector: string, attr: "name" | "property", key: string, content: string) {
   let element = document.head.querySelector<HTMLMetaElement>(selector);
