@@ -2,14 +2,44 @@
 <!--
   The deployment origin is not known at build time, so every <loc> uses the
   __PUBLIC_ORIGIN__ placeholder. The platform rewrites this token to the app's
-  own deployment origin when the assets are served.
+  own deployment origin when the assets are served. Do not replace it with a
+  hardcoded host such as https://caffeine.ai — that is the platform marketing
+  site, not this app.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>__PUBLIC_ORIGIN__/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/products</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/about</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/waitlist</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>__PUBLIC_ORIGIN__/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/products</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/waitlist</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>__PUBLIC_ORIGIN__/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>

@@ -1,6 +1,8 @@
 # The deployment origin is not known at build time, so the Sitemap directive
 # uses the __PUBLIC_ORIGIN__ placeholder. The platform rewrites this token to
-# the app's own deployment origin when the assets are served.
+# the app's own deployment origin when the assets are served. Do not replace it
+# with a hardcoded host such as https://caffeine.ai — that is the platform
+# marketing site, not this app.
 User-agent: *
 Allow: /
 Disallow: /admin
