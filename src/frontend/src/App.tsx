@@ -10,6 +10,7 @@ const Products = lazy(() => import("@/pages/Products"));
 const About = lazy(() => import("@/pages/About"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Waitlist = lazy(() => import("@/pages/Waitlist"));
+const Participants = lazy(() => import("@/pages/Participants"));
 const ThankYou = lazy(() => import("@/pages/ThankYou"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
@@ -40,6 +41,9 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/waitlist" element={<Waitlist />} />
+            <Route path="/participants" element={<Participants />} />
+            <Route path="/participants/submit" element={<Participants />} />
+            <Route path="/participants/my-submissions" element={<Participants />} />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
