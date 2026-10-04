@@ -10,6 +10,7 @@ const FOOTER_NAV = [
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   { label: "Waitlist", to: "/waitlist" },
+  { label: "Participants", to: "/participants" },
 ] as const;
 
 // The footer Navigate group mirrors the primary navigation exactly.
