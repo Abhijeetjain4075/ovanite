@@ -3,6 +3,7 @@ import { and, count, desc, eq, gte, like, lte, ne, or } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
+  automatedAssessmentRuns,
   decisions,
   evaluations,
   portalAuditEvents,
@@ -14,10 +15,12 @@ import {
   withdrawals,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { ENV } from "../_core/env";
 import { ownerProcedure, protectedProcedure, reviewerProcedure, router, staffProcedure } from "../_core/trpc";
 import { ACTIVE_PARTICIPANT_WITHDRAWAL_STATES, canTransition, type SubmissionStatus } from "./lifecycle";
 import { DEFAULT_RUBRIC } from "./defaults";
-import { declarationsSchema, draftDataSchema, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
+import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
+import { AssessmentDispatchError, ASSESSMENT_PIPELINE_VERSION, assessmentWorkflowUrl, dispatchStaticAssessment, resolvePublicGitHubRevision } from "./assessment";
 
 const submissionIdSchema = z.string().uuid();
 const versionSchema = z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/);
@@ -314,6 +317,166 @@ export const portalRouter = router({
         .from(portalAuditEvents).leftJoin(users, eq(portalAuditEvents.actorId, users.id))
         .where(eq(portalAuditEvents.submissionId, input.id)).orderBy(desc(portalAuditEvents.createdAt));
       return { ...record, acceptedTerms: acceptedTerms ?? null, validations, evaluations: evaluationRows, decisions: decisionRows, events };
+    }),
+
+    automatedAssessmentRuns: staffProcedure.input(z.object({ id: submissionIdSchema })).query(async ({ input }) => {
+      const db = await requireDatabase();
+      return db.select().from(automatedAssessmentRuns)
+        .where(eq(automatedAssessmentRuns.submissionId, input.id))
+        .orderBy(desc(automatedAssessmentRuns.createdAt)).limit(20);
+    }),
+
+    requestAutomatedAssessment: reviewerProcedure.input(z.object({ id: submissionIdSchema })).mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      if (!ENV.assessmentGitHubToken || !ENV.assessmentCallbackSecret || !ENV.assessmentPortalBaseUrl) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Automated scanning is not configured yet. Configure the repository-scoped GitHub Actions token, matching callback secret, and HTTPS URL of the deployed participant portal.",
+        });
+      }
+
+      const [initial] = await db.select().from(submissions).where(eq(submissions.id, input.id)).limit(1);
+      if (!initial) throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found." });
+      if (!["terms_accepted", "validation", "evaluation"].includes(initial.status)) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "A static assessment can only be requested while the submission is in validation or evaluation, or is awaiting validation.",
+        });
+      }
+      const repository = parsePublicGitHubRepository(initial.repositoryUrl ?? "");
+      if (!repository) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Automated static assessment currently requires a public GitHub repository URL in the submitted Repository field. Other evidence links remain available for manual review.",
+        });
+      }
+
+      const [activeRun] = await db.select().from(automatedAssessmentRuns)
+        .where(and(
+          eq(automatedAssessmentRuns.submissionId, input.id),
+          or(
+            eq(automatedAssessmentRuns.status, "queued"),
+            eq(automatedAssessmentRuns.status, "dispatched"),
+            eq(automatedAssessmentRuns.status, "running"),
+          ),
+        ))
+        .orderBy(desc(automatedAssessmentRuns.createdAt)).limit(1);
+      if (activeRun) {
+        return {
+          id: activeRun.id, status: activeRun.status, sourceSha: activeRun.sourceSha,
+          sourceRepository: activeRun.sourceRepository, workflowUrl: activeRun.workflowUrl, reused: true,
+        };
+      }
+
+      let revision: { branch: string; sha: string };
+      try {
+        revision = await resolvePublicGitHubRevision(repository.fullName);
+      } catch (error) {
+        if (error instanceof AssessmentDispatchError) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: error.message });
+        }
+        throw new TRPCError({ code: "BAD_GATEWAY", message: "GitHub metadata could not be verified. Retry later." });
+      }
+
+      const runId = randomUUID();
+      const created = await db.transaction(async tx => {
+        const [current] = await tx.select().from(submissions)
+          .where(eq(submissions.id, input.id)).limit(1).for("update");
+        if (!current) throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found." });
+        if (!["terms_accepted", "validation", "evaluation"].includes(current.status)) {
+          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Submission status changed. Refresh and retry." });
+        }
+
+        const [existingRun] = await tx.select().from(automatedAssessmentRuns)
+          .where(and(
+            eq(automatedAssessmentRuns.submissionId, input.id),
+            or(
+              eq(automatedAssessmentRuns.status, "queued"),
+              eq(automatedAssessmentRuns.status, "dispatched"),
+              eq(automatedAssessmentRuns.status, "running"),
+            ),
+          ))
+          .orderBy(desc(automatedAssessmentRuns.createdAt)).limit(1);
+        if (existingRun) {
+          return {
+            id: existingRun.id, status: existingRun.status, sourceSha: existingRun.sourceSha,
+            sourceRepository: existingRun.sourceRepository, workflowUrl: existingRun.workflowUrl, reused: true,
+          };
+        }
+
+        await tx.insert(automatedAssessmentRuns).values({
+          id: runId,
+          submissionId: input.id,
+          requestedBy: ctx.user.id,
+          requestedRole: ctx.portalRole,
+          sourceRepository: repository.fullName,
+          sourceBranch: revision.branch,
+          sourceSha: revision.sha,
+          pipelineVersion: ASSESSMENT_PIPELINE_VERSION,
+          status: "queued",
+          workflowUrl: assessmentWorkflowUrl(),
+        });
+        await tx.insert(portalAuditEvents).values(auditValues({
+          submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
+          eventType: "automated_assessment_requested",
+          details: { assessmentRunId: runId, sourceRepository: repository.fullName, sourceSha: revision.sha, pipelineVersion: ASSESSMENT_PIPELINE_VERSION },
+        }));
+        return {
+          id: runId, status: "queued" as const, sourceSha: revision.sha,
+          sourceRepository: repository.fullName, workflowUrl: assessmentWorkflowUrl(), reused: false,
+        };
+      });
+
+      if (created.reused) return created;
+      try {
+        await dispatchStaticAssessment({
+          runId: created.id, submissionId: input.id,
+          repository: repository.fullName, sha: revision.sha, branch: revision.branch,
+        });
+        await db.transaction(async tx => {
+          const [current] = await tx.select().from(automatedAssessmentRuns)
+            .where(eq(automatedAssessmentRuns.id, created.id)).limit(1).for("update");
+          // A fast worker callback may arrive before the dispatch response is processed.
+          // Never downgrade running/completed state back to dispatched.
+          if (current?.status === "queued") {
+            await tx.update(automatedAssessmentRuns).set({ status: "dispatched", updatedAt: new Date() })
+              .where(and(eq(automatedAssessmentRuns.id, created.id), eq(automatedAssessmentRuns.status, "queued")));
+            await tx.insert(portalAuditEvents).values(auditValues({
+              submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
+              eventType: "automated_assessment_dispatched",
+              details: { assessmentRunId: created.id, sourceSha: revision.sha },
+            }));
+          }
+        });
+      } catch (error) {
+        const safeCode = error instanceof AssessmentDispatchError ? error.code : "github_dispatch_rejected";
+        const safeMessage = error instanceof AssessmentDispatchError
+          ? error.message
+          : "The assessment workflow could not be started.";
+        const dispatchStillFailed = await db.transaction(async tx => {
+          const [current] = await tx.select().from(automatedAssessmentRuns)
+            .where(eq(automatedAssessmentRuns.id, created.id)).limit(1).for("update");
+          if (!current || !["queued", "dispatched"].includes(current.status)) return false;
+          await tx.update(automatedAssessmentRuns).set({
+            status: "failed", errorCode: safeCode, finishedAt: new Date(), updatedAt: new Date(),
+          }).where(eq(automatedAssessmentRuns.id, created.id));
+          await tx.insert(portalAuditEvents).values(auditValues({
+            submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
+            eventType: "automated_assessment_dispatch_failed",
+            details: { assessmentRunId: created.id, errorCode: safeCode, sourceSha: revision.sha },
+          }));
+          return true;
+        });
+        if (dispatchStillFailed) {
+          throw new TRPCError({ code: "BAD_GATEWAY", message: safeMessage });
+        }
+      }
+
+      const [result] = await db.select().from(automatedAssessmentRuns).where(eq(automatedAssessmentRuns.id, created.id)).limit(1);
+      return {
+        id: created.id, status: result?.status ?? "dispatched", sourceSha: revision.sha,
+        sourceRepository: repository.fullName, workflowUrl: result?.workflowUrl ?? assessmentWorkflowUrl(), reused: false,
+      };
     }),
 
     evaluationQueue: staffProcedure.query(async () => {
