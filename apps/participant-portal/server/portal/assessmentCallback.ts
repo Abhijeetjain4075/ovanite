@@ -34,7 +34,7 @@ const reportSchema = z.object({
     secrets: countSchema,
     misconfigurations: countSchema,
     licenses: countSchema,
-    gateStatus: z.enum(["blocked", "review", "passed", "not_assessed"]),
+    gateStatus: z.enum(["blocked", "review", "passed"]),
     truncated: z.boolean(),
   }).strict(),
   findings: z.array(findingSchema).max(200),
@@ -105,7 +105,42 @@ export const assessmentCallbackSchema = z.object({
   if (value.startedAt && value.finishedAt && Date.parse(value.finishedAt) < Date.parse(value.startedAt)) {
     ctx.addIssue({ code: "custom", path: ["finishedAt"], message: "Finish time cannot precede start time." });
   }
+  const workflowRunIdInUrl = new URL(value.workflowUrl).pathname.match(/\\/actions\\/runs\\/(\\d+)$/)?.[1];
+  if (workflowRunIdInUrl !== value.workflowRunId) {
+    ctx.addIssue({ code: "custom", path: ["workflowUrl"], message: "Workflow URL and workflow run ID must match." });
+  }
 });
+
+export type AssessmentCallbackTransitionDecision =
+  | "update"
+  | "already_running"
+  | "already_terminal"
+  | "workflow_mismatch"
+  | "terminal_conflict"
+  | "invalid_transition";
+
+/** Decide a monotonic callback transition; the callback handler and tests share this policy. */
+export function decideAssessmentCallbackTransition(
+  currentStatus: string,
+  currentWorkflowRunId: string | null,
+  incomingStatus: "running" | "completed" | "failed",
+  incomingWorkflowRunId: string,
+): AssessmentCallbackTransitionDecision {
+  if (currentWorkflowRunId && currentWorkflowRunId !== incomingWorkflowRunId) return "workflow_mismatch";
+
+  if (currentStatus === "completed" || currentStatus === "failed" || currentStatus === "cancelled") {
+    return currentStatus === incomingStatus && currentWorkflowRunId === incomingWorkflowRunId
+      ? "already_terminal"
+      : "terminal_conflict";
+  }
+
+  if (incomingStatus === "running") {
+    if (currentStatus === "running" && currentWorkflowRunId === incomingWorkflowRunId) return "already_running";
+    return currentStatus === "queued" || currentStatus === "dispatched" ? "update" : "invalid_transition";
+  }
+
+  return currentStatus === "running" ? "update" : "invalid_transition";
+}
 
 function hasValidBearer(req: Request, expectedSecret: string): boolean {
   const header = req.header("authorization") ?? "";
@@ -150,21 +185,10 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
         .limit(1).for("update");
       if (!run) return "not_found" as const;
       if (run.sourceSha.toLowerCase() !== callback.sourceSha.toLowerCase()) return "revision_mismatch" as const;
-      if (run.workflowRunId && run.workflowRunId !== callback.workflowRunId) return "workflow_mismatch" as const;
-
-      if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") {
-        // Identical terminal deliveries are idempotent; another run cannot overwrite history.
-        if (run.status === callback.status && run.workflowRunId === callback.workflowRunId) return "already_terminal" as const;
-        return "terminal_conflict" as const;
-      }
-
-      if (callback.status === "running") {
-        if (run.status === "running" && run.workflowRunId === callback.workflowRunId) return "already_running" as const;
-        if (run.status !== "queued" && run.status !== "dispatched") return "invalid_transition" as const;
-      } else if (run.status !== "running") {
-        // A completed/failed report is accepted only after the worker's authenticated start callback.
-        return "invalid_transition" as const;
-      }
+      const transition = decideAssessmentCallbackTransition(
+        run.status, run.workflowRunId, callback.status, callback.workflowRunId,
+      );
+      if (transition !== "update") return transition;
 
       const now = new Date();
       const startedAt = callback.startedAt ? new Date(callback.startedAt) : now;
