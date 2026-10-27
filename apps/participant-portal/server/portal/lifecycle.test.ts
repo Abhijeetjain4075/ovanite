@@ -74,6 +74,12 @@ describe("public GitHub repository parsing", () => {
     });
   });
 
+  it("accepts an underscore-leading repository name when GitHub metadata validates it", () => {
+    expect(parsePublicGitHubRepository("https://github.com/ExampleOwner/_project")).toEqual({
+      owner: "ExampleOwner", name: "_project", fullName: "ExampleOwner/_project",
+    });
+  });
+
   it("rejects non-GitHub hosts, subpaths, credentials, ports, query strings, and malformed owners", () => {
     for (const value of [
       "http://github.com/owner/repo",
