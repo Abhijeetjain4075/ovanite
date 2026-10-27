@@ -105,7 +105,12 @@ export const assessmentCallbackSchema = z.object({
   if (value.startedAt && value.finishedAt && Date.parse(value.finishedAt) < Date.parse(value.startedAt)) {
     ctx.addIssue({ code: "custom", path: ["finishedAt"], message: "Finish time cannot precede start time." });
   }
-  const workflowRunIdInUrl = new URL(value.workflowUrl).pathname.match(/\\/actions\\/runs\\/(\\d+)$/)?.[1];
+  let workflowRunIdInUrl: string | undefined;
+  try {
+    workflowRunIdInUrl = new URL(value.workflowUrl).pathname.match(/\\/actions\\/runs\\/(\\d+)$/)?.[1];
+  } catch {
+    workflowRunIdInUrl = undefined;
+  }
   if (workflowRunIdInUrl !== value.workflowRunId) {
     ctx.addIssue({ code: "custom", path: ["workflowUrl"], message: "Workflow URL and workflow run ID must match." });
   }
