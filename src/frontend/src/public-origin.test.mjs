@@ -13,7 +13,11 @@ import {
 const temporaryDirectories = [];
 
 afterEach(async () => {
-  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
+  await Promise.all(
+    temporaryDirectories
+      .splice(0)
+      .map((directory) => rm(directory, { recursive: true, force: true })),
+  );
 });
 
 describe("public metadata origin", () => {
@@ -22,7 +26,9 @@ describe("public metadata origin", () => {
   });
 
   it("accepts a valid HTTPS origin and normalizes a trailing slash", () => {
-    expect(resolvePublicOrigin("https://www.example.com/")).toBe("https://www.example.com");
+    expect(resolvePublicOrigin("https://www.example.com/")).toBe(
+      "https://www.example.com",
+    );
   });
 
   it.each([
@@ -38,7 +44,10 @@ describe("public metadata origin", () => {
 
   it("replaces every origin token", () => {
     expect(
-      replacePublicOrigin("__PUBLIC_ORIGIN__/a __PUBLIC_ORIGIN__/b", "https://ovanite.vercel.app"),
+      replacePublicOrigin(
+        "__PUBLIC_ORIGIN__/a __PUBLIC_ORIGIN__/b",
+        "https://ovanite.vercel.app",
+      ),
     ).toBe("https://ovanite.vercel.app/a https://ovanite.vercel.app/b");
   });
 
@@ -46,14 +55,16 @@ describe("public metadata origin", () => {
     expect(() =>
       validatePublicAssets(
         "User-agent: *\nSitemap: https://ovanite.vercel.app/sitemap.xml\n",
-        '<urlset><url><loc>https://elsewhere.example/</loc></url></urlset>',
+        "<urlset><url><loc>https://elsewhere.example/</loc></url></urlset>",
         "https://ovanite.vercel.app",
       ),
     ).toThrow(/non-canonical URL/);
   });
 
   it("materializes both generated assets and removes all origin tokens", async () => {
-    const directory = await mkdtemp(path.join(os.tmpdir(), "ovanite-public-meta-"));
+    const directory = await mkdtemp(
+      path.join(os.tmpdir(), "ovanite-public-meta-"),
+    );
     temporaryDirectories.push(directory);
 
     await writeFile(
@@ -65,7 +76,10 @@ describe("public metadata origin", () => {
       '<?xml version="1.0"?><urlset><url><loc>__PUBLIC_ORIGIN__/</loc></url><url><loc>__PUBLIC_ORIGIN__/about</loc></url></urlset>',
     );
 
-    await preparePublicAssets({ distDir: directory, publicOrigin: "https://ovanite.vercel.app" });
+    await preparePublicAssets({
+      distDir: directory,
+      publicOrigin: "https://ovanite.vercel.app",
+    });
 
     const robots = await readFile(path.join(directory, "robots.txt"), "utf8");
     const sitemap = await readFile(path.join(directory, "sitemap.xml"), "utf8");
