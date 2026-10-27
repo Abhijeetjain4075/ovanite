@@ -4,7 +4,7 @@ patchedDependencies:
   wouter@3.7.1: patches/wouter@3.7.1.patch
 overrides:
   '@trpc/server': 11.8.0
-  axios: 1.16.0
+  axios: 1.20.0
   body-parser: 1.20.9
   dompurify: 3.4.17
   drizzle-orm: 0.45.2
