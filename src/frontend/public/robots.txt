@@ -1,8 +1,7 @@
-# The deployment origin is not known at build time, so the Sitemap directive
-# uses the __PUBLIC_ORIGIN__ placeholder. The platform rewrites this token to
-# the app's own deployment origin when the assets are served. Do not replace it
-# with a hardcoded host such as https://caffeine.ai — that is the platform
-# marketing site, not this app.
+# The origin token is materialized in dist/ during the frontend build by
+# scripts/prepare-public-assets.mjs. Set PUBLIC_ORIGIN to the site's HTTPS
+# origin; when unset, the canonical production origin is https://ovanite.vercel.app.
+# The build fails if an unresolved token or invalid sitemap URL remains.
 User-agent: *
 Allow: /
 Disallow: /admin

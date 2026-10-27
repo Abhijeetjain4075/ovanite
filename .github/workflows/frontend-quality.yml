@@ -1,0 +1,56 @@
+name: Frontend quality and public metadata
+
+on:
+  pull_request:
+    paths:
+      - "src/frontend/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/frontend-quality.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "src/frontend/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/frontend-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-quality:
+    name: Frontend typecheck, tests, and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable Corepack and activate the pinned pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm --dir src/frontend typecheck
+      - name: Lint
+        run: pnpm --dir src/frontend check
+      - name: Unit tests
+        run: pnpm --dir src/frontend test
+      - name: Production build and generated metadata validation
+        run: pnpm --dir src/frontend build
+        env:
+          PUBLIC_ORIGIN: https://ovanite.vercel.app

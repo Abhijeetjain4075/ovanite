@@ -43,7 +43,10 @@ export default function App() {
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/participants" element={<Participants />} />
             <Route path="/participants/submit" element={<Participants />} />
-            <Route path="/participants/my-submissions" element={<Participants />} />
+            <Route
+              path="/participants/my-submissions"
+              element={<Participants />}
+            />
             <Route path="/thank-you" element={<ThankYou />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
