@@ -107,9 +107,10 @@ export function AdminGate({ children }: { children: ReactNode }) {
             Claim owner access
           </h1>
           <p className="mt-4 text-sm text-muted-foreground">
-            No owner has been set up yet. The first signed-in visitor whose
-            email matches the configured owner address becomes the owner. This
-            is a one-time step — once claimed, it cannot be repeated.
+            Owner setup is available only after the deployment has an explicitly
+            configured owner principal. Only that exact Internet Identity
+            principal can claim ownership; the email below is a secondary check.
+            Sign-in alone never grants ownership.
           </p>
           <form className="mt-6" onSubmit={handleClaim}>
             <Label htmlFor="owner-email" className="eyebrow">
