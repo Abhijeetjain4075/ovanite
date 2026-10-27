@@ -27,6 +27,14 @@ export default function AdminSubmissionPage() {
   const validationMutation = trpc.portal.admin.saveValidation.useMutation();
   const advanceMutation = trpc.portal.admin.advance.useMutation();
   const evaluationMutation = trpc.portal.admin.saveEvaluation.useMutation();
+  const assessmentMutation = trpc.portal.admin.requestAutomatedAssessment.useMutation();
+  const assessmentRunsQuery = trpc.portal.admin.automatedAssessmentRuns.useQuery(
+    { id: id ?? "" },
+    {
+      enabled: Boolean(id), retry: false,
+      refetchInterval: query => query.state.data?.some(run => ["queued", "dispatched", "running"].includes(run.status)) ? 5000 : false,
+    },
+  );
   const [checks, setChecks] = useState<Record<string, boolean>>({});
   const [validationNotes, setValidationNotes] = useState("");
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -50,6 +58,7 @@ export default function AdminSubmissionPage() {
       utils.portal.admin.detail.invalidate({ id: id ?? "" }),
       utils.portal.admin.queue.invalidate(),
       utils.portal.admin.evaluationQueue.invalidate(),
+      utils.portal.admin.automatedAssessmentRuns.invalidate({ id: id ?? "" }),
     ]);
   }
   async function advance(to: "validation" | "evaluation" | "eligible" | "not_eligible" | "selected" | "rejected" | "archived") {
@@ -70,6 +79,22 @@ export default function AdminSubmissionPage() {
       await refresh();
     } catch (problem) { setError(problem instanceof Error ? problem.message : "Validation could not be saved."); }
   }
+  async function requestAutomatedAssessment() {
+    setError(""); setMessage("");
+    if (!window.confirm(
+      "Run a static security and dependency scan of the submitted public GitHub repository at its current default-branch commit? The worker scans a pinned commit and does not run the candidate's build scripts or tests."
+    )) return;
+    try {
+      const result = await assessmentMutation.mutateAsync({ id: id ?? "" });
+      setMessage(result.reused
+        ? `An assessment is already active for commit ${result.sourceSha.slice(0, 12)}.`
+        : `Static assessment ${result.status} for ${result.sourceRepository} at ${result.sourceSha.slice(0, 12)}.`);
+      await assessmentRunsQuery.refetch();
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : "The static assessment could not be requested.");
+    }
+  }
+
   async function saveEvaluation() {
     setError(""); setMessage("");
     try {
@@ -124,6 +149,70 @@ export default function AdminSubmissionPage() {
           <section className="detail-side-panel"><p className="eyebrow mono">AUDIT TRAIL</p><div className="audit-timeline">{events.map(({ event, actorName }) => <div className="audit-event" key={event.id}><span className="audit-mark" /><div><strong>{statusLabel(event.eventType)}</strong><small>{actorName || event.actorRole} · {dateLabel(event.createdAt)}</small>{event.toStatus && <small>{statusLabel(event.fromStatus || "created")} → {statusLabel(event.toStatus)}</small>}</div></div>)}{!events.length && <p className="empty-inline">No events recorded.</p>}</div></section>
         </aside>
       </div>
+      <section className="detail-panel automated-assessment-panel">
+        <div className="panel-heading">
+          <div><p className="eyebrow mono">AUTOMATED / STATIC ANALYSIS</p><h2>Repository assessment runs</h2></div>
+          <span className="mono panel-count">{assessmentRunsQuery.data?.length ?? "—"} RUNS</span>
+        </div>
+        <p className="section-copy">
+          This static stage pins a public GitHub repository to an immutable commit, scans dependency vulnerabilities, secret patterns, configuration issues, and supported package licenses, and generates a CycloneDX SBOM. It does not execute candidate code, build the SaaS, or prove enterprise readiness.
+        </p>
+        {canReview && ["terms_accepted", "validation", "evaluation"].includes(submission.status) && (
+          <div className="wizard-actions">
+            <span className="field-hint">{submission.repositoryUrl || "No repository URL supplied."}</span>
+            <button className="button button-primary" type="button"
+              disabled={assessmentMutation.isPending || !/^https:\/\/github\.com\/[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_.-]{1,100}(?:\.git)?\/?$/.test(submission.repositoryUrl || "")}
+              onClick={() => void requestAutomatedAssessment()}>
+              {assessmentMutation.isPending ? "Queuing scan…" : "Run static assessment"}
+              <ShieldCheck size={14} />
+            </button>
+          </div>
+        )}
+        {!canReview && <p className="readonly-note"><LockKeyhole size={14} /> Viewer role · read-only.</p>}
+        {assessmentRunsQuery.isLoading ? <div className="loading-panel" role="status"><span className="loading-line" />Loading assessment runs…</div>
+          : assessmentRunsQuery.error ? <div className="state-panel state-error" role="alert"><strong>Assessment history could not be loaded.</strong><button className="button button-secondary" type="button" onClick={() => void assessmentRunsQuery.refetch()}>Retry</button></div>
+          : assessmentRunsQuery.data?.length ? <div className="assessment-run-list">
+            {assessmentRunsQuery.data.map(run => {
+              const summary = run.report?.summary;
+              const gateLabel = summary?.gateStatus ?? (run.status === "failed" ? "not assessed" : run.status);
+              return <details className="validation-history-record" key={run.id}>
+                <summary className="assessment-run-summary">
+                  <span><strong>{run.sourceRepository}</strong><small>{run.status.replaceAll("_", " ")} · {dateLabel(run.createdAt)}</small></span>
+                  <span className="mono evaluation-version">{run.sourceSha.slice(0, 12)}</span>
+                  <strong className="assessment-gate-label">{gateLabel}</strong>
+                </summary>
+                <div className="review-meta-grid">
+                  <div><span>Pinned commit</span><strong className="mono">{run.sourceSha}</strong></div>
+                  <div><span>Pipeline version</span><strong className="mono">{run.pipelineVersion}</strong></div>
+                  <div><span>Critical / high</span><strong>{summary ? `${summary.critical} / ${summary.high}` : "—"}</strong></div>
+                  <div><span>Findings</span><strong>{summary?.totalFindings ?? "Not available"}</strong></div>
+                  <div><span>Secrets</span><strong>{summary?.secrets ?? "—"}</strong></div>
+                  <div><span>Configuration findings</span><strong>{summary?.misconfigurations ?? "—"}</strong></div>
+                  <div><span>License findings</span><strong>{summary?.licenses ?? "—"}</strong></div>
+                  <div><span>SBOM components</span><strong>{run.report?.sbom.componentCount ?? "—"}</strong></div>
+                </div>
+                {run.workflowUrl && <p className="field-hint"><a className="text-link" href={run.workflowUrl} target="_blank" rel="noopener noreferrer">Open workflow run <ExternalLink size={12} /></a></p>}
+                {run.errorCode && <p className="validation-record-notes"><strong>Execution status</strong>{run.errorCode.replaceAll("_", " ")}</p>}
+                {run.report && <>
+                  <p className="field-hint">CycloneDX SBOM · SHA-256 <span className="mono">{run.report.sbom.sha256}</span>. Download the retained `candidate.sbom.cdx.json` from the workflow artifacts. Machine findings are evidence for review, not a hiring decision. {summary?.truncated ? "The displayed finding list is capped; the summary counts include all scanner findings." : ""}</p>
+                  {run.report.findings.length ? <div className="assessment-findings">
+                    {run.report.findings.map((finding, index) => <article className="audit-event" key={`${finding.tool}-${finding.ruleId}-${finding.path}-${index}`}>
+                      <span className="audit-mark" />
+                      <div>
+                        <strong>{finding.severity} · {finding.title || finding.ruleId}</strong>
+                        <small>{finding.type} · {finding.path}{finding.line ? `:${finding.line}` : ""}</small>
+                        {finding.packageName && <small>{finding.packageName} · {finding.installedVersion || "version unknown"}{finding.fixedVersion ? ` → ${finding.fixedVersion}` : ""}</small>}
+                        {finding.message && <p>{finding.message}</p>}
+                        {finding.referenceUrl && <small><a href={finding.referenceUrl} target="_blank" rel="noopener noreferrer">Advisory / rule reference <ExternalLink size={11} /></a></small>}
+                      </div>
+                    </article>)}
+                  </div> : <p className="empty-inline">No findings were returned by this scan. This does not prove absence of vulnerabilities.</p>}
+                </>}
+              </details>;
+            })}
+          </div> : <p className="empty-inline">No automated assessment runs yet. Manual validation remains available. A run can start only after the portal's GitHub dispatch and callback configuration is provisioned.</p>}
+        <p className="field-hint">Safety boundary: repository source is scanned as data on an ephemeral runner; build scripts, package hooks, tests, and applications are not executed by this workflow.</p>
+      </section>
       <section className="detail-panel validation-history-panel"><div className="panel-heading"><div><p className="eyebrow mono">VALIDATION RECORDS</p><h2>Recorded checks</h2></div><span className="mono panel-count">{validations.length} ENTRIES</span></div>{validations.length ? <div className="validation-history-list">{validations.map(({ result, evaluatorName, evaluatorRole }) => <article className="validation-history-record" key={result.id}><div className="validation-history-heading"><span className={`status-pill ${result.outcome === "pass" ? "status-selected" : "status-rejected"}`}>{result.outcome}</span><span>{evaluatorName || "Ovanite reviewer"} · {evaluatorRole}</span><time>{dateLabel(result.createdAt)}</time></div><div className="staff-declarations">{Object.entries(result.checks).map(([key, passed]) => <div key={key}><span className={passed ? "check-dot checked" : "check-dot"}>{passed ? <Check size={11} /> : <Circle size={11} />}</span><span>{validationChecks.find(item => item.id === key)?.label ?? key}</span><strong>{passed ? "Pass" : "Follow up"}</strong></div>)}</div>{result.notes && <p className="validation-record-notes"><strong>Reviewer notes</strong>{result.notes}</p>}</article>)}</div> : <p className="empty-inline">No validation result has been recorded.</p>}</section>
       <section className="detail-panel evaluation-history-panel"><div className="panel-heading"><div><p className="eyebrow mono">EVALUATION RECORDS</p><h2>Criterion-level results</h2></div><span className="mono panel-count">{evaluations.length} ENTRIES</span></div>{evaluations.length ? <div className="evaluation-history-list">{evaluations.map(({ result, evaluatorName, evaluatorRole }, index) => { const rubric = rubricQuery.data?.versions.find(item => item.version === result.rubricVersion); const criteria = rubric?.criteria ?? Object.keys(result.scores).map(id => ({ id, label: id, description: "", weight: 0 })); return <details className="evaluation-history-record" key={result.id} open={index === 0}><summary><span><strong>{evaluatorName || "Ovanite reviewer"}</strong><small>{evaluatorRole} · {dateLabel(result.createdAt)}</small></span><span className="mono evaluation-version">{result.rubricVersion}</span><strong className="evaluation-overall-score">{result.overallScore} / 5</strong></summary><div className="evaluation-result-grid">{criteria.map(criterion => <div key={criterion.id}><span>{criterion.label}<small>{criterion.weight ? ` · ${criterion.weight}%` : ""}</small></span><strong>{result.scores[criterion.id] ?? "—"} / 5</strong>{result.criterionNotes[criterion.id] && <p>{result.criterionNotes[criterion.id]}</p>}</div>)}</div>{result.notes && <p className="evaluation-overall-notes"><strong>Overall evaluator notes</strong>{result.notes}</p>}</details>; })}</div> : <p className="empty-inline">No evaluation has been submitted. Criterion scores and notes will appear here once recorded.</p>}</section>
     </div>

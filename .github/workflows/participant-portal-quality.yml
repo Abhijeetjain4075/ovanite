@@ -1,0 +1,84 @@
+name: Participant portal quality and security
+
+on:
+  pull_request:
+    paths:
+      - "apps/participant-portal/**"
+      - ".github/workflows/participant-portal-quality.yml"
+      - ".github/workflows/candidate-static-assessment.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "apps/participant-portal/**"
+      - ".github/workflows/participant-portal-quality.yml"
+      - ".github/workflows/candidate-static-assessment.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: participant-portal-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck, tests, and production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/participant-portal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable Corepack and activate the pinned pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm check
+      - name: Unit tests
+        run: pnpm test
+      - name: Production build
+        run: pnpm build
+
+  filesystem-security:
+    name: Trivy dependency, secret, and configuration scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Scan only the participant portal
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: apps/participant-portal
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  workflow-lint:
+    name: GitHub Actions workflow lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Go for actionlint
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26.x"
+          cache: false
+      - name: Install pinned actionlint release
+        run: "go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12"
+      - name: Lint portal and candidate-assessment workflows
+        run: |
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/participant-portal-quality.yml .github/workflows/candidate-static-assessment.yml

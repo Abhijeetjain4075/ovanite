@@ -35,6 +35,29 @@ This file is the project ToDo fallback because no native project ToDo tool is av
 - Include a concise README/specification for the feature and testable acceptance criteria in implementation notes.
 - Preserve drafts and participant data; confirm destructive actions; maintain an accurate `/manus-routes.json` page manifest for all implemented routes.
 
+## [x] Automated static-assessment v1 (code and CI implemented; activation still requires deployment configuration)
+
+- Persist each assessment run, immutable public GitHub repository revision, requester identity/role, pipeline version, status, workflow URL, sanitized summary, and capped finding records in additive database migration `0002_automated_assessment_runs`.
+- Restrict assessment dispatch to owner/editor reviewer procedures; reject non-GitHub repository URLs, non-public/archived repositories, and unsupported submission states.
+- Pin assessment to a full 40-character commit SHA before dispatch; make fixed-origin `api.github.com` metadata requests only (never fetch the submitted URL directly).
+- Run Trivy filesystem vulnerability, secret-pattern, misconfiguration, and license checks on GitHub-hosted ephemeral runners; generate a CycloneDX SBOM with its digest and component count; never execute candidate build scripts, package hooks, tests, or application code in this v1.
+- Validate callback bearer credentials with constant-time comparison, validate callback payloads against strict schemas, confirm run ID, source repository and SHA, bind run ID to the workflow URL, cap report size and finding count, and audit monotonic lifecycle updates.
+- Run scanner/source processing on a separate runner from callback secrets; persist only sanitized report data and do not retain scanner secret matches/code excerpts.
+- Add per-reviewer transactional quota: five new assessment requests per rolling hour, plus deduplication of active runs for each submission.
+- Add admin review UI to request a scan, poll active run state, view immutable SHA and findings, and distinguish the scanner gate signal from a human decision.
+- Typecheck, unit tests, production build, Trivy workflow CI, and static-assessment callback/dispatch workflow must pass before activation.
+
+## [ ] Automated static-assessment production activation and next-stage verification
+
+- Merge the draft PR only after explicit owner review; ensure the candidate assessment workflow exists on the repository's default branch.
+- Apply the reviewed additive migration in the actual participant-portal database; do not reset or seed production data.
+- Deploy the participant portal itself with valid existing authentication and database configuration; the marketing site deployment alone does not prove that this separate portal is deployed.
+- Configure the least-privilege GitHub Actions dispatch token, matching callback secret, portal HTTPS base URL, and GitHub Actions variable/secret; verify a callback round-trip using an explicitly authorized public test repository.
+- Add stale-run recovery and operator-visible handling for cancelled or callback-lost workflow runs before wide intake.
+- Add SBOM generation, a separately isolated Opengrep/Gitleaks pass, retained test evidence, then Playwright functional verification against an authorized isolated staging target.
+- Only after a reviewed sandboxed runner design, add builds/tests with network egress denied by default. Dynamic ZAP and k6 checks require explicit scope/authorization and must not run against arbitrary third-party targets or production.
+- Add a persistent edge/gateway rate limit for general public API traffic; the per-reviewer scan quota is not a replacement for general API rate limiting.
+
 ## [ ] First-run Ovanite owner and approved program configuration
 
 - Before participant intake is opened, configure the authorized Ovanite owner identity or provision the verified owner through the existing authorized operator workflow. The current managed database has zero users and `OWNER_OPEN_ID` is unset; do not auto-promote the first login.

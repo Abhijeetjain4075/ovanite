@@ -159,6 +159,75 @@ export const withdrawals = mysqlTable("withdrawals", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export type AssessmentFindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
+export type AssessmentGateStatus = "blocked" | "review" | "passed";
+export type AssessmentRunReport = {
+  sbom: {
+    format: "CycloneDX";
+    componentCount: number;
+    sha256: string;
+    fileName: "candidate.sbom.cdx.json";
+  };
+  summary: {
+    totalFindings: number;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    unknown: number;
+    vulnerabilities: number;
+    secrets: number;
+    misconfigurations: number;
+    licenses: number;
+    gateStatus: AssessmentGateStatus;
+    truncated: boolean;
+  };
+  findings: Array<{
+    tool: string;
+    type: "vulnerability" | "secret" | "misconfiguration" | "license" | "other";
+    severity: AssessmentFindingSeverity;
+    ruleId: string;
+    title: string;
+    message: string;
+    path: string;
+    line?: number;
+    packageName?: string;
+    installedVersion?: string;
+    fixedVersion?: string;
+    referenceUrl?: string;
+  }>;
+};
+
+export const automatedAssessmentRuns = mysqlTable(
+  "automated_assessment_runs",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    submissionId: varchar("submissionId", { length: 36 }).notNull().references(() => submissions.id),
+    requestedBy: int("requestedBy").notNull().references(() => users.id),
+    requestedRole: varchar("requestedRole", { length: 32 }).notNull(),
+    sourceRepository: varchar("sourceRepository", { length: 256 }).notNull(),
+    sourceBranch: varchar("sourceBranch", { length: 255 }).notNull(),
+    sourceSha: varchar("sourceSha", { length: 40 }).notNull(),
+    pipelineVersion: varchar("pipelineVersion", { length: 32 }).notNull().default("static-v1"),
+    status: mysqlEnum("status", ["queued", "dispatched", "running", "completed", "failed", "cancelled"])
+      .notNull().default("queued"),
+    workflowRunId: varchar("workflowRunId", { length: 32 }),
+    workflowUrl: varchar("workflowUrl", { length: 2048 }),
+    report: json("report").$type<AssessmentRunReport | null>(),
+    errorCode: varchar("errorCode", { length: 80 }),
+    startedAt: timestamp("startedAt"),
+    finishedAt: timestamp("finishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("assessment_submission_created_idx").on(table.submissionId, table.createdAt),
+    index("assessment_status_created_idx").on(table.status, table.createdAt),
+    index("assessment_source_commit_idx").on(table.sourceRepository, table.sourceSha),
+    index("assessment_requester_created_idx").on(table.requestedBy, table.createdAt),
+  ],
+);
+
 /** Append-only record of lifecycle, review, terms, and configuration actions. */
 export const portalAuditEvents = mysqlTable(
   "portal_audit_events",

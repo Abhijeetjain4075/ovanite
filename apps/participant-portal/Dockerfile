@@ -9,4 +9,6 @@ RUN pnpm build
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
+# The runtime needs only read access to the built application.
+USER node
 CMD ["node", "dist/index.js"]
