@@ -5,6 +5,7 @@ on:
     paths:
       - "apps/participant-portal/**"
       - ".github/workflows/participant-portal-quality.yml"
+      - ".github/workflows/candidate-static-assessment.yml"
   push:
     branches: [main, mavis]
     paths:
