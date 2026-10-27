@@ -78,7 +78,7 @@ describe("assessment callback contract", () => {
     };
     expect(assessmentCallbackSchema.safeParse({
       ...validCallback,
-      report: { ...validReport, summary: { ...validReport.summary, totalFindings: 1, high: 1, vulnerabilities: 1 }, findings: [finding] },
+      report: { ...validReport, summary: { ...validReport.summary, totalFindings: 1, high: 1, vulnerabilities: 1, gateStatus: "blocked" }, findings: [finding] },
     }).success).toBe(true);
 
     expect(assessmentCallbackSchema.safeParse({
@@ -95,5 +95,75 @@ describe("assessment callback contract", () => {
       ...validCallback,
       report: { ...validReport, findings: Array(201).fill(finding) },
     }).success).toBe(false);
+  });
+
+  it("requires consistent severity/category totals and a gate that matches findings", () => {
+    const highFinding = {
+      tool: "Trivy", type: "vulnerability" as const, severity: "HIGH" as const,
+      ruleId: "CVE-2026-00002", title: "High severity", message: "A finding.",
+      path: "lockfile.yaml",
+    };
+    const blocked = {
+      ...validReport,
+      summary: { ...validReport.summary, totalFindings: 1, high: 1, vulnerabilities: 1, gateStatus: "blocked" as const },
+      findings: [highFinding],
+    };
+    expect(assessmentCallbackSchema.safeParse({ ...validCallback, report: blocked }).success).toBe(true);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      report: { ...blocked, summary: { ...blocked.summary, gateStatus: "passed" } },
+    }).success).toBe(false);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      report: { ...blocked, summary: { ...blocked.summary, high: 0 } },
+    }).success).toBe(false);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      report: { ...blocked, summary: { ...blocked.summary, vulnerabilities: 0 } },
+    }).success).toBe(false);
+  });
+
+  it("treats unknown severity as review-required, not a clean pass", () => {
+    const unknownFinding = {
+      tool: "Trivy", type: "vulnerability" as const, severity: "UNKNOWN" as const,
+      ruleId: "UNCLASSIFIED", title: "Unclassified finding", message: "Severity data unavailable.",
+      path: "manifest.json",
+    };
+    const report = {
+      summary: {
+        ...validReport.summary, totalFindings: 1, unknown: 1, vulnerabilities: 1,
+        gateStatus: "review" as const,
+      },
+      findings: [unknownFinding],
+    };
+    expect(assessmentCallbackSchema.safeParse({ ...validCallback, report }).success).toBe(true);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback, report: { ...report, summary: { ...report.summary, gateStatus: "passed" } },
+    }).success).toBe(false);
+  });
+
+  it("requires valid callback lifecycle timestamps and a start time for running status", () => {
+    const { report: _report, finishedAt: _finishedAt, errorCode: _errorCode, ...runningPayload } = {
+      ...validCallback,
+      status: "running" as const,
+    };
+    expect(assessmentCallbackSchema.safeParse(runningPayload).success).toBe(true);
+    expect(assessmentCallbackSchema.safeParse({ ...runningPayload, startedAt: undefined }).success).toBe(false);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      startedAt: "2026-10-27T12:00:20.000Z",
+      finishedAt: "2026-10-27T12:00:10.000Z",
+    }).success).toBe(false);
+  });
+
+  it("rejects workflow URLs with credentials, ports, queries, or fragments", () => {
+    for (const workflowUrl of [
+      "https://user:pass@github.com/Abhijeetjain4075/ovanite/actions/runs/123",
+      "https://github.com:8443/Abhijeetjain4075/ovanite/actions/runs/123",
+      "https://github.com/Abhijeetjain4075/ovanite/actions/runs/123?redirect=https://example.com",
+      "https://github.com/Abhijeetjain4075/ovanite/actions/runs/123#fragment",
+    ]) {
+      expect(assessmentCallbackSchema.safeParse({ ...validCallback, workflowUrl }).success).toBe(false);
+    }
   });
 });
