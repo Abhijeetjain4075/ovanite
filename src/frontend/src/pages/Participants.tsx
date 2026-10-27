@@ -7,8 +7,8 @@ import { PrimaryButton, SecondaryButton, SurfaceCard, MicroBadge } from "@/compo
 
 const principles = [
   ["01", "Problem first", "Start with the problem, the people affected, and the evidence that the software changes something meaningful."],
-  ["02", "Working software", "Submit a real product, repository, demo, or documentation so the work can be evaluated on evidence rather than promises."],
-  ["03", "Structured review", "Ovanite evaluates submissions against a versioned rubric and preserves the review history for each record."],
+  ["02", "Working software", "When intake opens, the program will ask for a real product and evidence so work can be assessed rather than judged on promises."],
+  ["03", "Structured review", "The planned review process uses a versioned rubric and preserves review history for each record once the native portal is available."],
   ["04", "Clear decisions", "Evaluation and selection are separate records. A score is not a promise of selection, funding, employment, or partnership."],
 ] as const;
 
@@ -16,8 +16,8 @@ export default function Participants() {
   return (
     <>
       <PageMeta
-        title="Participant Platform"
-        description="Submit software to Ovanite and follow its evaluation record through a structured participant platform."
+        title="Participant Platform Overview"
+        description="Learn about Ovanite’s planned software-submission review process. Submission intake is not open yet."
       />
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Participants" }]} />
 
@@ -32,30 +32,29 @@ export default function Participants() {
               Put the work in front of a serious review.
             </h1>
             <p className="mt-7 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Submit software, preserve your evidence, accept the current program terms, and follow the record as it moves through validation, evaluation, and decision.
+              Ovanite is preparing a structured process for reviewing real software. Submission intake is not open yet; this page explains the intended review stages, not a live submission system.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <PrimaryButton asChild size="lg">
-                <Link to="/participants/submit" data-ocid="participants.start_submission_button">
-                  Start a submission
-                </Link>
+              <PrimaryButton size="lg" disabled aria-describedby="participants-access-status">
+                Submission intake is not open
               </PrimaryButton>
               <SecondaryButton asChild size="lg">
-                <Link to="/participants/my-submissions" data-ocid="participants.my_submissions_button">
-                  My submissions
-                </Link>
+                <a href="#submission-lifecycle" data-ocid="participants.review_process_button">
+                  View review stages
+                </a>
               </SecondaryButton>
             </div>
-            <p className="mt-4 max-w-xl text-xs leading-relaxed text-muted-foreground">
-              The participant interface is being connected to Ovanite's native identity and backend layer. Submission records will use your authenticated Ovanite identity, not an email address as the ownership key.
+            <p id="participants-access-status" className="mt-4 max-w-xl text-xs leading-relaxed text-muted-foreground">
+              This is an overview only. Submission, login, saved drafts, and review-history features are not active on this page.
             </p>
           </div>
 
-          <SurfaceCard className="lg:col-span-5 p-6 md:p-8">
+          <SurfaceCard id="submission-lifecycle" className="lg:col-span-5 p-6 md:p-8">
             <div className="flex items-center justify-between border-b border-border pb-4">
               <span className="eyebrow">Submission lifecycle</span>
-              <MicroBadge>Native Ovanite</MicroBadge>
+              <MicroBadge>Planned lifecycle</MicroBadge>
             </div>
+            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">These are intended stages, not live statuses in a production submission record.</p>
             <div className="mt-6 space-y-4 font-mono text-xs">
               {["DRAFT", "SUBMITTED", "VALIDATION", "EVALUATION", "ELIGIBLE / NOT ELIGIBLE", "SELECTED / REJECTED"].map((state, index) => (
                 <div key={state} className="flex items-center gap-3">
@@ -82,12 +81,12 @@ export default function Participants() {
         <div className="mt-16 border border-border bg-muted/30 p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="eyebrow">Already have a record?</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold">Return to your submissions.</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Review status, terms acceptance, validation, evaluation history, and decisions.</p>
+              <p className="eyebrow">Want to participate?</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">Intake opens after the native portal is ready.</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Ovanite will open submissions only after identity, data isolation, reviewer permissions, and lifecycle controls have been implemented and verified.</p>
             </div>
             <SecondaryButton asChild>
-              <Link to="/participants/my-submissions">Open submission records</Link>
+              <Link to="/contact">Contact Ovanite</Link>
             </SecondaryButton>
           </div>
         </div>
