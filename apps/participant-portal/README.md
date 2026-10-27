@@ -67,6 +67,31 @@ The first draft text is visibly marked **configurable placeholder—not approved
 - Sensitive data is not rendered into public pages. Avoid logging submission payloads. Use explicit validation/error states and rate-limiting integration at the server/gateway boundary before broad public launch.
 - Status, terms, rubric, validation, evaluation, decision, and withdrawal actions use additive audit events. No participant-facing delete path is provided.
 
+## Automated static assessment (v1)
+
+The admin review workspace now includes an automated static-assessment request/history panel. The v1 flow is:
+
+1. An owner/editor reviewer requests a scan for a submission in `terms_accepted`, `validation`, or `evaluation`.
+2. The server accepts only a strict public GitHub repository URL, verifies that the repository is active and public through fixed-origin `api.github.com` calls, resolves its default branch to a full commit SHA, and stores a durable run record.
+3. A repository-scoped GitHub Actions token dispatches `.github/workflows/candidate-static-assessment.yml` with the repository, immutable SHA, submission ID, and assessment-run ID.
+4. The worker checks out the pinned source as data and runs Trivy filesystem checks for dependency vulnerabilities, exposed-secret patterns, and supported misconfiguration findings. The worker does not run candidate build scripts, package hooks, tests, or applications.
+5. A separate lightweight workflow job sends a strict-schema callback with a sanitized report. The callback checks its bearer secret in constant time, validates the run ID and source SHA, bounds report size/finding counts, stores the report, and appends an audit event.
+6. The reviewer panel displays run status, pinned commit, counts, gate signal, sanitized findings, and the workflow run link. Each run remains a historical record for its exact source SHA and pipeline version.
+
+The current gate signal is an evidence triage aid: critical/high findings or detected secret patterns mark a run `blocked`; medium/low or configuration findings may require `review`; a clean static result is `passed` for this scanner set only. A completed scan is not a hiring decision and does not prove a SaaS product is enterprise-ready. The workflow retains sanitized artifacts for 30 days; raw Trivy JSON is not uploaded or stored because secret scanners may include matched source material.
+
+### Activation prerequisites
+
+The code is committed on branch `mavis` in the draft PR. End-to-end dispatch requires the PR to be reviewed/merged so the workflow exists on the default branch, an additive database migration, deployment of this separate participant portal, and the matching server/repository configuration described in [ASSESSMENT_CONFIGURATION.md](./ASSESSMENT_CONFIGURATION.md).
+
+Required server settings are `OVANITE_GITHUB_ACTIONS_TOKEN` (fine-grained, repository-scoped Actions dispatch permissions), `OVANITE_ASSESSMENT_CALLBACK_SECRET`, `OVANITE_ASSESSMENT_PORTAL_BASE_URL`, and optionally `OVANITE_ASSESSMENT_WORKFLOW_REF` (default `main`). The matching GitHub repository variable `OVANITE_ASSESSMENT_PORTAL_BASE_URL` and secret `OVANITE_ASSESSMENT_CALLBACK_SECRET` are required for callbacks. Do not expose these values to client code.
+
+There is a durable quota of five new assessment requests per staff account per rolling hour, plus active-run reuse for the same submission. This protects the scan endpoint, but it does not replace general application/edge rate limiting.
+
+### What is not automated yet
+
+The current v1 does not implement full production-readiness testing, an SBOM, build/test isolation, Playwright tests, Opengrep/Gitleaks as independent tools, OWASP ZAP, or k6. The next stages are documented separately. Do not execute candidate source code until a disposable isolated worker with resource limits, no production secrets, restricted egress, SSRF/DNS-rebinding protections, and output caps is in place. Dynamic scans and load tests require explicit target authorization and staging allowlisting.
+
 ## Data model and implementation notes
 
 `drizzle/schema.ts` defines `users.portalRole`, `terms_versions`, `submissions`, `rubric_versions`, `validation_results`, `evaluations`, `decisions`, `withdrawals`, and `portal_audit_events`. `drizzle/` stores additive, deterministic migrations. `server/portal/` contains role policy, lifecycle transitions, input validation, rubric/terms defaults, and protected procedures. `client/src/pages/` contains participant and admin route screens. `client/public/manus-routes.json` lists the page routes. `TODO.md` keeps the full approved product acceptance clauses.
