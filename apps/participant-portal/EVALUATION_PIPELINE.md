@@ -2,19 +2,27 @@
 
 ## Current baseline and non-negotiable boundary
 
-The portal currently records project evidence URLs, versioned terms acceptance, manual validation, rubric-based human evaluation, decisions, and audit events. It does not yet provide an automated production-readiness pipeline. Do not describe a submitted project as scanned, tested, secure, or enterprise-ready until a run record and evidence prove that result.
+The portal records project evidence URLs, versioned terms acceptance, manual validation, rubric-based human evaluation, decisions, and audit events. Branch `mavis` now implements the first automated stage: durable assessment runs, public GitHub repository verification, immutable commit pinning, reviewer-only workflow dispatch, Trivy filesystem scanning, strict callback validation, sanitized finding storage, run history, and an admin panel. This is a first-stage static scanner, not a complete production-readiness pipeline. Do not describe a submitted project as tested, secure, or enterprise-ready just because a static scan completed.
 
 The portal must not fetch candidate URLs or execute candidate code inside the authenticated web process. Submitted repositories, URLs, build scripts, package hooks, container images, and artifacts are untrusted input.
 
 ## Rollout sequence
 
 1. **Portal baseline:** limit request bodies; add baseline response headers; prevent API response caching; safely handle malformed/oversized API bodies; add CI gates for typecheck, unit tests, production build, and a Trivy filesystem scan scoped to this app.
-2. **Static evidence collection:** create durable evaluation-run/job records with submission ID, immutable source revision, tool/version, configuration, start/end time, status, findings, evidence references, resource usage, and reviewer disposition. Preserve every run; never silently overwrite prior results.
+2. **Static evidence collection (implemented in v1):** durable run records store submission ID, immutable source revision, pipeline version, requester, start/end time, status, sanitized findings and reviewer-visible workflow evidence. The run history is append-only; repeat runs do not overwrite historical results. The current scanner is Trivy filesystem analysis only.
 3. **Source/dependency analysis:** run Gitleaks for exposed secrets; Opengrep rules for SAST; Trivy for dependency vulnerabilities, secrets, misconfiguration and supported licence evidence; generate an SBOM (CycloneDX/SPDX) and retain dependency inventory. Pin tool versions and retain machine-readable reports.
 4. **Build and functional verification:** build from an immutable commit in an ephemeral isolated worker; run deterministic tests and Playwright smoke/critical-flow tests against the candidate's isolated staging environment. Store exact commands, environment image digest, logs, test totals, and artifact hashes.
 5. **Dynamic security testing:** OWASP ZAP passive/baseline checks only against a verified, explicitly authorized target. Active scans require separate authorization and staging allowlisting. Never scan arbitrary third-party infrastructure.
 6. **Performance/reliability:** run k6 only against an explicitly authorized staging deployment with a pre-agreed load ceiling, time window, abort thresholds, and owner contact. Do not run load tests against production or arbitrary candidate URLs by default.
 7. **Human gate:** map evidence into the published rubric, show critical findings as hard blockers, allow documented reviewer overrides with actor/time/reason, and keep the final hiring/selection decision human-controlled.
+
+## Current branch implementation status
+
+Implemented in the participant portal branch (not yet production-activated): the `automated_assessment_runs` schema/migration; a staff-only request procedure; strict public GitHub URL parsing and fixed-origin metadata verification; pinned default-branch SHA; dispatch workflow; constant-time callback bearer validation; strict report schema and size limits; per-reviewer five-runs-per-hour quota; active-run de-duplication; sanitized report storage; run history; and the staff-side scan control.
+
+The candidate workflow checks out source at the pinned SHA and treats it as data. Callback secrets are used on separate lightweight jobs and are not passed to the scanner job. Raw Trivy output is not uploaded or persisted. The UI's gate states are only signals: `blocked`, `review`, or `passed` apply to the current scanner set and must not automatically decide hiring or selection.
+
+End-to-end production activation remains pending: review/merge the draft PR; deploy the separate participant portal; apply the additive migration; set the portal and GitHub Actions callback URL/secret consistently; configure a least-privilege workflow-dispatch token; and run an explicitly authorized public test repository through the real deployment. See [ASSESSMENT_CONFIGURATION.md](./ASSESSMENT_CONFIGURATION.md).
 
 ## Required isolation controls before candidate code runs
 
