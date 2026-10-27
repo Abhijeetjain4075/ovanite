@@ -183,7 +183,8 @@ describe("assessment callback state transitions", () => {
     expect(decideAssessmentCallbackTransition("running", workflowRunId, "completed", workflowRunId)).toBe("update");
     expect(decideAssessmentCallbackTransition("running", workflowRunId, "failed", workflowRunId)).toBe("update");
     expect(decideAssessmentCallbackTransition("queued", null, "completed", workflowRunId)).toBe("invalid_transition");
-    expect(decideAssessmentCallbackTransition("dispatched", null, "failed", workflowRunId)).toBe("invalid_transition");
+    expect(decideAssessmentCallbackTransition("dispatched", null, "failed", workflowRunId)).toBe("update");
+    expect(decideAssessmentCallbackTransition("queued", null, "failed", workflowRunId)).toBe("update");
   });
 
   it("makes duplicate callbacks idempotent without allowing another workflow to rewrite a run", () => {
