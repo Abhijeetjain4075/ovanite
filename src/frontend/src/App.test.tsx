@@ -168,4 +168,24 @@ describe("App routing", () => {
       screen.queryByRole("navigation", { name: "Breadcrumb" }),
     ).not.toBeInTheDocument();
   });
+  it("fails closed instead of collecting contact details when the backend is unavailable", async () => {
+    useActorMock.mockReturnValue(actorResult(null));
+    renderAppAt("/contact");
+
+    expect(
+      await screen.findByText(/Contact service is temporarily unavailable/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("contact.form")).not.toBeInTheDocument();
+  });
+
+  it("fails closed instead of collecting waitlist details when the backend is unavailable", async () => {
+    useActorMock.mockReturnValue(actorResult(null));
+    renderAppAt("/waitlist");
+
+    expect(
+      await screen.findByText(/Waitlist service is temporarily unavailable/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("waitlist.form")).not.toBeInTheDocument();
+  });
+
 });
