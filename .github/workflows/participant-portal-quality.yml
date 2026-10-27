@@ -78,6 +78,7 @@ jobs:
           go-version: "1.26.x"
           cache: false
       - name: Install pinned actionlint release
-        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+        run: "go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12"
       - name: Lint portal and candidate-assessment workflows
-        run: "$(go env GOPATH)/bin/actionlint" .github/workflows/participant-portal-quality.yml .github/workflows/candidate-static-assessment.yml
+        run: |
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/participant-portal-quality.yml .github/workflows/candidate-static-assessment.yml
