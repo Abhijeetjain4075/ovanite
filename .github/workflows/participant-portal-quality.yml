@@ -6,12 +6,14 @@ on:
       - "apps/participant-portal/**"
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
+      - ".github/workflows/ovanite-frontend-quality.yml"
   push:
     branches: [main, mavis]
     paths:
       - "apps/participant-portal/**"
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
+      - ".github/workflows/ovanite-frontend-quality.yml"
   workflow_dispatch:
 
 permissions:
