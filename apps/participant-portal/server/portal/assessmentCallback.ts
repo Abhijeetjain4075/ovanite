@@ -72,7 +72,8 @@ export const assessmentCallbackSchema = z.object({
   workflowUrl: z.string().url().max(2048).refine(value => {
     try {
       const url = new URL(value);
-      return url.protocol === "https:" && url.hostname === "github.com" &&
+      return url.protocol === "https:" && url.hostname === "github.com" && !url.username && !url.password &&
+        !url.port && !url.search && !url.hash &&
         /^\/Abhijeetjain4075\/ovanite\/actions\/runs\/\d+$/.test(url.pathname);
     } catch {
       return false;
@@ -149,11 +150,20 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
         .limit(1).for("update");
       if (!run) return "not_found" as const;
       if (run.sourceSha.toLowerCase() !== callback.sourceSha.toLowerCase()) return "revision_mismatch" as const;
+      if (run.workflowRunId && run.workflowRunId !== callback.workflowRunId) return "workflow_mismatch" as const;
 
       if (run.status === "completed" || run.status === "failed" || run.status === "cancelled") {
-        // Repeated identical terminal callbacks are harmless and idempotent.
-        if (run.status === callback.status) return "already_terminal" as const;
+        // Identical terminal deliveries are idempotent; another run cannot overwrite history.
+        if (run.status === callback.status && run.workflowRunId === callback.workflowRunId) return "already_terminal" as const;
         return "terminal_conflict" as const;
+      }
+
+      if (callback.status === "running") {
+        if (run.status === "running" && run.workflowRunId === callback.workflowRunId) return "already_running" as const;
+        if (run.status !== "queued" && run.status !== "dispatched") return "invalid_transition" as const;
+      } else if (run.status !== "running") {
+        // A completed/failed report is accepted only after the worker's authenticated start callback.
+        return "invalid_transition" as const;
       }
 
       const now = new Date();
@@ -200,10 +210,11 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
       res.status(409).json({ error: "Assessment revision does not match the queued commit." });
       return;
     }
-    if (result === "terminal_conflict") {
-      res.status(409).json({ error: "Assessment run is already terminal." });
+    if (result === "terminal_conflict" || result === "workflow_mismatch" || result === "invalid_transition") {
+      res.status(409).json({ error: "Assessment callback conflicts with the stored run state." });
       return;
     }
+    // Duplicate running or terminal callbacks from the same workflow are safe no-ops.
     res.status(204).end();
   } catch {
     // Avoid leaking database details, report contents, or submitted project information.
