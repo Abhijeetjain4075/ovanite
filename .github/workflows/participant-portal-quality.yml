@@ -1,0 +1,63 @@
+name: Participant portal quality and security
+
+on:
+  pull_request:
+    paths:
+      - "apps/participant-portal/**"
+      - ".github/workflows/participant-portal-quality.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "apps/participant-portal/**"
+      - ".github/workflows/participant-portal-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: participant-portal-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck, tests, and production build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/participant-portal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/participant-portal/pnpm-lock.yaml
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm check
+      - name: Unit tests
+        run: pnpm test
+      - name: Production build
+        run: pnpm build
+
+  filesystem-security:
+    name: Trivy dependency, secret, and configuration scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Scan only the participant portal
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: apps/participant-portal
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
