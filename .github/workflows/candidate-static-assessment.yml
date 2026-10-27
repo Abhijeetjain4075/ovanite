@@ -33,12 +33,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  inspect:
-    name: Static analysis of untrusted candidate source
+  validate-inputs:
+    name: Validate untrusted dispatch fields
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    outputs:
+      candidate_repository: ${{ steps.validate.outputs.candidate_repository }}
+      candidate_sha: ${{ steps.validate.outputs.candidate_sha }}
+      submission_id: ${{ steps.validate.outputs.submission_id }}
+      assessment_run_id: ${{ steps.validate.outputs.assessment_run_id }}
     steps:
-      - name: Validate dispatch inputs
+      - name: Validate repository name, identifiers, and immutable SHA
         id: validate
         env:
           CANDIDATE_REPOSITORY: ${{ inputs.candidate_repository }}
@@ -48,47 +52,59 @@ jobs:
           ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
         run: |
           python - <<'PY'
-          import os, re
-          from pathlib import PurePosixPath
-
+          import os, re, uuid
           repo = os.environ["CANDIDATE_REPOSITORY"]
           sha = os.environ["CANDIDATE_SHA"].lower()
           branch = os.environ["CANDIDATE_BRANCH"]
-          submission_id = os.environ["PORTAL_SUBMISSION_ID"]
-          run_id = os.environ["ASSESSMENT_RUN_ID"]
-          if not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}", repo):
-              raise SystemExit("candidate_repository must be exactly owner/name")
+          try:
+              owner, name = repo.split("/", 1)
+          except ValueError:
+              raise SystemExit("candidate_repository must be owner/name")
+          if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}", owner):
+              raise SystemExit("candidate repository owner is invalid")
+          if not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", name) or name in (".", ".."):
+              raise SystemExit("candidate repository name is invalid")
           if not re.fullmatch(r"[a-f0-9]{40}", sha):
               raise SystemExit("candidate_sha must be an immutable 40-character SHA")
           if not re.fullmatch(r"[A-Za-z0-9_.\/-]{1,255}", branch) or ".." in branch or branch.startswith("-"):
               raise SystemExit("candidate_default_branch is invalid")
-          if not re.fullmatch(r"[0-9a-fA-F-]{36}", submission_id) or not re.fullmatch(r"[0-9a-fA-F-]{36}", run_id):
-              raise SystemExit("submission and run identifiers must be UUID-shaped")
+          try:
+              submission_id = str(uuid.UUID(os.environ["PORTAL_SUBMISSION_ID"]))
+              run_id = str(uuid.UUID(os.environ["ASSESSMENT_RUN_ID"]))
+          except (ValueError, AttributeError):
+              raise SystemExit("submission and assessment identifiers must be UUIDs")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"candidate_repository={repo}\n")
+              output.write(f"candidate_repository={owner}/{name}\n")
               output.write(f"candidate_sha={sha}\n")
+              output.write(f"submission_id={submission_id}\n")
+              output.write(f"assessment_run_id={run_id}\n")
           PY
 
-      - name: Mark the portal run as running
-        if: steps.validate.outcome == 'success'
+  mark-running:
+    name: Mark assessment running (no candidate source)
+    needs: validate-inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send authenticated running callback
         env:
           PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
           CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
-          ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
-          CANDIDATE_SHA: ${{ steps.validate.outputs.candidate_sha }}
+          ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
         run: |
           set -euo pipefail
-          test -n "$PORTAL_BASE_URL" || { echo "Missing portal callback URL configuration"; exit 1; }
-          test -n "$CALLBACK_SECRET" || { echo "Missing callback secret configuration"; exit 1; }
           python - <<'PY'
           import json, os
           from datetime import datetime, timezone
-          base = os.environ["PORTAL_BASE_URL"].rstrip("/")
-          run_id = os.environ["ASSESSMENT_RUN_ID"]
-          sha = os.environ["CANDIDATE_SHA"]
+          from urllib.parse import urlparse
+          base = os.environ.get("PORTAL_BASE_URL", "").rstrip("/")
+          secret = os.environ.get("CALLBACK_SECRET", "")
+          parsed = urlparse(base)
+          if not secret or parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+              raise SystemExit("Assessment callback configuration is missing or invalid")
           payload = {
-              "assessmentRunId": run_id,
-              "sourceSha": sha,
+              "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+              "sourceSha": os.environ["CANDIDATE_SHA"],
               "status": "running",
               "workflowRunId": os.environ["GITHUB_RUN_ID"],
               "workflowUrl": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
@@ -109,13 +125,19 @@ jobs:
           ], check=True)
           PY
 
+  inspect:
+    name: Static analysis of untrusted candidate source
+    needs: [validate-inputs, mark-running]
+    if: needs.validate-inputs.result == 'success' && needs.mark-running.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
       - name: Checkout candidate source at the immutable commit
         id: candidate_checkout
-        if: steps.validate.outcome == 'success'
         uses: actions/checkout@v4
         with:
-          repository: ${{ steps.validate.outputs.candidate_repository }}
-          ref: ${{ steps.validate.outputs.candidate_sha }}
+          repository: ${{ needs.validate-inputs.outputs.candidate_repository }}
+          ref: ${{ needs.validate-inputs.outputs.candidate_sha }}
           path: candidate-source
           fetch-depth: 1
           persist-credentials: false
@@ -128,7 +150,7 @@ jobs:
 
       - name: Run Trivy filesystem analysis
         id: trivy_scan
-        if: steps.validate.outcome == 'success' && steps.candidate_checkout.outcome == 'success'
+        if: steps.candidate_checkout.outcome == 'success'
         continue-on-error: true
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -140,14 +162,12 @@ jobs:
           timeout: 10m
           exit-code: "0"
 
-      - name: Create sanitized report and notify portal
+      - name: Create sanitized report envelope
         id: report
-        if: always() && steps.validate.outcome == 'success'
+        if: always()
         env:
-          PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
-          CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
-          ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
-          CANDIDATE_SHA: ${{ steps.validate.outputs.candidate_sha }}
+          ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
           CANDIDATE_CHECKOUT_OUTCOME: ${{ steps.candidate_checkout.outcome }}
           TRIVY_OUTCOME: ${{ steps.trivy_scan.outcome }}
         run: |
@@ -156,34 +176,34 @@ jobs:
           from datetime import datetime, timezone
 
           source_path = "reports/trivy-raw.json"
-          raw = {}
+          raw = None
           try:
-              with open(source_path, encoding="utf-8") as f:
-                  raw = json.load(f)
+              with open(source_path, encoding="utf-8") as source:
+                  raw = json.load(source)
           except (OSError, json.JSONDecodeError):
-              raw = {}
+              raw = None
 
           findings = []
           totals = {"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0,
                     "vulnerabilities": 0, "secrets": 0, "misconfigurations": 0}
-          severities = {"CRITICAL": "critical", "HIGH": "high", "MEDIUM": "medium", "LOW": "low"}
-          truncated = False
+          severity_keys = {"CRITICAL": "critical", "HIGH": "high", "MEDIUM": "medium", "LOW": "low"}
 
           def severity_of(item):
               value = str(item.get("Severity") or "UNKNOWN").upper()
               return value if value in ("CRITICAL", "HIGH", "MEDIUM", "LOW") else "UNKNOWN"
 
           def add_finding(item, target, kind, rule_id, title, message, line=None, package=None, installed=None, fixed=None, reference=None):
-              nonlocal_dummy = None
               sev = severity_of(item)
-              totals[severities.get(sev, "unknown")] += 1
+              totals[severity_keys.get(sev, "unknown")] += 1
               record = {
                   "tool": "Trivy", "type": kind, "severity": sev,
-                  "ruleId": str(rule_id or "")[:200], "title": str(title or rule_id or kind)[:500],
-                  "message": str(message or "")[:1500], "path": str(target or "")[:1024],
+                  "ruleId": str(rule_id or "")[:200],
+                  "title": str(title or rule_id or kind)[:500],
+                  "message": str(message or "")[:1500],
+                  "path": str(target or "")[:1024],
               }
-              if line and isinstance(line, int) and line > 0:
-                  record["line"] = line
+              if isinstance(line, int) and line > 0:
+                  record["line"] = min(line, 100000000)
               if package: record["packageName"] = str(package)[:200]
               if installed: record["installedVersion"] = str(installed)[:100]
               if fixed: record["fixedVersion"] = str(fixed)[:100]
@@ -191,24 +211,23 @@ jobs:
                   record["referenceUrl"] = reference[:2048]
               findings.append(record)
 
-          for result in raw.get("Results") or []:
+          for result in (raw or {}).get("Results") or []:
               if not isinstance(result, dict):
                   continue
               target = result.get("Target") or result.get("Type") or "source"
               for item in result.get("Vulnerabilities") or []:
                   if not isinstance(item, dict): continue
                   totals["vulnerabilities"] += 1
-                  refs = item.get("PrimaryURL") or ""
                   add_finding(item, target, "vulnerability", item.get("VulnerabilityID"),
                               item.get("Title"), item.get("Description") or item.get("PkgName"),
                               package=item.get("PkgName"), installed=item.get("InstalledVersion"),
-                              fixed=item.get("FixedVersion"), reference=refs)
+                              fixed=item.get("FixedVersion"), reference=item.get("PrimaryURL"))
               for item in result.get("Secrets") or []:
                   if not isinstance(item, dict): continue
                   totals["secrets"] += 1
-                  # Never include matched values, code excerpts, snippets, or secret contents in the retained report.
+                  # Never retain matched values, code excerpts, or raw secret contents.
                   add_finding(item, target, "secret", item.get("RuleID"), item.get("Title") or item.get("Category"),
-                              "Potential secret detected. Inspect privately in the isolated workflow artifact/source.",
+                              "Potential secret detected. Inspect privately in the isolated workflow/source.",
                               line=item.get("StartLine"), reference=item.get("PrimaryURL"))
               for item in result.get("Misconfigurations") or []:
                   if not isinstance(item, dict): continue
@@ -220,24 +239,18 @@ jobs:
                               reference=item.get("PrimaryURL"))
 
           total = sum(totals[k] for k in ("vulnerabilities", "secrets", "misconfigurations"))
-          if len(findings) > 200:
-              truncated = True
-              findings = findings[:200]
+          truncated = len(findings) > 200
+          findings = findings[:200]
           high_risk = totals["critical"] + totals["high"]
           medium_or_low = totals["medium"] + totals["low"]
-          if high_risk > 0 or totals["secrets"] > 0:
-              gate = "blocked"
-          elif medium_or_low > 0 or totals["misconfigurations"] > 0:
-              gate = "review"
-          else:
-              gate = "passed"
-
+          gate = "blocked" if high_risk > 0 or totals["secrets"] > 0 else (
+              "review" if medium_or_low > 0 or totals["misconfigurations"] > 0 else "passed")
           checkout_outcome = os.environ.get("CANDIDATE_CHECKOUT_OUTCOME", "")
           scan_outcome = os.environ.get("TRIVY_OUTCOME", "")
-          failed = checkout_outcome != "success" or scan_outcome != "success" or not raw
+          failed = checkout_outcome != "success" or scan_outcome != "success" or not isinstance(raw, dict)
           if checkout_outcome != "success":
               error_code = "source_checkout_failed"
-          elif scan_outcome != "success" or not raw:
+          elif scan_outcome != "success" or not isinstance(raw, dict):
               error_code = "scan_failed"
           else:
               error_code = None
@@ -249,21 +262,19 @@ jobs:
                   "medium": totals["medium"], "low": totals["low"], "unknown": totals["unknown"],
                   "vulnerabilities": totals["vulnerabilities"], "secrets": totals["secrets"],
                   "misconfigurations": totals["misconfigurations"], "licenses": 0,
-                  "gateStatus": gate if not failed else "not_assessed",
-                  "truncated": truncated,
+                  "gateStatus": gate if not failed else "not_assessed", "truncated": truncated,
               },
               "findings": findings,
           }
           with open("reports/sanitized-report.json", "w", encoding="utf-8") as f:
               json.dump(report, f, ensure_ascii=False)
-          now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
           payload = {
               "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
               "sourceSha": os.environ["CANDIDATE_SHA"],
               "status": "failed" if failed else "completed",
               "workflowRunId": os.environ["GITHUB_RUN_ID"],
               "workflowUrl": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
-              "finishedAt": now,
+              "finishedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
               "errorCode": error_code,
           }
           if not failed:
@@ -275,25 +286,72 @@ jobs:
           print("Assessment report created:", json.dumps(report["summary"]))
           PY
 
-          if [ -z "$PORTAL_BASE_URL" ] || [ -z "$CALLBACK_SECRET" ]; then
-            echo "Callback configuration missing; report remains available as a sanitized workflow artifact." >&2
-            exit 1
-          fi
+      - name: Upload sanitized result envelope only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-assessment-${{ needs.validate-inputs.outputs.assessment_run_id }}
+          path: |
+            reports/callback.json
+            reports/sanitized-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Fail workflow when static analysis infrastructure failed
+        if: always() && steps.report.outputs.assessment_failed == 'true'
+        run: exit 1
+
+  notify:
+    name: Return sanitized result to the portal (separate runner)
+    needs: [validate-inputs, mark-running, inspect]
+    if: always() && needs.validate-inputs.result == 'success' && needs.mark-running.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download sanitized report artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: candidate-assessment-${{ needs.validate-inputs.outputs.assessment_run_id }}
+          path: reports
+          if-no-artifact-found: ignore
+
+      - name: Deliver result or safe worker-failure status
+        env:
+          PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
+          CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
+          ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          path = "reports/callback.json"
+          try:
+              if os.path.getsize(path) > 500000:
+                  raise ValueError("callback artifact too large")
+              with open(path, encoding="utf-8") as f:
+                  payload = json.load(f)
+              if payload.get("assessmentRunId") != os.environ["ASSESSMENT_RUN_ID"] or payload.get("sourceSha") != os.environ["CANDIDATE_SHA"]:
+                  raise ValueError("assessment identity mismatch")
+          except (OSError, ValueError, json.JSONDecodeError):
+              payload = {
+                  "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+                  "sourceSha": os.environ["CANDIDATE_SHA"],
+                  "status": "failed",
+                  "workflowRunId": os.environ["GITHUB_RUN_ID"],
+                  "workflowUrl": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
+                  "finishedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                  "errorCode": "worker_failed",
+              }
+          with open("reports/callback-to-send.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False)
+          PY
+          test -n "$PORTAL_BASE_URL" || { echo "Missing portal callback URL configuration"; exit 1; }
+          test -n "$CALLBACK_SECRET" || { echo "Missing callback secret configuration"; exit 1; }
           curl --silent --show-error --fail --max-time 20 \
             -X POST "${PORTAL_BASE_URL%/}/api/assessment/callback" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${CALLBACK_SECRET}" \
-            --data-binary @reports/callback.json
-
-      - name: Upload sanitized assessment report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: candidate-assessment-${{ inputs.assessment_run_id }}
-          path: reports/sanitized-report.json
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Mark run failed when source or scanner failed
-        if: always() && steps.report.outputs.assessment_failed == 'true'
-        run: exit 1
+            --data-binary @reports/callback-to-send.json
