@@ -74,11 +74,11 @@ The admin review workspace now includes an automated static-assessment request/h
 1. An owner/editor reviewer requests a scan for a submission in `terms_accepted`, `validation`, or `evaluation`.
 2. The server accepts only a strict public GitHub repository URL, verifies that the repository is active and public through fixed-origin `api.github.com` calls, resolves its default branch to a full commit SHA, and stores a durable run record.
 3. A repository-scoped GitHub Actions token dispatches `.github/workflows/candidate-static-assessment.yml` with the repository, immutable SHA, submission ID, and assessment-run ID.
-4. The worker checks out the pinned source as data and runs Trivy filesystem checks for dependency vulnerabilities, exposed-secret patterns, and supported misconfiguration findings. The worker does not run candidate build scripts, package hooks, tests, or applications.
+4. The worker checks out the pinned source as data and runs Trivy filesystem checks for dependency vulnerabilities, exposed-secret patterns, supported misconfiguration findings, and license findings. It also generates a CycloneDX SBOM with a SHA-256 digest and component count. The worker does not run candidate build scripts, package hooks, tests, or applications.
 5. A separate lightweight workflow job sends a strict-schema callback with a sanitized report. The callback checks its bearer secret in constant time, validates the run ID and source SHA, bounds report size/finding counts, stores the report, and appends an audit event.
 6. The reviewer panel displays run status, pinned commit, counts, gate signal, sanitized findings, and the workflow run link. Each run remains a historical record for its exact source SHA and pipeline version.
 
-The current gate signal is an evidence triage aid: critical/high findings or detected secret patterns mark a run `blocked`; medium/low or configuration findings may require `review`; a clean static result is `passed` for this scanner set only. A completed scan is not a hiring decision and does not prove a SaaS product is enterprise-ready. The workflow retains sanitized artifacts for 30 days; raw Trivy JSON is not uploaded or stored because secret scanners may include matched source material.
+The current gate signal is an evidence triage aid: critical/high findings or detected secret patterns mark a run `blocked`; medium/low, unknown-severity, license, or configuration findings may require `review`; a clean static result is `passed` for this scanner set only. A completed scan is not a hiring decision and does not prove a SaaS product is enterprise-ready. The workflow retains sanitized report and CycloneDX SBOM artifacts for 30 days; raw Trivy JSON is not uploaded or stored because secret scanners may include matched source material.
 
 ### Activation prerequisites
 
@@ -90,7 +90,7 @@ There is a durable quota of five new assessment requests per staff account per r
 
 ### What is not automated yet
 
-The current v1 does not implement full production-readiness testing, an SBOM, build/test isolation, Playwright tests, Opengrep/Gitleaks as independent tools, OWASP ZAP, or k6. The next stages are documented separately. Do not execute candidate source code until a disposable isolated worker with resource limits, no production secrets, restricted egress, SSRF/DNS-rebinding protections, and output caps is in place. Dynamic scans and load tests require explicit target authorization and staging allowlisting.
+The current v1 does not implement full production-readiness testing, candidate builds or test execution, a hardened build sandbox, Playwright functional tests, independent Opengrep/Gitleaks passes, OWASP ZAP, or k6. It does generate a CycloneDX SBOM; that inventory is not proof of full license compliance or enterprise readiness. The next stages are documented separately. Do not execute candidate source code until a disposable isolated worker with resource limits, no production secrets, restricted egress, SSRF/DNS-rebinding protections, and output caps is in place. Dynamic scans and load tests require explicit target authorization and staging allowlisting.
 
 ## Data model and implementation notes
 
