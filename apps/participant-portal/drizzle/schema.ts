@@ -218,6 +218,7 @@ export const automatedAssessmentRuns = mysqlTable(
     index("assessment_submission_created_idx").on(table.submissionId, table.createdAt),
     index("assessment_status_created_idx").on(table.status, table.createdAt),
     index("assessment_source_commit_idx").on(table.sourceRepository, table.sourceSha),
+    index("assessment_requester_created_idx").on(table.requestedBy, table.createdAt),
   ],
 );
 
