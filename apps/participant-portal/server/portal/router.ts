@@ -368,6 +368,14 @@ export const portalRouter = router({
         };
       }
 
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const recentRequests = await db.select({ id: automatedAssessmentRuns.id }).from(automatedAssessmentRuns)
+        .where(and(eq(automatedAssessmentRuns.requestedBy, ctx.user.id), gte(automatedAssessmentRuns.createdAt, oneHourAgo)))
+        .limit(5);
+      if (recentRequests.length >= 5) {
+        throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "The assessment limit is five requests per staff account per hour. Retry after older requests leave the rolling window." });
+      }
+
       let revision: { branch: string; sha: string };
       try {
         revision = await resolvePublicGitHubRevision(repository.fullName);
@@ -380,6 +388,10 @@ export const portalRouter = router({
 
       const runId = randomUUID();
       const created = await db.transaction(async tx => {
+        // Serialize per-staff dispatches so concurrent requests cannot trivially bypass the hourly quota.
+        const [requester] = await tx.select({ id: users.id }).from(users)
+          .where(eq(users.id, ctx.user.id)).limit(1).for("update");
+        if (!requester) throw new TRPCError({ code: "UNAUTHORIZED", message: "Reviewer account is unavailable." });
         const [current] = await tx.select().from(submissions)
           .where(eq(submissions.id, input.id)).limit(1).for("update");
         if (!current) throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found." });
@@ -402,6 +414,16 @@ export const portalRouter = router({
             id: existingRun.id, status: existingRun.status, sourceSha: existingRun.sourceSha,
             sourceRepository: existingRun.sourceRepository, workflowUrl: existingRun.workflowUrl, reused: true,
           };
+        }
+
+        const recentRequestsInTransaction = await tx.select({ id: automatedAssessmentRuns.id })
+          .from(automatedAssessmentRuns)
+          .where(and(
+            eq(automatedAssessmentRuns.requestedBy, ctx.user.id),
+            gte(automatedAssessmentRuns.createdAt, new Date(Date.now() - 60 * 60 * 1000)),
+          )).limit(5);
+        if (recentRequestsInTransaction.length >= 5) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "The assessment limit is five requests per staff account per hour. Retry after older requests leave the rolling window." });
         }
 
         await tx.insert(automatedAssessmentRuns).values({
