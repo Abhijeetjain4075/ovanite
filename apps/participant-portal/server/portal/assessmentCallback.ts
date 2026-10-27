@@ -6,7 +6,7 @@ import { ENV } from "../_core/env";
 import { getDb } from "../db";
 import { automatedAssessmentRuns, portalAuditEvents } from "../../drizzle/schema";
 
-const countSchema = z.number().int().min(0).max(100000);
+const countSchema = z.number().int().min(0).max(1000000000);
 const findingSchema = z.object({
   tool: z.string().trim().min(1).max(40),
   type: z.enum(["vulnerability", "secret", "misconfiguration", "license", "other"]),
@@ -38,7 +38,31 @@ const reportSchema = z.object({
     truncated: z.boolean(),
   }).strict(),
   findings: z.array(findingSchema).max(200),
-}).strict();
+}).strict().superRefine((report, ctx) => {
+  const { summary, findings } = report;
+  const categoryTotal = summary.vulnerabilities + summary.secrets + summary.misconfigurations + summary.licenses;
+  if (summary.totalFindings !== categoryTotal) {
+    ctx.addIssue({ code: "custom", path: ["summary", "totalFindings"], message: "Finding total must match category counts." });
+  }
+  const severityTotal = summary.critical + summary.high + summary.medium + summary.low + summary.unknown;
+  if (summary.totalFindings !== severityTotal) {
+    ctx.addIssue({ code: "custom", path: ["summary"], message: "Severity counts must add up to the total." });
+  }
+  if (findings.length > summary.totalFindings) {
+    ctx.addIssue({ code: "custom", path: ["findings"], message: "Visible findings cannot exceed the summary total." });
+  }
+  if (!summary.truncated && findings.length !== summary.totalFindings) {
+    ctx.addIssue({ code: "custom", path: ["findings"], message: "Untruncated reports must include every finding." });
+  }
+  const expectedGate = summary.critical + summary.high > 0 || summary.secrets > 0
+    ? "blocked"
+    : summary.medium + summary.low + summary.unknown > 0 || summary.misconfigurations > 0
+      ? "review"
+      : "passed";
+  if (summary.gateStatus !== expectedGate) {
+    ctx.addIssue({ code: "custom", path: ["summary", "gateStatus"], message: "Gate status is inconsistent with reported findings." });
+  }
+});
 
 export const assessmentCallbackSchema = z.object({
   assessmentRunId: z.string().uuid(),
@@ -64,6 +88,21 @@ export const assessmentCallbackSchema = z.object({
   }
   if (value.status === "failed" && !value.errorCode) {
     ctx.addIssue({ code: "custom", path: ["errorCode"], message: "Failed assessments require a safe error code." });
+  }
+  if (value.status === "running" && !value.startedAt) {
+    ctx.addIssue({ code: "custom", path: ["startedAt"], message: "Running assessments require a start time." });
+  }
+  if (value.status !== "running" && !value.finishedAt) {
+    ctx.addIssue({ code: "custom", path: ["finishedAt"], message: "Terminal assessments require a finish time." });
+  }
+  if (value.status === "running" && (value.finishedAt || value.errorCode || value.report)) {
+    ctx.addIssue({ code: "custom", path: ["status"], message: "A running callback cannot contain terminal output." });
+  }
+  if (value.status === "completed" && value.errorCode) {
+    ctx.addIssue({ code: "custom", path: ["errorCode"], message: "A completed callback cannot contain a failure code." });
+  }
+  if (value.startedAt && value.finishedAt && Date.parse(value.finishedAt) < Date.parse(value.startedAt)) {
+    ctx.addIssue({ code: "custom", path: ["finishedAt"], message: "Finish time cannot precede start time." });
   }
 });
 
