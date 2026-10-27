@@ -7,6 +7,7 @@ import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { assessmentCallbackHandler } from "../portal/assessmentCallback";
 
 async function startServer() {
   const app = express();
@@ -28,6 +29,9 @@ async function startServer() {
   });
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ limit: "32kb", extended: false, parameterLimit: 100 }));
+
+  // Isolated workers can post only schema-validated assessment summaries here.
+  app.post("/api/assessment/callback", assessmentCallbackHandler);
 
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   app.get("/api/platform/config.js", (_req, res) => {
