@@ -145,6 +145,11 @@ export function decideAssessmentCallbackTransition(
     return currentStatus === "queued" || currentStatus === "dispatched" ? "update" : "invalid_transition";
   }
 
+  if (incomingStatus === "failed" && (currentStatus === "queued" || currentStatus === "dispatched")) {
+    // Allows an authenticated worker to persist a safe infrastructure-failure callback
+    // when its initial "running" callback could not be recorded.
+    return "update";
+  }
   return currentStatus === "running" ? "update" : "invalid_transition";
 }
 
@@ -204,7 +209,7 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
         status: callback.status,
         workflowRunId: callback.workflowRunId,
         workflowUrl: callback.workflowUrl,
-        startedAt: run.startedAt ?? startedAt,
+        startedAt: run.startedAt ?? (callback.startedAt ? startedAt : callback.status === "running" ? now : null),
         finishedAt,
         report: callback.report ?? run.report,
         errorCode: callback.status === "failed" ? callback.errorCode ?? "worker_failed" : null,
