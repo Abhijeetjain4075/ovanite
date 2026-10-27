@@ -155,7 +155,7 @@ export default function AdminSubmissionPage() {
           <span className="mono panel-count">{assessmentRunsQuery.data?.length ?? "—"} RUNS</span>
         </div>
         <p className="section-copy">
-          This first automated stage scans a public GitHub repository at an immutable commit for dependency vulnerabilities, exposed-secret patterns, and supported configuration issues. It does not execute candidate code, build the SaaS, or prove enterprise readiness.
+          This static stage pins a public GitHub repository to an immutable commit, scans dependency vulnerabilities, secret patterns, configuration issues, and supported package licenses, and generates a CycloneDX SBOM. It does not execute candidate code, build the SaaS, or prove enterprise readiness.
         </p>
         {canReview && ["terms_accepted", "validation", "evaluation"].includes(submission.status) && (
           <div className="wizard-actions">
@@ -188,11 +188,13 @@ export default function AdminSubmissionPage() {
                   <div><span>Findings</span><strong>{summary?.totalFindings ?? "Not available"}</strong></div>
                   <div><span>Secrets</span><strong>{summary?.secrets ?? "—"}</strong></div>
                   <div><span>Configuration findings</span><strong>{summary?.misconfigurations ?? "—"}</strong></div>
+                  <div><span>License findings</span><strong>{summary?.licenses ?? "—"}</strong></div>
+                  <div><span>SBOM components</span><strong>{run.report?.sbom.componentCount ?? "—"}</strong></div>
                 </div>
                 {run.workflowUrl && <p className="field-hint"><a className="text-link" href={run.workflowUrl} target="_blank" rel="noopener noreferrer">Open workflow run <ExternalLink size={12} /></a></p>}
                 {run.errorCode && <p className="validation-record-notes"><strong>Execution status</strong>{run.errorCode.replaceAll("_", " ")}</p>}
                 {run.report && <>
-                  <p className="field-hint">Machine findings are evidence for review, not a hiring decision. {summary?.truncated ? "The displayed finding list is capped; the summary counts include all scanner findings." : ""}</p>
+                  <p className="field-hint">CycloneDX SBOM · SHA-256 <span className="mono">{run.report.sbom.sha256}</span>. Download the retained `candidate.sbom.cdx.json` from the workflow artifacts. Machine findings are evidence for review, not a hiring decision. {summary?.truncated ? "The displayed finding list is capped; the summary counts include all scanner findings." : ""}</p>
                   {run.report.findings.length ? <div className="assessment-findings">
                     {run.report.findings.map((finding, index) => <article className="audit-event" key={`${finding.tool}-${finding.ruleId}-${finding.path}-${index}`}>
                       <span className="audit-mark" />
