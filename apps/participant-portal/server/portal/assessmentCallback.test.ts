@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { assessmentCallbackSchema, decideAssessmentCallbackTransition } from "./assessmentCallback";
 
 const validReport = {
+  sbom: {
+    format: "CycloneDX" as const,
+    componentCount: 0,
+    sha256: "b".repeat(64),
+    fileName: "candidate.sbom.cdx.json" as const,
+  },
   summary: {
     totalFindings: 0,
     critical: 0,
@@ -96,6 +102,17 @@ describe("assessment callback contract", () => {
     expect(assessmentCallbackSchema.safeParse({
       ...validCallback,
       report: { ...validReport, findings: Array(201).fill(finding) },
+    }).success).toBe(false);
+  });
+
+  it("requires a valid CycloneDX SBOM digest and rejects untrusted SBOM filenames", () => {
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      report: { ...validReport, sbom: { ...validReport.sbom, sha256: "not-a-digest" } },
+    }).success).toBe(false);
+    expect(assessmentCallbackSchema.safeParse({
+      ...validCallback,
+      report: { ...validReport, sbom: { ...validReport.sbom, fileName: "../../secrets.txt" } },
     }).success).toBe(false);
   });
 
