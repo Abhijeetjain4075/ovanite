@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canTransition } from "./lifecycle";
-import { normalizeWebUrl, submissionDataSchema } from "./validation";
+import { normalizeWebUrl, parsePublicGitHubRepository, submissionDataSchema } from "./validation";
 
 describe("submission lifecycle", () => {
   it("allows only explicit forward transitions", () => {
@@ -61,5 +61,29 @@ describe("submission evidence validation", () => {
   it("rejects unsupported schemes and URL values beyond the size limit", () => {
     expect(submissionDataSchema.safeParse({ ...valid, liveUrl: "file:///etc/passwd" }).success).toBe(false);
     expect(submissionDataSchema.safeParse({ ...valid, liveUrl: `https://example.com/${"a".repeat(2050)}` }).success).toBe(false);
+  });
+});
+
+describe("public GitHub repository parsing", () => {
+  it("accepts canonical GitHub repository URLs and strips a .git suffix", () => {
+    expect(parsePublicGitHubRepository("https://github.com/ExampleOwner/project.git")).toEqual({
+      owner: "ExampleOwner",
+      name: "project",
+      fullName: "ExampleOwner/project",
+    });
+  });
+
+  it("rejects non-GitHub hosts, subpaths, credentials, ports, query strings, and malformed owners", () => {
+    for (const value of [
+      "http://github.com/owner/repo",
+      "https://github.evil.example/owner/repo",
+      "https://github.com/owner/repo/tree/main",
+      "https://user:pass@github.com/owner/repo",
+      "https://github.com:8443/owner/repo",
+      "https://github.com/owner/repo?redirect=https://example.com",
+      "https://github.com/../repo",
+    ]) {
+      expect(parsePublicGitHubRepository(value)).toBeNull();
+    }
   });
 });
