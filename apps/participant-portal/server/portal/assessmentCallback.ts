@@ -66,7 +66,7 @@ const reportSchema = z.object({
 
 export const assessmentCallbackSchema = z.object({
   assessmentRunId: z.string().uuid(),
-  sourceRepository: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/).refine(value => { const name = value.split("/")[1]; return name !== "." && name !== ".."; }),
+  sourceRepository: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/).refine(value => { const name = value.split("/")[1]; return name !== "." && name !== ".."; }),
   sourceSha: z.string().regex(/^[a-f0-9]{40}$/i),
   status: z.enum(["running", "completed", "failed"]),
   workflowRunId: z.string().regex(/^\d{1,32}$/),
