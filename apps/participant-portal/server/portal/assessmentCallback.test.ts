@@ -149,6 +149,7 @@ describe("assessment callback contract", () => {
       path: "manifest.json",
     };
     const report = {
+      sbom: validReport.sbom,
       summary: {
         ...validReport.summary, totalFindings: 1, unknown: 1, vulnerabilities: 1,
         gateStatus: "review" as const,
