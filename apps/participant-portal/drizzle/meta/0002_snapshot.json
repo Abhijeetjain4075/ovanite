@@ -1296,6 +1296,14 @@
             "sourceSha"
           ],
           "isUnique": false
+        },
+        "assessment_requester_created_idx": {
+          "name": "assessment_requester_created_idx",
+          "columns": [
+            "requestedBy",
+            "createdAt"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
