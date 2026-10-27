@@ -160,7 +160,7 @@ export const withdrawals = mysqlTable("withdrawals", {
 });
 
 export type AssessmentFindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
-export type AssessmentGateStatus = "blocked" | "review" | "passed" | "not_assessed";
+export type AssessmentGateStatus = "blocked" | "review" | "passed";
 export type AssessmentRunReport = {
   summary: {
     totalFindings: number;
