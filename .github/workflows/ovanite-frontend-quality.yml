@@ -1,0 +1,62 @@
+name: Ovanite frontend quality
+
+on:
+  pull_request:
+    paths:
+      - "src/frontend/**"
+      - "vercel.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/ovanite-frontend-quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/frontend/**"
+      - "vercel.json"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/ovanite-frontend-quality.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ovanite-frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck, tests, build, and deployment metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Enable Corepack and activate the pinned pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck frontend
+        run: pnpm --dir src/frontend typecheck
+      - name: Unit tests
+        run: pnpm --dir src/frontend test
+      - name: Build frontend and render canonical public URLs
+        env:
+          VITE_PUBLIC_ORIGIN: https://ovanite.vercel.app
+        run: pnpm --dir src/frontend build
+      - name: Verify generated deployment metadata
+        run: |
+          node --input-type=module -e 'for (const file of ["vercel.json", "src/frontend/vercel.json"]) JSON.parse(await (await import("node:fs/promises")).readFile(file, "utf8"));'
+          if grep -q "__PUBLIC_ORIGIN__" src/frontend/dist/robots.txt src/frontend/dist/sitemap.xml; then
+            echo "Unresolved public-origin placeholder in built SEO metadata" >&2
+            exit 1
+          fi
+          grep -q "https://ovanite.vercel.app/participants" src/frontend/dist/sitemap.xml
+          grep -q "Disallow: /admin" src/frontend/dist/robots.txt
