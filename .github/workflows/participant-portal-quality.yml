@@ -33,10 +33,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: apps/participant-portal/pnpm-lock.yaml
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Enable Corepack and activate the pinned pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Typecheck
