@@ -108,7 +108,7 @@ export const assessmentCallbackSchema = z.object({
   }
   let workflowRunIdInUrl: string | undefined;
   try {
-    workflowRunIdInUrl = new URL(value.workflowUrl).pathname.match(/\\/actions\\/runs\\/(\\d+)$/)?.[1];
+    workflowRunIdInUrl = new URL(value.workflowUrl).pathname.match(/\/actions\/runs\/(\d+)$/)?.[1];
   } catch {
     workflowRunIdInUrl = undefined;
   }
