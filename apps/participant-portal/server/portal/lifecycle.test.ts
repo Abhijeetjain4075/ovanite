@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { canTransition } from "./lifecycle";
+import { AssessmentDispatchError, resolvePublicGitHubRevision } from "./assessment";
 import { normalizeWebUrl, parsePublicGitHubRepository, submissionDataSchema } from "./validation";
 
 describe("submission lifecycle", () => {
@@ -85,5 +86,48 @@ describe("public GitHub repository parsing", () => {
     ]) {
       expect(parsePublicGitHubRepository(value)).toBeNull();
     }
+  });
+});
+
+
+describe("assessment revision resolution", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("pins a public repository's default branch to a full commit SHA using only api.github.com", async () => {
+    const sha = "a".repeat(40);
+    const mockFetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({
+        private: false, archived: false, disabled: false, default_branch: "main",
+      }), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ sha }), {
+        status: 200, headers: { "Content-Type": "application/json" },
+      }));
+    vi.stubGlobal("fetch", mockFetch);
+
+    await expect(resolvePublicGitHubRevision("ExampleOwner/example-repo")).resolves.toEqual({
+      branch: "main", sha,
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(String(mockFetch.mock.calls[0][0])).toBe("https://api.github.com/repos/ExampleOwner/example-repo");
+    expect(String(mockFetch.mock.calls[1][0])).toBe("https://api.github.com/repos/ExampleOwner/example-repo/commits/main");
+  });
+
+  it("rejects private repositories and does not follow redirects", async () => {
+    const mockFetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({
+      private: true, archived: false, disabled: false, default_branch: "main",
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", mockFetch);
+    await expect(resolvePublicGitHubRevision("example/private")).rejects.toMatchObject({
+      code: "repository_not_public",
+    } satisfies Partial<AssessmentDispatchError>);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls[0][1]).toMatchObject({ redirect: "error" });
+  });
+
+  it("rejects invalid repository identifiers before making a network request", async () => {
+    const mockFetch = vi.fn();
+    vi.stubGlobal("fetch", mockFetch);
+    await expect(resolvePublicGitHubRevision("https://127.0.0.1/private")).rejects.toBeInstanceOf(AssessmentDispatchError);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
