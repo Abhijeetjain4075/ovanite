@@ -2,11 +2,11 @@
 
 ## Current implementation boundary
 
-The participant portal branch implements durable assessment-run records, server-side staff authorization, public GitHub revision pinning, workflow dispatch, a schema-validated callback, sanitized result storage, and a staff review panel. The candidate workflow currently runs Trivy filesystem scans for dependency vulnerabilities, secret patterns, and supported misconfigurations.
+The participant portal branch implements durable assessment-run records, server-side staff authorization, public GitHub revision pinning, workflow dispatch, a schema-validated callback, sanitized result storage, and a staff review panel. The candidate workflow runs Trivy filesystem checks for dependency vulnerabilities, secret patterns, supported misconfigurations, and license findings, and generates a CycloneDX SBOM whose SHA-256 digest and component count are recorded in the report.
 
 It does **not** run candidate build scripts, package lifecycle hooks, tests, or applications. This is intentional: candidate repositories are untrusted code. No candidate repository is fetched directly by the portal server; it uses fixed-origin `api.github.com` metadata calls to verify a public GitHub repository and resolve its default branch to a full commit SHA.
 
-The source assessment workflow and callback must be available on the deployed repository/application before the feature can run end to end. This guide does not claim that the separate participant portal is currently deployed or that production credentials have been configured.
+The source assessment workflow must exist on the configured default branch and the callback must be reachable from the deployed participant portal before the feature can run end to end. This guide does not claim that the separate participant portal is currently deployed or that production credentials have been configured.
 
 ## Required database migration
 
