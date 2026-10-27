@@ -27,7 +27,7 @@ const FIELD_IDS: Record<ContactFields, string> = {
 /** Accessible contact form with inline validation and success routing. */
 export function ContactForm() {
   const navigate = useNavigate();
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -72,6 +72,23 @@ export function ContactForm() {
       email: email.trim(),
       message: message.trim(),
     });
+  }
+
+  if (!actor) {
+    return (
+      <div
+        role={isFetching ? "status" : "alert"}
+        aria-live="polite"
+        data-ocid="contact.backend_unavailable_state"
+        className="border border-destructive/40 bg-destructive/5 px-4 py-4 text-sm text-foreground"
+      >
+        <p className="font-medium">Contact service is temporarily unavailable.</p>
+        <p className="mt-2 text-muted-foreground">
+          The secure submission service is not connected. This form is disabled;
+          information entered here will not be sent or saved. Please check back later.
+        </p>
+      </div>
+    );
   }
 
   return (
