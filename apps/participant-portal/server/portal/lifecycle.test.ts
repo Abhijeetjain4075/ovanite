@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canTransition } from "./lifecycle";
-import { submissionDataSchema } from "./validation";
+import { normalizeWebUrl, submissionDataSchema } from "./validation";
 
 describe("submission lifecycle", () => {
   it("allows only explicit forward transitions", () => {
@@ -48,8 +48,18 @@ describe("submission evidence validation", () => {
     expect(submissionDataSchema.safeParse({ ...valid, repositoryUrl: "" }).success).toBe(false);
   });
 
-  it("rejects non-http schemes and credential-bearing URLs", () => {
+  it("rejects non-http schemes, malformed URLs, and credential-bearing URLs", () => {
     expect(submissionDataSchema.safeParse({ ...valid, repositoryUrl: "javascript:alert(1)" }).success).toBe(false);
+    expect(submissionDataSchema.safeParse({ ...valid, repositoryUrl: "not a URL" }).success).toBe(false);
     expect(submissionDataSchema.safeParse({ ...valid, repositoryUrl: "https://user:pass@example.com/project" }).success).toBe(false);
+  });
+
+  it("normalizes URL host casing and strips fragments before duplicate comparison", () => {
+    expect(normalizeWebUrl("HTTPS://GitHub.COM/example/repo#readme")).toBe("https://github.com/example/repo");
+  });
+
+  it("rejects unsupported schemes and URL values beyond the size limit", () => {
+    expect(submissionDataSchema.safeParse({ ...valid, liveUrl: "file:///etc/passwd" }).success).toBe(false);
+    expect(submissionDataSchema.safeParse({ ...valid, liveUrl: `https://example.com/${"a".repeat(2050)}` }).success).toBe(false);
   });
 });
