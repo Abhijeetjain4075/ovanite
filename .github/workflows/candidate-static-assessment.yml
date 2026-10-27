@@ -1,0 +1,299 @@
+name: Candidate static assessment
+run-name: Candidate static assessment ${{ inputs.assessment_run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_repository:
+        description: Public GitHub repository in owner/name form
+        required: true
+        type: string
+      candidate_sha:
+        description: Immutable 40-character commit SHA resolved by the portal
+        required: true
+        type: string
+      candidate_default_branch:
+        description: Default branch at dispatch time; audit metadata only
+        required: true
+        type: string
+      portal_submission_id:
+        description: Ovanite submission UUID
+        required: true
+        type: string
+      assessment_run_id:
+        description: Ovanite assessment-run UUID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: candidate-assessment-${{ inputs.assessment_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    name: Static analysis of untrusted candidate source
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate dispatch inputs
+        id: validate
+        env:
+          CANDIDATE_REPOSITORY: ${{ inputs.candidate_repository }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          CANDIDATE_BRANCH: ${{ inputs.candidate_default_branch }}
+          PORTAL_SUBMISSION_ID: ${{ inputs.portal_submission_id }}
+          ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
+        run: |
+          python - <<'PY'
+          import os, re
+          from pathlib import PurePosixPath
+
+          repo = os.environ["CANDIDATE_REPOSITORY"]
+          sha = os.environ["CANDIDATE_SHA"].lower()
+          branch = os.environ["CANDIDATE_BRANCH"]
+          submission_id = os.environ["PORTAL_SUBMISSION_ID"]
+          run_id = os.environ["ASSESSMENT_RUN_ID"]
+          if not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}", repo):
+              raise SystemExit("candidate_repository must be exactly owner/name")
+          if not re.fullmatch(r"[a-f0-9]{40}", sha):
+              raise SystemExit("candidate_sha must be an immutable 40-character SHA")
+          if not re.fullmatch(r"[A-Za-z0-9_.\/-]{1,255}", branch) or ".." in branch or branch.startswith("-"):
+              raise SystemExit("candidate_default_branch is invalid")
+          if not re.fullmatch(r"[0-9a-fA-F-]{36}", submission_id) or not re.fullmatch(r"[0-9a-fA-F-]{36}", run_id):
+              raise SystemExit("submission and run identifiers must be UUID-shaped")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"candidate_repository={repo}\n")
+              output.write(f"candidate_sha={sha}\n")
+          PY
+
+      - name: Mark the portal run as running
+        if: steps.validate.outcome == 'success'
+        env:
+          PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
+          CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
+          ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
+          CANDIDATE_SHA: ${{ steps.validate.outputs.candidate_sha }}
+        run: |
+          set -euo pipefail
+          test -n "$PORTAL_BASE_URL" || { echo "Missing portal callback URL configuration"; exit 1; }
+          test -n "$CALLBACK_SECRET" || { echo "Missing callback secret configuration"; exit 1; }
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          base = os.environ["PORTAL_BASE_URL"].rstrip("/")
+          run_id = os.environ["ASSESSMENT_RUN_ID"]
+          sha = os.environ["CANDIDATE_SHA"]
+          payload = {
+              "assessmentRunId": run_id,
+              "sourceSha": sha,
+              "status": "running",
+              "workflowRunId": os.environ["GITHUB_RUN_ID"],
+              "workflowUrl": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
+              "startedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+          }
+          with open(os.environ["RUNNER_TEMP"] + "/assessment-start.json", "w", encoding="utf-8") as f:
+              json.dump({"url": base + "/api/assessment/callback", "payload": payload}, f)
+          PY
+          python - <<'PY'
+          import json, os, subprocess
+          saved = json.load(open(os.environ["RUNNER_TEMP"] + "/assessment-start.json", encoding="utf-8"))
+          subprocess.run([
+              "curl", "--silent", "--show-error", "--fail", "--max-time", "15",
+              "-X", "POST", saved["url"],
+              "-H", "Content-Type: application/json",
+              "-H", "Authorization: Bearer " + os.environ["CALLBACK_SECRET"],
+              "--data-binary", json.dumps(saved["payload"]),
+          ], check=True)
+          PY
+
+      - name: Checkout candidate source at the immutable commit
+        id: candidate_checkout
+        if: steps.validate.outcome == 'success'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.validate.outputs.candidate_repository }}
+          ref: ${{ steps.validate.outputs.candidate_sha }}
+          path: candidate-source
+          fetch-depth: 1
+          persist-credentials: false
+          submodules: false
+          lfs: false
+
+      - name: Create report directory
+        if: always()
+        run: mkdir -p reports
+
+      - name: Run Trivy filesystem analysis
+        id: trivy_scan
+        if: steps.validate.outcome == 'success' && steps.candidate_checkout.outcome == 'success'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: candidate-source
+          scanners: vuln,secret,misconfig
+          format: json
+          output: reports/trivy-raw.json
+          timeout: 10m
+          exit-code: "0"
+
+      - name: Create sanitized report and notify portal
+        id: report
+        if: always() && steps.validate.outcome == 'success'
+        env:
+          PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
+          CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
+          ASSESSMENT_RUN_ID: ${{ inputs.assessment_run_id }}
+          CANDIDATE_SHA: ${{ steps.validate.outputs.candidate_sha }}
+          CANDIDATE_CHECKOUT_OUTCOME: ${{ steps.candidate_checkout.outcome }}
+          TRIVY_OUTCOME: ${{ steps.trivy_scan.outcome }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+
+          source_path = "reports/trivy-raw.json"
+          raw = {}
+          try:
+              with open(source_path, encoding="utf-8") as f:
+                  raw = json.load(f)
+          except (OSError, json.JSONDecodeError):
+              raw = {}
+
+          findings = []
+          totals = {"critical": 0, "high": 0, "medium": 0, "low": 0, "unknown": 0,
+                    "vulnerabilities": 0, "secrets": 0, "misconfigurations": 0}
+          severities = {"CRITICAL": "critical", "HIGH": "high", "MEDIUM": "medium", "LOW": "low"}
+          truncated = False
+
+          def severity_of(item):
+              value = str(item.get("Severity") or "UNKNOWN").upper()
+              return value if value in ("CRITICAL", "HIGH", "MEDIUM", "LOW") else "UNKNOWN"
+
+          def add_finding(item, target, kind, rule_id, title, message, line=None, package=None, installed=None, fixed=None, reference=None):
+              nonlocal_dummy = None
+              sev = severity_of(item)
+              totals[severities.get(sev, "unknown")] += 1
+              record = {
+                  "tool": "Trivy", "type": kind, "severity": sev,
+                  "ruleId": str(rule_id or "")[:200], "title": str(title or rule_id or kind)[:500],
+                  "message": str(message or "")[:1500], "path": str(target or "")[:1024],
+              }
+              if line and isinstance(line, int) and line > 0:
+                  record["line"] = line
+              if package: record["packageName"] = str(package)[:200]
+              if installed: record["installedVersion"] = str(installed)[:100]
+              if fixed: record["fixedVersion"] = str(fixed)[:100]
+              if isinstance(reference, str) and reference.startswith("https://"):
+                  record["referenceUrl"] = reference[:2048]
+              findings.append(record)
+
+          for result in raw.get("Results") or []:
+              if not isinstance(result, dict):
+                  continue
+              target = result.get("Target") or result.get("Type") or "source"
+              for item in result.get("Vulnerabilities") or []:
+                  if not isinstance(item, dict): continue
+                  totals["vulnerabilities"] += 1
+                  refs = item.get("PrimaryURL") or ""
+                  add_finding(item, target, "vulnerability", item.get("VulnerabilityID"),
+                              item.get("Title"), item.get("Description") or item.get("PkgName"),
+                              package=item.get("PkgName"), installed=item.get("InstalledVersion"),
+                              fixed=item.get("FixedVersion"), reference=refs)
+              for item in result.get("Secrets") or []:
+                  if not isinstance(item, dict): continue
+                  totals["secrets"] += 1
+                  # Never include matched values, code excerpts, snippets, or secret contents in the retained report.
+                  add_finding(item, target, "secret", item.get("RuleID"), item.get("Title") or item.get("Category"),
+                              "Potential secret detected. Inspect privately in the isolated workflow artifact/source.",
+                              line=item.get("StartLine"), reference=item.get("PrimaryURL"))
+              for item in result.get("Misconfigurations") or []:
+                  if not isinstance(item, dict): continue
+                  totals["misconfigurations"] += 1
+                  meta = item.get("CauseMetadata") or {}
+                  add_finding(item, target, "misconfiguration", item.get("ID"), item.get("Title"),
+                              item.get("Message") or item.get("Resolution"),
+                              line=meta.get("StartLine") if isinstance(meta, dict) else None,
+                              reference=item.get("PrimaryURL"))
+
+          total = sum(totals[k] for k in ("vulnerabilities", "secrets", "misconfigurations"))
+          if len(findings) > 200:
+              truncated = True
+              findings = findings[:200]
+          high_risk = totals["critical"] + totals["high"]
+          medium_or_low = totals["medium"] + totals["low"]
+          if high_risk > 0 or totals["secrets"] > 0:
+              gate = "blocked"
+          elif medium_or_low > 0 or totals["misconfigurations"] > 0:
+              gate = "review"
+          else:
+              gate = "passed"
+
+          checkout_outcome = os.environ.get("CANDIDATE_CHECKOUT_OUTCOME", "")
+          scan_outcome = os.environ.get("TRIVY_OUTCOME", "")
+          failed = checkout_outcome != "success" or scan_outcome != "success" or not raw
+          if checkout_outcome != "success":
+              error_code = "source_checkout_failed"
+          elif scan_outcome != "success" or not raw:
+              error_code = "scan_failed"
+          else:
+              error_code = None
+
+          report = {
+              "summary": {
+                  "totalFindings": total,
+                  "critical": totals["critical"], "high": totals["high"],
+                  "medium": totals["medium"], "low": totals["low"], "unknown": totals["unknown"],
+                  "vulnerabilities": totals["vulnerabilities"], "secrets": totals["secrets"],
+                  "misconfigurations": totals["misconfigurations"], "licenses": 0,
+                  "gateStatus": gate if not failed else "not_assessed",
+                  "truncated": truncated,
+              },
+              "findings": findings,
+          }
+          with open("reports/sanitized-report.json", "w", encoding="utf-8") as f:
+              json.dump(report, f, ensure_ascii=False)
+          now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+          payload = {
+              "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+              "sourceSha": os.environ["CANDIDATE_SHA"],
+              "status": "failed" if failed else "completed",
+              "workflowRunId": os.environ["GITHUB_RUN_ID"],
+              "workflowUrl": f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}/actions/runs/{os.environ["GITHUB_RUN_ID"]}',
+              "finishedAt": now,
+              "errorCode": error_code,
+          }
+          if not failed:
+              payload["report"] = report
+          with open("reports/callback.json", "w", encoding="utf-8") as f:
+              json.dump(payload, f, ensure_ascii=False)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write(f"assessment_failed={str(failed).lower()}\n")
+          print("Assessment report created:", json.dumps(report["summary"]))
+          PY
+
+          if [ -z "$PORTAL_BASE_URL" ] || [ -z "$CALLBACK_SECRET" ]; then
+            echo "Callback configuration missing; report remains available as a sanitized workflow artifact." >&2
+            exit 1
+          fi
+          curl --silent --show-error --fail --max-time 20 \
+            -X POST "${PORTAL_BASE_URL%/}/api/assessment/callback" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${CALLBACK_SECRET}" \
+            --data-binary @reports/callback.json
+
+      - name: Upload sanitized assessment report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-assessment-${{ inputs.assessment_run_id }}
+          path: reports/sanitized-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Mark run failed when source or scanner failed
+        if: always() && steps.report.outputs.assessment_failed == 'true'
+        run: exit 1
