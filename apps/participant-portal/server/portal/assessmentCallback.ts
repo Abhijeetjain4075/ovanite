@@ -66,6 +66,7 @@ const reportSchema = z.object({
 
 export const assessmentCallbackSchema = z.object({
   assessmentRunId: z.string().uuid(),
+  sourceRepository: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/).refine(value => { const name = value.split("/")[1]; return name !== "." && name !== ".."; }),
   sourceSha: z.string().regex(/^[a-f0-9]{40}$/i),
   status: z.enum(["running", "completed", "failed"]),
   workflowRunId: z.string().regex(/^\d{1,32}$/),
@@ -189,6 +190,7 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
         .where(eq(automatedAssessmentRuns.id, callback.assessmentRunId))
         .limit(1).for("update");
       if (!run) return "not_found" as const;
+      if (run.sourceRepository !== callback.sourceRepository) return "repository_mismatch" as const;
       if (run.sourceSha.toLowerCase() !== callback.sourceSha.toLowerCase()) return "revision_mismatch" as const;
       const transition = decideAssessmentCallbackTransition(
         run.status, run.workflowRunId, callback.status, callback.workflowRunId,
@@ -233,6 +235,10 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
 
     if (result === "not_found") {
       res.status(404).json({ error: "Assessment run not found." });
+      return;
+    }
+    if (result === "repository_mismatch") {
+      res.status(409).json({ error: "Assessment repository does not match the queued submission." });
       return;
     }
     if (result === "revision_mismatch") {
