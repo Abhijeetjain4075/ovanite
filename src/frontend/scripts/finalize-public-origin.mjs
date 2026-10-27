@@ -10,7 +10,7 @@ const candidates = [
 ];
 
 function toHttpsOrigin(value) {
-  if (!value?.trim()) return null;
+  if (!value?.trim() || ["undefined", "null", "__PUBLIC_ORIGIN__"].includes(value.trim().toLowerCase())) return null;
   try {
     const candidate = value.trim();
     const url = new URL(candidate.includes("://") ? candidate : `https://${candidate}`);
