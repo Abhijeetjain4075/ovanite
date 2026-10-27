@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   { label: "Waitlist", to: "/waitlist" },
+  { label: "Participants", to: "/participants" },
 ] as const;
 
 export function Navbar() {
