@@ -84,7 +84,7 @@ export function parsePublicGitHubRepository(value: string): { owner: string; nam
     const [ownerRaw, repoRaw] = parts;
     const name = repoRaw.replace(/\.git$/i, "");
     if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(ownerRaw)) return null;
-    if (!/^[A-Za-z0-9_.-]{1,100}$/.test(name) || name === "." || name === "..") return null;
+    if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/.test(name) || name === "." || name === "..") return null;
     return { owner: ownerRaw, name, fullName: `${ownerRaw}/${name}` };
   } catch {
     return null;
