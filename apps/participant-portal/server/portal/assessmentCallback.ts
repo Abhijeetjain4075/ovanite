@@ -40,7 +40,7 @@ const reportSchema = z.object({
   findings: z.array(findingSchema).max(200),
 }).strict();
 
-const callbackSchema = z.object({
+export const assessmentCallbackSchema = z.object({
   assessmentRunId: z.string().uuid(),
   sourceSha: z.string().regex(/^[a-f0-9]{40}$/i),
   status: z.enum(["running", "completed", "failed"]),
@@ -86,7 +86,7 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
     return;
   }
 
-  const parsed = callbackSchema.safeParse(req.body);
+  const parsed = assessmentCallbackSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid assessment callback payload." });
     return;
