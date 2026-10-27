@@ -3,10 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const backendRoot = resolve(process.cwd(), "../backend");
-const adminLibrary = readFileSync(
-  resolve(backendRoot, "lib/admin.mo"),
-  "utf8",
-);
+const adminLibrary = readFileSync(resolve(backendRoot, "lib/admin.mo"), "utf8");
 const adminApi = readFileSync(
   resolve(backendRoot, "mixins/admin-api.mo"),
   "utf8",
