@@ -40,8 +40,8 @@ This file is the project ToDo fallback because no native project ToDo tool is av
 - Persist each assessment run, immutable public GitHub repository revision, requester identity/role, pipeline version, status, workflow URL, sanitized summary, and capped finding records in additive database migration `0002_automated_assessment_runs`.
 - Restrict assessment dispatch to owner/editor reviewer procedures; reject non-GitHub repository URLs, non-public/archived repositories, and unsupported submission states.
 - Pin assessment to a full 40-character commit SHA before dispatch; make fixed-origin `api.github.com` metadata requests only (never fetch the submitted URL directly).
-- Run Trivy filesystem vulnerability, secret-pattern, and misconfiguration checks on GitHub-hosted ephemeral runners; never execute candidate build scripts, package hooks, tests, or application code in this v1.
-- Validate callback bearer credentials with constant-time comparison, validate callback payloads against strict schemas, confirm run ID and source SHA, cap report size and finding count, and audit lifecycle updates.
+- Run Trivy filesystem vulnerability, secret-pattern, misconfiguration, and license checks on GitHub-hosted ephemeral runners; generate a CycloneDX SBOM with its digest and component count; never execute candidate build scripts, package hooks, tests, or application code in this v1.
+- Validate callback bearer credentials with constant-time comparison, validate callback payloads against strict schemas, confirm run ID, source repository and SHA, bind run ID to the workflow URL, cap report size and finding count, and audit monotonic lifecycle updates.
 - Run scanner/source processing on a separate runner from callback secrets; persist only sanitized report data and do not retain scanner secret matches/code excerpts.
 - Add per-reviewer transactional quota: five new assessment requests per rolling hour, plus deduplication of active runs for each submission.
 - Add admin review UI to request a scan, poll active run state, view immutable SHA and findings, and distinguish the scanner gate signal from a human decision.
