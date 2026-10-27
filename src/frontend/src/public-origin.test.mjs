@@ -73,7 +73,7 @@ describe("public metadata origin", () => {
     );
     await writeFile(
       path.join(directory, "sitemap.xml"),
-      '<?xml version="1.0"?><urlset><url><loc>__PUBLIC_ORIGIN__/</loc></url><url><loc>__PUBLIC_ORIGIN__/about</loc></url></urlset>',
+      "<?xml version=\"1.0\"?><urlset><url><loc>__PUBLIC_ORIGIN__/</loc></url><url><loc>__PUBLIC_ORIGIN__/about</loc></url></urlset>",
     );
 
     await preparePublicAssets({
