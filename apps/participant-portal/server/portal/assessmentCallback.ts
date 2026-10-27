@@ -23,6 +23,12 @@ const findingSchema = z.object({
 }).strict();
 
 const reportSchema = z.object({
+  sbom: z.object({
+    format: z.literal("CycloneDX"),
+    componentCount: countSchema,
+    sha256: z.string().regex(/^[a-f0-9]{64}$/),
+    fileName: z.literal("candidate.sbom.cdx.json"),
+  }).strict(),
   summary: z.object({
     totalFindings: countSchema,
     critical: countSchema,
