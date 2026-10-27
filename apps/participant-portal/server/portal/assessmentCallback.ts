@@ -19,7 +19,7 @@ const findingSchema = z.object({
   packageName: z.string().trim().max(200).optional(),
   installedVersion: z.string().trim().max(100).optional(),
   fixedVersion: z.string().trim().max(100).optional(),
-  referenceUrl: z.string().url().max(2048).refine(value => new URL(value).protocol === "https:", "References must use HTTPS.").optional(),
+  referenceUrl: z.string().url().max(2048).refine(value => { try { return new URL(value).protocol === "https:"; } catch { return false; } }, "References must use HTTPS.").optional(),
 }).strict();
 
 const reportSchema = z.object({
@@ -56,7 +56,7 @@ const callbackSchema = z.object({
   }),
   startedAt: z.string().datetime().optional(),
   finishedAt: z.string().datetime().optional(),
-  errorCode: z.enum(["source_checkout_failed", "scan_failed", "worker_failed"]).optional(),
+  errorCode: z.enum(["source_checkout_failed", "scan_failed", "worker_failed"]).nullable().optional(),
   report: reportSchema.optional(),
 }).strict().superRefine((value, ctx) => {
   if (value.status === "completed" && !value.report) {
