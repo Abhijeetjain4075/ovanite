@@ -197,18 +197,18 @@ jobs:
               totals[severity_keys.get(sev, "unknown")] += 1
               record = {
                   "tool": "Trivy", "type": kind, "severity": sev,
-                  "ruleId": str(rule_id or "")[:200],
-                  "title": str(title or rule_id or kind)[:500],
-                  "message": str(message or "")[:1500],
-                  "path": str(target or "")[:1024],
+                  "ruleId": str(rule_id or "")[:100],
+                  "title": str(title or rule_id or kind)[:240],
+                  "message": str(message or "")[:500],
+                  "path": str(target or "")[:300],
               }
               if isinstance(line, int) and line > 0:
                   record["line"] = min(line, 100000000)
-              if package: record["packageName"] = str(package)[:200]
-              if installed: record["installedVersion"] = str(installed)[:100]
-              if fixed: record["fixedVersion"] = str(fixed)[:100]
+              if package: record["packageName"] = str(package)[:100]
+              if installed: record["installedVersion"] = str(installed)[:50]
+              if fixed: record["fixedVersion"] = str(fixed)[:50]
               if isinstance(reference, str) and reference.startswith("https://"):
-                  record["referenceUrl"] = reference[:2048]
+                  record["referenceUrl"] = reference[:600]
               findings.append(record)
 
           for result in (raw or {}).get("Results") or []:
@@ -239,8 +239,8 @@ jobs:
                               reference=item.get("PrimaryURL"))
 
           total = sum(totals[k] for k in ("vulnerabilities", "secrets", "misconfigurations"))
-          truncated = len(findings) > 200
-          findings = findings[:200]
+          truncated = len(findings) > 100
+          findings = findings[:100]
           high_risk = totals["critical"] + totals["high"]
           medium_or_low = totals["medium"] + totals["low"]
           gate = "blocked" if high_risk > 0 or totals["secrets"] > 0 else (
