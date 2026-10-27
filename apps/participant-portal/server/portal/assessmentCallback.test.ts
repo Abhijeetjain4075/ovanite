@@ -166,6 +166,7 @@ describe("assessment callback contract", () => {
       expect(assessmentCallbackSchema.safeParse({ ...validCallback, workflowUrl }).success).toBe(false);
     }
   });
+});
 
 describe("assessment callback state transitions", () => {
   const workflowRunId = "123456789";
@@ -186,6 +187,4 @@ describe("assessment callback state transitions", () => {
     expect(decideAssessmentCallbackTransition("running", workflowRunId, "completed", "987654321")).toBe("workflow_mismatch");
     expect(decideAssessmentCallbackTransition("completed", workflowRunId, "running", workflowRunId)).toBe("terminal_conflict");
   });
-});
-
 });
