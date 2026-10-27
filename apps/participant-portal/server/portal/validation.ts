@@ -72,6 +72,25 @@ export function normalizeWebUrl(value: string): string {
   return url.toString();
 }
 
+
+/** Accept only a canonical public GitHub repository URL. This parser never fetches URLs. */
+export function parsePublicGitHubRepository(value: string): { owner: string; name: string; fullName: string } | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.hostname.toLowerCase() !== "github.com" ||
+        url.port || url.username || url.password || url.search) return null;
+    const parts = url.pathname.split("/").filter(Boolean);
+    if (parts.length !== 2) return null;
+    const [ownerRaw, repoRaw] = parts;
+    const name = repoRaw.replace(/\.git$/i, "");
+    if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(ownerRaw)) return null;
+    if (!/^[A-Za-z0-9_.-]{1,100}$/.test(name) || name === "." || name === "..") return null;
+    return { owner: ownerRaw, name, fullName: `${ownerRaw}/${name}` };
+  } catch {
+    return null;
+  }
+}
+
 export const submissionDataSchema = z.object({
   participantName: text(180).min(1, "Enter your name."),
   participantEmail: z.string().trim().email("Enter a valid email address.").max(320),
