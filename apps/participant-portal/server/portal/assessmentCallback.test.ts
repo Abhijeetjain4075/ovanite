@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessmentCallbackSchema } from "./assessmentCallback";
+import { assessmentCallbackSchema, decideAssessmentCallbackTransition } from "./assessmentCallback";
 
 const validReport = {
   summary: {
@@ -166,4 +166,26 @@ describe("assessment callback contract", () => {
       expect(assessmentCallbackSchema.safeParse({ ...validCallback, workflowUrl }).success).toBe(false);
     }
   });
+
+describe("assessment callback state transitions", () => {
+  const workflowRunId = "123456789";
+
+  it("permits only queued/dispatched to running and running to terminal transitions", () => {
+    expect(decideAssessmentCallbackTransition("queued", null, "running", workflowRunId)).toBe("update");
+    expect(decideAssessmentCallbackTransition("dispatched", null, "running", workflowRunId)).toBe("update");
+    expect(decideAssessmentCallbackTransition("running", workflowRunId, "completed", workflowRunId)).toBe("update");
+    expect(decideAssessmentCallbackTransition("running", workflowRunId, "failed", workflowRunId)).toBe("update");
+    expect(decideAssessmentCallbackTransition("queued", null, "completed", workflowRunId)).toBe("invalid_transition");
+    expect(decideAssessmentCallbackTransition("dispatched", null, "failed", workflowRunId)).toBe("invalid_transition");
+  });
+
+  it("makes duplicate callbacks idempotent without allowing another workflow to rewrite a run", () => {
+    expect(decideAssessmentCallbackTransition("running", workflowRunId, "running", workflowRunId)).toBe("already_running");
+    expect(decideAssessmentCallbackTransition("completed", workflowRunId, "completed", workflowRunId)).toBe("already_terminal");
+    expect(decideAssessmentCallbackTransition("failed", workflowRunId, "failed", workflowRunId)).toBe("already_terminal");
+    expect(decideAssessmentCallbackTransition("running", workflowRunId, "completed", "987654321")).toBe("workflow_mismatch");
+    expect(decideAssessmentCallbackTransition("completed", workflowRunId, "running", workflowRunId)).toBe("terminal_conflict");
+  });
+});
+
 });
