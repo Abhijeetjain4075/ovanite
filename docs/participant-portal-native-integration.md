@@ -1,6 +1,6 @@
 # Participant Portal Native Integration Plan
 
-Status: engineering design on `feature/participant-portal-integration`. Not production-ready and not yet merged.
+Status: engineering design. This pull request adds a public overview page and a native-integration plan only; the participant submission runtime is not implemented or open.
 
 ## Decision
 
@@ -252,9 +252,9 @@ The existing root app still has security debt that must be addressed before call
 
 These are tracked as integration gates, not reasons to discard the Manus domain model.
 
-## Acceptance gates
+## Native-runtime and public-intake launch gates
 
-The integration branch must not merge until all are true:
+These gates are mandatory before implementing or activating live submissions, and remain unchecked by this overview-only pull request. The page must stay explicit that intake is closed until these conditions are met:
 
 - [ ] Native participant identity is principal-based.
 - [ ] No participant data depends on MySQL/Drizzle/Express/tRPC.
@@ -278,6 +278,6 @@ The integration branch must not merge until all are true:
 
 ## Current state
 
-This document is the first controlled change on `feature/participant-portal-integration`.
+This plan records the intended native implementation and launch gates. The accompanying public `/participants` page is only an overview; it does not accept submissions, authenticate participants, persist records, or expose reviewer operations. The native backend remains future work.
 
-No production routes, canister state, or `main` branch code are modified by this design step.
+This pull request changes only the public route/page, navigation links, and this design document. It does not modify canister state or participant backend APIs. Before intake opens, all native-runtime launch gates above must pass and the page copy must be updated to reflect the deployed capability.
