@@ -20,6 +20,7 @@ CREATE TABLE `automated_assessment_runs` (
   INDEX `assessment_submission_created_idx` (`submissionId`, `createdAt`),
   INDEX `assessment_status_created_idx` (`status`, `createdAt`),
   INDEX `assessment_source_commit_idx` (`sourceRepository`, `sourceSha`),
+  INDEX `assessment_requester_created_idx` (`requestedBy`, `createdAt`),
   CONSTRAINT `automated_assessment_runs_submissionId_submissions_id_fk` FOREIGN KEY (`submissionId`) REFERENCES `submissions`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `automated_assessment_runs_requestedBy_users_id_fk` FOREIGN KEY (`requestedBy`) REFERENCES `users`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
