@@ -34,18 +34,25 @@ mixin (
     AdminLib.isOwner(admins, caller);
   };
 
-  /// Returns whether the owner has been claimed yet. While this is `false`,
-  /// `claimOwner` is open to the configured owner email.
+  /// Returns whether owner setup is closed. This is true when an owner already
+  /// exists OR when no owner principal has been configured. It is false only
+  /// while a configured owner principal is eligible to claim an empty deployment.
   public query func isOwnerClaimed() : async Bool {
-    not AdminLib.isEmpty(admins);
+    not AdminLib.isEmpty(admins) or not AdminLib.isOwnerBootstrapConfigured();
   };
 
-  /// One-time ownership bootstrap. Succeeds only when no owner exists yet and
-  /// `email` matches the configured owner email. After the owner exists this
-  /// always returns `false`, so no caller can self-grant admin access.
+  /// One-time ownership bootstrap. The caller must match the owner principal
+  /// configured in backend source before deployment. The email is only a
+  /// secondary consistency check; it is never sufficient to authorize access.
   public shared ({ caller }) func claimOwner(email : Text) : async Bool {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: signed-in caller required");
+    };
+    if (not AdminLib.isOwnerBootstrapConfigured()) {
+      Runtime.trap("Unauthorized: owner principal is not configured; bootstrap is disabled");
+    };
+    if (not AdminLib.isConfiguredOwner(caller)) {
+      Runtime.trap("Unauthorized: caller is not the configured owner principal");
     };
     if (email != AdminLib.ownerEmail) {
       Runtime.trap("Unauthorized: email is not the configured owner");
