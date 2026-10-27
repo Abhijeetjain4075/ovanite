@@ -273,6 +273,7 @@ jobs:
               json.dump(report, f, ensure_ascii=False)
           payload = {
               "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+              "sourceRepository": os.environ["CANDIDATE_REPOSITORY"],
               "sourceSha": os.environ["CANDIDATE_SHA"],
               "status": "failed" if failed else "completed",
               "workflowRunId": os.environ["GITHUB_RUN_ID"],
