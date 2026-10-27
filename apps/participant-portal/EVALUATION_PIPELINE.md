@@ -1,0 +1,48 @@
+# Ovanite participant portal — evaluation pipeline design
+
+## Current baseline and non-negotiable boundary
+
+The portal currently records project evidence URLs, versioned terms acceptance, manual validation, rubric-based human evaluation, decisions, and audit events. It does not yet provide an automated production-readiness pipeline. Do not describe a submitted project as scanned, tested, secure, or enterprise-ready until a run record and evidence prove that result.
+
+The portal must not fetch candidate URLs or execute candidate code inside the authenticated web process. Submitted repositories, URLs, build scripts, package hooks, container images, and artifacts are untrusted input.
+
+## Rollout sequence
+
+1. **Portal baseline:** limit request bodies; add baseline response headers; prevent API response caching; safely handle malformed/oversized API bodies; add CI gates for typecheck, unit tests, production build, and a Trivy filesystem scan scoped to this app.
+2. **Static evidence collection:** create durable evaluation-run/job records with submission ID, immutable source revision, tool/version, configuration, start/end time, status, findings, evidence references, resource usage, and reviewer disposition. Preserve every run; never silently overwrite prior results.
+3. **Source/dependency analysis:** run Gitleaks for exposed secrets; Opengrep rules for SAST; Trivy for dependency vulnerabilities, secrets, misconfiguration and supported licence evidence; generate an SBOM (CycloneDX/SPDX) and retain dependency inventory. Pin tool versions and retain machine-readable reports.
+4. **Build and functional verification:** build from an immutable commit in an ephemeral isolated worker; run deterministic tests and Playwright smoke/critical-flow tests against the candidate's isolated staging environment. Store exact commands, environment image digest, logs, test totals, and artifact hashes.
+5. **Dynamic security testing:** OWASP ZAP passive/baseline checks only against a verified, explicitly authorized target. Active scans require separate authorization and staging allowlisting. Never scan arbitrary third-party infrastructure.
+6. **Performance/reliability:** run k6 only against an explicitly authorized staging deployment with a pre-agreed load ceiling, time window, abort thresholds, and owner contact. Do not run load tests against production or arbitrary candidate URLs by default.
+7. **Human gate:** map evidence into the published rubric, show critical findings as hard blockers, allow documented reviewer overrides with actor/time/reason, and keep the final hiring/selection decision human-controlled.
+
+## Required isolation controls before candidate code runs
+
+- Separate ephemeral worker or microVM; do not run candidate code in the web server, database host, or privileged runner.
+- No production secrets, cloud metadata access, host mounts, Docker socket, SSH keys, or broad GitHub tokens.
+- Run as non-root with read-only base filesystem, isolated temporary workspace, CPU/memory/PID/disk/time limits, and automatic destruction after each run.
+- Deny outbound network by default. If dependency downloads are needed, use a controlled proxy/cache and explicit allowlist; block loopback, private, link-local, IPv6 local, and cloud metadata destinations at connection time.
+- Resolve DNS and re-check every redirect/connection to prevent DNS-rebinding and SSRF; do not trust a URL-only preflight check.
+- Use short-lived least-privilege credentials, redact secrets from logs, cap output sizes, and store reports separately from executable artifacts.
+- Queue with concurrency limits, retry ceilings, idempotency keys, cancellation, timeouts, and per-submission quotas. Do not execute a scan from a user-controlled webhook without authentication and replay protection.
+
+Containers alone are not a sufficient boundary for deliberately hostile submissions. Select a sandbox/VM boundary based on threat model and hosting capabilities before enabling arbitrary builds.
+
+## Decision model
+
+- Critical exploitable security issue, leaked secret, unauthorized data exposure, or failed identity/permission boundary: hard blocker until reviewed and remediated.
+- Keep objective test results separate from reviewer interpretation.
+- Score production completeness, security, architecture/maintainability, reliability/operations, performance, UX/accessibility, testing, and handover evidence. Version the rubric; preserve each run and each human decision.
+- Missing evidence is unknown/not tested, not a pass. Static tools do not prove that a SaaS product is enterprise-grade.
+
+## Free/open-source and operational reality
+
+Prefer open-source tools and self-hosted execution where feasible. Tool licences may be free, but runner minutes, storage, bandwidth, maintenance, database capacity, and compute are still bounded by the host's limits. This design does not promise unlimited or zero-cost execution. Keep the first release URL-and-repository evidence based; add source execution only after the isolation controls and operational budget are verified.
+
+## Verification checklist
+
+- `pnpm check`, `pnpm test`, and `pnpm build` pass in CI.
+- Trivy scans this application for high/critical vulnerabilities, secrets, and misconfiguration.
+- Confirm the deployed platform supports the new workflow and that GitHub Actions is enabled; a workflow file is not evidence that a run has passed.
+- Configure a verified owner identity and publish approved program terms/rubric before intake. Do not require company incorporation/legalization as an initial product-evidence gate.
+- Keep rate limiting at the authenticated API and edge/gateway boundary as a launch blocker. A process-local limiter alone is not reliable across multiple instances/serverless deployments.
