@@ -31,7 +31,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "32kb", extended: false, parameterLimit: 100 }));
 
   // Isolated workers can post only schema-validated assessment summaries here.
-  app.post("/api/assessment/callback", assessmentCallbackHandler);
+  app.post("/api/assessment/callback", (req, res, next) => {
+    void assessmentCallbackHandler(req, res).catch(next);
+  });
 
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   app.get("/api/platform/config.js", (_req, res) => {
