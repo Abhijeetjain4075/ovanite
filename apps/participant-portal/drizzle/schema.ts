@@ -162,6 +162,12 @@ export const withdrawals = mysqlTable("withdrawals", {
 export type AssessmentFindingSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "UNKNOWN";
 export type AssessmentGateStatus = "blocked" | "review" | "passed";
 export type AssessmentRunReport = {
+  sbom: {
+    format: "CycloneDX";
+    componentCount: number;
+    sha256: string;
+    fileName: "candidate.sbom.cdx.json";
+  };
   summary: {
     totalFindings: number;
     critical: number;
