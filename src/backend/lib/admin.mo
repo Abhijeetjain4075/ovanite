@@ -3,13 +3,33 @@ import Principal "mo:core/Principal";
 import Types "../types/admin";
 
 module {
-  /// The email that is allowed to claim ownership of this deployment.
+  /// The exact Internet Identity principal authorized to bootstrap ownership.
   ///
-  /// The backend cannot read an email from Internet Identity, so ownership is
-  /// bootstrapped by a one-time claim: the first caller to present this exact
-  /// email while the `admins` map is empty becomes the owner. Once an owner
-  /// exists the claim path is closed forever and no caller can self-grant.
+  /// IMPORTANT: null is the secure default and deliberately disables owner
+  /// bootstrap. Set this to the verified operator principal before deploying
+  /// the backend. Never authorize ownership using a caller-supplied email:
+  /// Internet Identity does not cryptographically bind that text to the caller.
+  public let ownerPrincipal : ?Principal = null;
+
+  /// Email is retained only as a secondary operator-facing consistency check.
+  /// It is NOT an authentication factor and must never authorize ownership.
   public let ownerEmail : Text = "therealabhijeetjain@gmail.com";
+
+  /// True only when an operator principal has been explicitly configured.
+  public func isOwnerBootstrapConfigured() : Bool {
+    switch (ownerPrincipal) {
+      case null { false };
+      case (?_) { true };
+    };
+  };
+
+  /// True only when principal matches the explicitly configured owner.
+  public func isConfiguredOwner(principal : Principal) : Bool {
+    switch (ownerPrincipal) {
+      case null { false };
+      case (?expected) { Principal.equal(expected, principal) };
+    };
+  };
 
   /// Returns every admin, owner first then by `addedAt`.
   public func listAdmins(admins : Map.Map<Principal, Types.Admin>) : [Types.Admin] {
@@ -60,9 +80,9 @@ module {
     };
   };
 
-  /// Records `principal` as the owner. Only valid while the map is empty.
-  /// Returns `false` when an owner already exists or the principal is already
-  /// present.
+  /// Records only the explicitly preconfigured owner principal. Returns false
+  /// when bootstrap is unconfigured, the caller is not the configured owner,
+  /// or an owner/admin record already exists.
   public func claimOwner(
     admins : Map.Map<Principal, Types.Admin>,
     principal : Principal,
@@ -70,6 +90,7 @@ module {
     now : Nat,
   ) : Bool {
     if (not isEmpty(admins)) { return false };
+    if (not isConfiguredOwner(principal)) { return false };
     switch (admins.get(principal)) {
       case (?_) { false };
       case null {

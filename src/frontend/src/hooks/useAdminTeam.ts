@@ -22,8 +22,9 @@ export function useAdminTeam() {
 }
 
 /**
- * Whether the one-time owner bootstrap has already happened. While this is
- * `false`, a signed-in visitor may claim ownership with the configured email.
+ * Whether owner setup is closed. `true` means an owner exists or bootstrap is
+ * disabled because no owner principal is configured. `false` means the backend
+ * has a configured owner principal and the one-time claim may be attempted.
  */
 export function useIsOwnerClaimed() {
   const { actor, isFetching } = useActor(createActor);
