@@ -90,6 +90,7 @@ jobs:
           PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
           CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
           ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_REPOSITORY: ${{ needs.validate-inputs.outputs.candidate_repository }}
           CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
         run: |
           set -euo pipefail
@@ -104,6 +105,7 @@ jobs:
               raise SystemExit("Assessment callback configuration is missing or invalid")
           payload = {
               "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+              "sourceRepository": os.environ["CANDIDATE_REPOSITORY"],
               "sourceSha": os.environ["CANDIDATE_SHA"],
               "status": "running",
               "workflowRunId": os.environ["GITHUB_RUN_ID"],
@@ -167,6 +169,7 @@ jobs:
         if: always()
         env:
           ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_REPOSITORY: ${{ needs.validate-inputs.outputs.candidate_repository }}
           CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
           CANDIDATE_CHECKOUT_OUTCOME: ${{ steps.candidate_checkout.outcome }}
           TRIVY_OUTCOME: ${{ steps.trivy_scan.outcome }}
@@ -319,6 +322,7 @@ jobs:
           PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
           CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
           ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
+          CANDIDATE_REPOSITORY: ${{ needs.validate-inputs.outputs.candidate_repository }}
           CANDIDATE_SHA: ${{ needs.validate-inputs.outputs.candidate_sha }}
         run: |
           set -euo pipefail
@@ -332,11 +336,12 @@ jobs:
                   raise ValueError("callback artifact too large")
               with open(path, encoding="utf-8") as f:
                   payload = json.load(f)
-              if payload.get("assessmentRunId") != os.environ["ASSESSMENT_RUN_ID"] or payload.get("sourceSha") != os.environ["CANDIDATE_SHA"]:
+              if payload.get("assessmentRunId") != os.environ["ASSESSMENT_RUN_ID"] or payload.get("sourceRepository") != os.environ["CANDIDATE_REPOSITORY"] or payload.get("sourceSha") != os.environ["CANDIDATE_SHA"]:
                   raise ValueError("assessment identity mismatch")
           except (OSError, ValueError, json.JSONDecodeError):
               payload = {
                   "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
+                  "sourceRepository": os.environ["CANDIDATE_REPOSITORY"],
                   "sourceSha": os.environ["CANDIDATE_SHA"],
                   "status": "failed",
                   "workflowRunId": os.environ["GITHUB_RUN_ID"],
