@@ -244,7 +244,7 @@ jobs:
           high_risk = totals["critical"] + totals["high"]
           medium_or_low = totals["medium"] + totals["low"]
           gate = "blocked" if high_risk > 0 or totals["secrets"] > 0 else (
-              "review" if medium_or_low > 0 or totals["misconfigurations"] > 0 else "passed")
+              "review" if medium_or_low > 0 or totals["unknown"] > 0 or totals["misconfigurations"] > 0 else "passed")
           checkout_outcome = os.environ.get("CANDIDATE_CHECKOUT_OUTCOME", "")
           scan_outcome = os.environ.get("TRIVY_OUTCOME", "")
           failed = checkout_outcome != "success" or scan_outcome != "success" or not isinstance(raw, dict)
