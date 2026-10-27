@@ -2,14 +2,14 @@
 
 ## Current baseline and non-negotiable boundary
 
-The portal records project evidence URLs, versioned terms acceptance, manual validation, rubric-based human evaluation, decisions, and audit events. Branch `mavis` now implements the first automated stage: durable assessment runs, public GitHub repository verification, immutable commit pinning, reviewer-only workflow dispatch, Trivy filesystem scanning, strict callback validation, sanitized finding storage, run history, and an admin panel. This is a first-stage static scanner, not a complete production-readiness pipeline. Do not describe a submitted project as tested, secure, or enterprise-ready just because a static scan completed.
+The portal records project evidence URLs, versioned terms acceptance, manual validation, rubric-based human evaluation, decisions, and audit events. The participant-portal change implements the first automated stage: durable assessment runs, public GitHub repository verification, immutable commit pinning, reviewer-only workflow dispatch, Trivy filesystem vulnerability/secret/misconfiguration/license checks, CycloneDX SBOM generation, strict callback validation, sanitized finding storage, run history, and an admin panel. This is a first-stage static scanner, not a complete production-readiness pipeline. Do not describe a submitted project as tested, secure, or enterprise-ready just because a static scan completed.
 
 The portal must not fetch candidate URLs or execute candidate code inside the authenticated web process. Submitted repositories, URLs, build scripts, package hooks, container images, and artifacts are untrusted input.
 
 ## Rollout sequence
 
 1. **Portal baseline:** limit request bodies; add baseline response headers; prevent API response caching; safely handle malformed/oversized API bodies; add CI gates for typecheck, unit tests, production build, and a Trivy filesystem scan scoped to this app.
-2. **Static evidence collection (implemented in v1):** durable run records store submission ID, immutable source revision, pipeline version, requester, start/end time, status, sanitized findings and reviewer-visible workflow evidence. The run history is append-only; repeat runs do not overwrite historical results. The current scanner is Trivy filesystem analysis only.
+2. **Static evidence collection (implemented in v1):** durable run records store submission ID, immutable source revision, pipeline version, requester, start/end time, status, sanitized findings, CycloneDX SBOM digest/component count and reviewer-visible workflow evidence. The run history is append-only; repeat runs do not overwrite historical results. The current scan runs Trivy filesystem checks for vulnerabilities, secret patterns, misconfigurations and license findings. Raw scanner JSON and matched secret material are not uploaded or stored.
 3. **Source/dependency analysis:** run Gitleaks for exposed secrets; Opengrep rules for SAST; Trivy for dependency vulnerabilities, secrets, misconfiguration and supported licence evidence; generate an SBOM (CycloneDX/SPDX) and retain dependency inventory. Pin tool versions and retain machine-readable reports.
 4. **Build and functional verification:** build from an immutable commit in an ephemeral isolated worker; run deterministic tests and Playwright smoke/critical-flow tests against the candidate's isolated staging environment. Store exact commands, environment image digest, logs, test totals, and artifact hashes.
 5. **Dynamic security testing:** OWASP ZAP passive/baseline checks only against a verified, explicitly authorized target. Active scans require separate authorization and staging allowlisting. Never scan arbitrary third-party infrastructure.
@@ -22,7 +22,7 @@ Implemented in the participant portal branch (not yet production-activated): the
 
 The candidate workflow checks out source at the pinned SHA and treats it as data. Callback secrets are used on separate lightweight jobs and are not passed to the scanner job. Raw Trivy output is not uploaded or persisted. The UI's gate states are only signals: `blocked`, `review`, or `passed` apply to the current scanner set and must not automatically decide hiring or selection.
 
-End-to-end production activation remains pending: review/merge the draft PR; deploy the separate participant portal; apply the additive migration; set the portal and GitHub Actions callback URL/secret consistently; configure a least-privilege workflow-dispatch token; and run an explicitly authorized public test repository through the real deployment. See [ASSESSMENT_CONFIGURATION.md](./ASSESSMENT_CONFIGURATION.md).
+End-to-end production activation remains pending: deploy the separate participant portal; apply the additive migration; set the portal and GitHub Actions callback URL/secret consistently; configure a least-privilege workflow-dispatch token; ensure the workflow is on the configured default branch; and run an explicitly authorized public test repository through the real deployment. See [ASSESSMENT_CONFIGURATION.md](./ASSESSMENT_CONFIGURATION.md).
 
 ## Required isolation controls before candidate code runs
 
