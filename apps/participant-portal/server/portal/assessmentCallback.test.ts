@@ -21,6 +21,7 @@ const validReport = {
 
 const validCallback = {
   assessmentRunId: "76f376ec-cc9a-480e-96ca-402045b5b66c",
+  sourceRepository: "ExampleOwner/example-repo",
   sourceSha: "a".repeat(40),
   status: "completed" as const,
   workflowRunId: "123456789",
@@ -62,6 +63,7 @@ describe("assessment callback contract", () => {
 
   it("rejects malformed source revisions and unknown payload fields", () => {
     expect(assessmentCallbackSchema.safeParse({ ...validCallback, sourceSha: "main" }).success).toBe(false);
+    expect(assessmentCallbackSchema.safeParse({ ...validCallback, sourceRepository: "https://example.com/owner/repo" }).success).toBe(false);
     expect(assessmentCallbackSchema.safeParse({ ...validCallback, rawScannerOutput: "must-not-be-accepted" }).success).toBe(false);
   });
 
@@ -154,6 +156,10 @@ describe("assessment callback contract", () => {
       startedAt: "2026-10-27T12:00:20.000Z",
       finishedAt: "2026-10-27T12:00:10.000Z",
     }).success).toBe(false);
+  });
+
+  it("requires the workflow URL run ID to equal the callback run ID", () => {
+    expect(assessmentCallbackSchema.safeParse({ ...validCallback, workflowUrl: "https://github.com/Abhijeetjain4075/ovanite/actions/runs/999999999" }).success).toBe(false);
   });
 
   it("rejects workflow URLs with credentials, ports, queries, or fragments", () => {
