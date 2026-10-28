@@ -232,5 +232,4 @@ describe("WaitlistForm", () => {
     ).not.toBeInTheDocument();
     expect(actor.submitWaitlist).not.toHaveBeenCalled();
   });
-
 });
