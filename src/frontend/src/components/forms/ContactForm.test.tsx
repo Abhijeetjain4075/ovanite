@@ -43,6 +43,18 @@ describe("ContactForm", () => {
     useActorMock.mockReset();
   });
 
+  it("does not collect contact details when the backend actor is unavailable", () => {
+    useActorMock.mockReturnValue(actorResult(null));
+
+    renderForm();
+
+    expect(screen.getByRole("status")).toHaveTextContent(/temporarily unavailable/i);
+    expect(screen.queryByTestId("contact.form")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Send message" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows inline validation errors and does not call the backend for invalid input", async () => {
     const user = userEvent.setup();
     const actor = createMockActor();
