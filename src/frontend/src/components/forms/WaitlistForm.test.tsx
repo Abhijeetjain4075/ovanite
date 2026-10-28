@@ -39,7 +39,7 @@ function renderForm() {
 }
 
 function createHealthyMockActor() {
-  const actor = createHealthyMockActor();
+  const actor = createMockActor();
   actor.getSiteContent.mockResolvedValue({});
   useActorMock.mockReturnValue(actorResult(actor));
   return actor;
