@@ -49,6 +49,7 @@ export function buildRuntimeConfig(env = process.env) {
   const backendHost = configuredHost
     ? validateHttpsUrl(configuredHost, "OVANITE_BACKEND_HOST", {
         allowLocalHttp: !isDeployedBuild,
+        originOnly: true,
       })
     : isDeployedBuild
       ? DEFAULT_ICP_HOST
