@@ -1,0 +1,9 @@
+# Independent backend deployment manifest for Ovanite.
+# The public React/Vite frontend remains hosted on Vercel.
+# Only build/deploy this backend canister through the ICP CLI; do not deploy
+# to mainnet until cycles, object storage, runtime config, and owner identity
+# have been explicitly verified.
+canisters:
+  - name: backend
+    recipe:
+      type: "@dfinity/motoko@v5.1.0"
