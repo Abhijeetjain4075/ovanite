@@ -48,7 +48,9 @@ describe("ContactForm", () => {
 
     renderForm();
 
-    expect(screen.getByRole("status")).toHaveTextContent(/temporarily unavailable/i);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /temporarily unavailable/i,
+    );
     expect(screen.queryByTestId("contact.form")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Send message" }),
