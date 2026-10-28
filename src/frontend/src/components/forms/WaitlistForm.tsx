@@ -6,6 +6,7 @@ import { PrimaryButton } from "@/components/shared/primitives";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useBackendHealth } from "@/hooks/useBackendHealth";
 import {
   type FieldErrors,
   isDuplicateResult,
@@ -13,7 +14,6 @@ import {
   validateName,
   validateNote,
 } from "@/lib/validation";
-import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation } from "@tanstack/react-query";
 
@@ -86,8 +86,8 @@ export function WaitlistForm() {
         className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
       >
         The waitlist is temporarily unavailable until the submission service
-        passes its connectivity check. No information has been submitted.
-        Please check back soon.
+        passes its connectivity check. No information has been submitted. Please
+        check back soon.
       </output>
     );
   }
