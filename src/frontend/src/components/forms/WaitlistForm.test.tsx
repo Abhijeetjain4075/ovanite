@@ -38,6 +38,13 @@ function renderForm() {
   );
 }
 
+function createHealthyMockActor() {
+  const actor = createHealthyMockActor();
+  actor.getSiteContent.mockResolvedValue({});
+  useActorMock.mockReturnValue(actorResult(actor));
+  return actor;
+}
+
 describe("WaitlistForm", () => {
   beforeEach(() => {
     useActorMock.mockReset();
@@ -45,9 +52,8 @@ describe("WaitlistForm", () => {
 
   it("shows inline validation errors for invalid input", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
@@ -64,9 +70,8 @@ describe("WaitlistForm", () => {
 
   it("submits valid input with an optional note and routes to Thank You", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
@@ -92,9 +97,8 @@ describe("WaitlistForm", () => {
 
   it("omits an empty note from the submission payload", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
@@ -112,9 +116,8 @@ describe("WaitlistForm", () => {
 
   it("routes a valid submission to the waitlist confirmation heading", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderWithProviders(
       <Routes>
@@ -135,7 +138,7 @@ describe("WaitlistForm", () => {
 
   it("shows the 'Already received' message and does not route when the backend reports a duplicate", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({
       __kind__: "duplicate",
       duplicate: {
@@ -149,7 +152,6 @@ describe("WaitlistForm", () => {
         updatedAt: 0n,
       },
     });
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
@@ -172,9 +174,8 @@ describe("WaitlistForm", () => {
 
   it("shows an error state when the backend rejects the submission", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockRejectedValue(new Error("backend down"));
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
@@ -189,7 +190,7 @@ describe("WaitlistForm", () => {
 
   it("disables the submit button and shows a loading label while the submission is in flight", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     let resolveSubmit: (() => void) | undefined;
     actor.submitWaitlist.mockImplementation(
       () =>
@@ -197,7 +198,6 @@ describe("WaitlistForm", () => {
           resolveSubmit = resolve;
         }),
     );
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
 
