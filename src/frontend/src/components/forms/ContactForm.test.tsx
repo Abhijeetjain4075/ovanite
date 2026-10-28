@@ -56,6 +56,7 @@ describe("ContactForm", () => {
     actor.submitContact.mockResolvedValue({});
 
     renderForm();
+    await screen.findByRole("button", { name: "Send message" });
 
     await user.click(screen.getByRole("button", { name: "Send message" }));
 
@@ -77,8 +78,9 @@ describe("ContactForm", () => {
     actor.submitContact.mockResolvedValue({});
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "not-an-email");
     await user.type(
       screen.getByLabelText("Message"),
@@ -98,8 +100,9 @@ describe("ContactForm", () => {
     actor.submitContact.mockResolvedValue({});
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -132,7 +135,9 @@ describe("ContactForm", () => {
       { route: "/contact" },
     );
 
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -165,8 +170,9 @@ describe("ContactForm", () => {
     });
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -189,8 +195,9 @@ describe("ContactForm", () => {
     actor.submitContact.mockRejectedValue(new Error("backend down"));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -218,8 +225,9 @@ describe("ContactForm", () => {
     );
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
