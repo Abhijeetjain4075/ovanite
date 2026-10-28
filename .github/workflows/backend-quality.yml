@@ -71,7 +71,7 @@ jobs:
           ic-wasm --version
 
       - name: Validate locked dependencies
-        run: mops install
+        run: mops install --locked
 
       - name: Typecheck, lint, and check stable-state compatibility
         run: mops check backend
