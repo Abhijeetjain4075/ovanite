@@ -20,7 +20,7 @@ The generator validates URL syntax, requires HTTPS for deployed builds, requires
 
 ## Current release blockers
 
-- No mainnet backend canister has been deployed.
+- No independently deployed mainnet backend canister ID has been verified/configured for this Vercel deployment.
 - Vercel does not yet have a verified backend canister ID.
 - Owner principal remains intentionally `null`; do not claim ownership from an email address or Caffeine project ID.
 - The exported object-storage package still expects Caffeine-specific storage integration. Never guess its gateway URL.
