@@ -8,7 +8,7 @@ The tracked src/frontend/env.json uses the Caffeine-generated runtime placeholde
 
 A committed Motoko source file, generated WASM/Candid, and a READY Vercel deployment do not establish that a Motoko canister exists or that backend methods work.
 
-The standalone ICP CLI manifest is now defined in the repository root as `icp.yaml` and declares only the Motoko `backend` canister. The backend-quality workflow now checks both the existing Mops build and the official ICP CLI recipe. These are build validations only; they do not create a mainnet canister or prove the frontend integration is working.
+The standalone ICP CLI manifest is defined in the repository root as `icp.yaml` and declares only the Motoko `backend` canister. The backend-quality workflow now checks Mops dependency lock integrity, Motoko type/lint/stable-state compatibility, Mops and ICP CLI builds, generated artifacts, and deploys to a disposable local ICP network. The local smoke test verifies all five published FAQs are present after a fresh install, checks public backend reads, and confirms anonymous owner-claim attempts are rejected. This local test does not create a mainnet canister and does not prove the Vercel frontend integration is working.
 
 ## Security status
 
@@ -20,13 +20,13 @@ The standalone ICP CLI manifest is now defined in the repository root as `icp.ya
 
 ## Required release gates
 
-1. Run the pinned Mops and ICP CLI builds and preserve passing CI evidence. Do not use legacy dfx instructions.
+1. Preserve passing CI evidence for the pinned Mops/ICP CLI toolchain and disposable local deployment smoke test. Do not use legacy dfx instructions.
 2. Review the manifest and deployment target; the current manifest declares the backend only and does not deploy automatically.
 3. Resolve object storage for independent hosting; never guess storage_gateway_url. The Caffeine object-storage adapter must either be proven compatible with a standalone deployment or replaced with a documented, tested storage solution.
 4. Implement a Vercel-compatible runtime configuration and actor/identity adapter. Validate missing configuration and render a safe unavailable state rather than silently using invalid IDs. Keep the five Caffeine-specific runtime placeholders from being treated as working Vercel configuration.
 5. Review mainnet cycle requirements and get explicit approval for funding and ongoing costs. Local pre-funded development is not proof of free mainnet operation.
 6. Choose the identity origin and verify the exact app-specific Internet Identity principal using that origin; only then configure backend `ownerPrincipal` in a reviewed backend change.
-7. Test anonymous/wrong/repeated owner claims, admin authorization, public reads, form persistence, CRUD, data isolation, upgrade compatibility, and object storage against a local/staging canister before production.
+7. Extend end-to-end coverage beyond the successful local install/read/FAQ checks: test wrong/repeated non-anonymous owner claims, admin authorization, contact/waitlist persistence, CRUD, data isolation, upgrade compatibility, and object storage against a local/staging canister before production.
 
 Do not treat successful frontend deployment as proof of backend health. Do not enable participant intake until authentication, storage, database, permission, migration, abuse-control, privacy/retention, and end-to-end checks are complete.
 
