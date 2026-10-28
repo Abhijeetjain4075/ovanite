@@ -73,3 +73,14 @@ jobs:
           test -s src/backend/dist/backend.did
           test -s src/backend/dist/backend.most
           git diff --check
+
+      - name: Deploy to disposable local ICP network and smoke-test public reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          icp network start -d
+          trap 'icp network stop || true' EXIT
+          icp deploy backend
+          icp canister call backend listPublishedProducts '()'
+          icp canister call backend getSiteContent '()'
+          icp canister call backend isOwnerClaimed '()'
