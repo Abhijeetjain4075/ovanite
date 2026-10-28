@@ -45,7 +45,7 @@ jobs:
         run: npm install --global ic-mops@3.5.1
 
       - name: Install pinned ICP CLI and Wasm tooling
-        run: npm install --global @icp-sdk/icp-cli@1.5.0 @icp-sdk/ic-wasm@0.11.1
+        run: npm install --global @icp-sdk/icp-cli@1.7.0 @icp-sdk/ic-wasm@0.11.1
 
       - name: Report tool versions
         run: |
