@@ -6,6 +6,7 @@ on:
       - "src/backend/**"
       - "mops.toml"
       - "mops.lock"
+      - "icp.yaml"
       - ".github/workflows/backend-quality.yml"
   push:
     branches: [main, mavis]
@@ -42,8 +43,14 @@ jobs:
       - name: Install pinned Mops
         run: npm install --global ic-mops@3.5.1
 
-      - name: Report tool version
-        run: mops --version
+      - name: Install pinned ICP CLI and Wasm tooling
+        run: npm install --global @icp-sdk/icp-cli@1.5.0 @icp-sdk/ic-wasm@0.11.1
+
+      - name: Report tool versions
+        run: |
+          mops --version
+          icp --version
+          ic-wasm --version
 
       - name: Validate locked dependencies
         run: mops install
@@ -51,8 +58,11 @@ jobs:
       - name: Typecheck, lint, and check stable-state compatibility
         run: mops check backend
 
-      - name: Build backend
+      - name: Build backend with Mops
         run: mops build backend
+
+      - name: Validate standalone ICP CLI recipe
+        run: icp build backend
 
       - name: Verify backend artifacts
         shell: bash
