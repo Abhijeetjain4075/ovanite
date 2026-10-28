@@ -43,6 +43,13 @@ describe("WaitlistForm", () => {
     useActorMock.mockReset();
   });
 
+  it("shows the unavailable state if no actor is provided", () => {
+    useActorMock.mockReturnValue(actorResult(null));
+    renderForm();
+    expect(screen.getByRole("status")).toHaveTextContent(/temporarily unavailable/i);
+    expect(screen.queryByTestId("waitlist.form")).not.toBeInTheDocument();
+  });
+
   it("shows inline validation errors for invalid input", async () => {
     const user = userEvent.setup();
     const actor = createMockActor();
