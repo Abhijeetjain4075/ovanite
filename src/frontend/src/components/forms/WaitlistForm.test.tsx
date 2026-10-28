@@ -214,4 +214,23 @@ describe("WaitlistForm", () => {
       await screen.findByRole("heading", { name: "Thank you page" }),
     ).toBeInTheDocument();
   });
+  it("hides waitlist fields when the backend is unavailable", async () => {
+    const actor = createMockActor();
+    actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));
+    useActorMock.mockReturnValue(actorResult(actor));
+
+    renderForm();
+
+    expect(
+      await screen.findByText(/waitlist is temporarily unavailable/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitWaitlist).not.toHaveBeenCalled();
+  });
+
 });
