@@ -56,6 +56,7 @@ describe("WaitlistForm", () => {
     actor.submitWaitlist.mockResolvedValue({});
 
     renderForm();
+    await screen.findByRole("button", { name: "Join the waitlist" });
 
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -74,8 +75,9 @@ describe("WaitlistForm", () => {
     actor.submitWaitlist.mockResolvedValue({});
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.type(
       screen.getByLabelText(/Note/),
@@ -101,8 +103,9 @@ describe("WaitlistForm", () => {
     actor.submitWaitlist.mockResolvedValue({});
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -127,7 +130,9 @@ describe("WaitlistForm", () => {
       { route: "/waitlist" },
     );
 
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -154,8 +159,9 @@ describe("WaitlistForm", () => {
     });
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.type(
       screen.getByLabelText(/Note/),
@@ -178,8 +184,9 @@ describe("WaitlistForm", () => {
     actor.submitWaitlist.mockRejectedValue(new Error("backend down"));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -200,8 +207,9 @@ describe("WaitlistForm", () => {
     );
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
