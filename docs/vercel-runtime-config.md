@@ -26,4 +26,4 @@ The generator validates URL syntax, requires HTTPS for deployed builds, requires
 - The exported object-storage package still expects Caffeine-specific storage integration. Never guess its gateway URL.
 - Participant intake stays closed until auth, storage, data persistence, abuse controls, and end-to-end checks pass.
 
-For the independent Motoko build and disposable local deployment test, see [the backend deployment audit](backend-deployment-audit.md) when that PR is available in the base branch.
+For the independent Motoko build and disposable local deployment test, see [PR #11: independent ICP backend build and deployment audit](https://github.com/Abhijeetjain4075/ovanite/pull/11).
