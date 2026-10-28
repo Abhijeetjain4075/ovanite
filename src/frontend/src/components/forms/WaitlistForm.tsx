@@ -13,6 +13,7 @@ import {
   validateName,
   validateNote,
 } from "@/lib/validation";
+import { useBackendHealth } from "@/hooks/useBackendHealth";
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation } from "@tanstack/react-query";
 
@@ -27,7 +28,8 @@ const FIELD_IDS: Record<WaitlistFields, string> = {
 /** Accessible waitlist form with inline validation and success routing. */
 export function WaitlistForm() {
   const navigate = useNavigate();
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,7 +43,7 @@ export function WaitlistForm() {
       email: string;
       note?: string;
     }) => {
-      if (!actor) throw new Error("Backend is not ready");
+      if (!actor || !isHealthy) throw new Error("Backend is not ready");
       return actor.submitWaitlist(input);
     },
     onSuccess: (result) => {
@@ -66,13 +68,28 @@ export function WaitlistForm() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAlreadyReceived(false);
-    if (!validate()) return;
+    if (!validate() || !actor || !isHealthy) return;
     const trimmedNote = note.trim();
     mutation.mutate({
       name: name.trim(),
       email: email.trim(),
       ...(trimmedNote ? { note: trimmedNote } : {}),
     });
+  }
+
+  if (!actor || !isHealthy) {
+    return (
+      <output
+        aria-live="polite"
+        aria-busy={isChecking ? true : undefined}
+        data-ocid="waitlist.unavailable_state"
+        className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      >
+        The waitlist is temporarily unavailable until the submission service
+        passes its connectivity check. No information has been submitted.
+        Please check back soon.
+      </output>
+    );
   }
 
   return (
