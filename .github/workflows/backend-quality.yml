@@ -81,6 +81,28 @@ jobs:
           icp network start -d
           trap 'icp network stop || true' EXIT
           icp deploy backend
+
+          # A fresh install does not replay the enhanced migration chain.
+          # Initialize the default FAQs once, from the canister controller.
+          icp canister call backend initializeDefaultFaqs '()'
+          faq_output="$(icp canister call backend listPublishedFaqs '(10 : nat)')"
+          printf '%s\n' "$faq_output"
+          grep -Fq "What does Ovanite build?" <<<"$faq_output"
+          grep -Fq "How does Ovanite work?" <<<"$faq_output"
+          grep -Fq "How can I get in touch with Ovanite?" <<<"$faq_output"
+          grep -Fq "How does the waitlist work?" <<<"$faq_output"
+          grep -Fq "Where does Ovanite operate?" <<<"$faq_output"
+
+          # Confirm the seed is one-shot and does not recreate deleted FAQs.
+          icp canister call backend initializeDefaultFaqs '()' | grep -Fq 'false'
           icp canister call backend listPublishedProducts '()'
           icp canister call backend getSiteContent '()'
-          icp canister call backend isOwnerClaimed '()'
+          owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
+          grep -Fq 'true' <<<"$owner_claimed"
+
+          # A public email must never bootstrap ownership while ownerPrincipal
+          # is unconfigured, even from the local deployer's authenticated identity.
+          if icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")'; then
+            echo "SECURITY FAILURE: owner claim succeeded with no configured owner principal" >&2
+            exit 1
+          fi
