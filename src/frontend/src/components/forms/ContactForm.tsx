@@ -74,6 +74,21 @@ export function ContactForm() {
     });
   }
 
+  if (!actor) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        data-ocid="contact.unavailable_state"
+        className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      >
+        The contact form is temporarily unavailable while we finish connecting
+        our submission service. No information has been submitted. Please check
+        back soon.
+      </div>
+    );
+  }
+
   return (
     <form
       noValidate
