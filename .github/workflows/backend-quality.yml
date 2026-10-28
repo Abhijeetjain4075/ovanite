@@ -99,9 +99,9 @@ jobs:
           owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
           grep -Fq 'true' <<<"$owner_claimed"
 
-          # A public email must never bootstrap ownership while ownerPrincipal
-          # is unconfigured, even from the local deployer's authenticated identity.
+          # The default local CLI caller is anonymous; it must be rejected
+          # before any email-based owner bootstrap can occur.
           if icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")'; then
-            echo "SECURITY FAILURE: owner claim succeeded with no configured owner principal" >&2
+            echo "SECURITY FAILURE: anonymous owner claim unexpectedly succeeded" >&2
             exit 1
           fi
