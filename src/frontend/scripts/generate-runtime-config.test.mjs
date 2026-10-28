@@ -74,6 +74,16 @@ test("production URLs reject insecure HTTP endpoints", () => {
   );
 });
 
+test("backend host rejects paths and is restricted to an HTTPS origin in deployed builds", () => {
+  assert.throws(
+    () => buildRuntimeConfig({
+      NODE_ENV: "production",
+      OVANITE_BACKEND_HOST: "https://icp-api.io/some-path",
+    }),
+    /must be an origin only/,
+  );
+});
+
 test("blank and literal undefined values remain disabled placeholders", () => {
   const config = buildRuntimeConfig({
     NODE_ENV: "production",
