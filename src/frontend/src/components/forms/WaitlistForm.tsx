@@ -77,9 +77,14 @@ export function WaitlistForm() {
 
   if (!actor) {
     return (
-      <div role="status" aria-live="polite" data-ocid="waitlist.unavailable_state" className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-        The waitlist is temporarily unavailable. No information has been submitted. Please check back soon.
-      </div>
+      <output
+        aria-live="polite"
+        data-ocid="waitlist.unavailable_state"
+        className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      >
+        The waitlist is temporarily unavailable. No information has been
+        submitted. Please check back soon.
+      </output>
     );
   }
 
