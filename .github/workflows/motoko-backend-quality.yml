@@ -1,0 +1,52 @@
+name: Motoko backend build and stability check
+
+on:
+  pull_request:
+    branches: [main, mavis]
+    paths:
+      - "mops.toml"
+      - "mops.lock"
+      - "src/backend/**"
+      - ".old/src/backend/dist/backend.most"
+      - ".github/workflows/motoko-backend-quality.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "mops.toml"
+      - "mops.lock"
+      - "src/backend/**"
+      - ".old/src/backend/dist/backend.most"
+      - ".github/workflows/motoko-backend-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: motoko-backend-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-build:
+    name: Install locked Motoko dependencies and build backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install pinned Mops CLI
+        run: npm install --global ic-mops@3.4.2
+
+      - name: Install locked Motoko packages
+        run: mops install --locked
+
+      - name: Build backend and check configured deployment/stable-state constraints
+        run: mops build
