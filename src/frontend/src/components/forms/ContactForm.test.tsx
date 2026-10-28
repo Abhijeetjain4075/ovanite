@@ -246,9 +246,12 @@ describe("ContactForm", () => {
     expect(
       await screen.findByText(/contact form is temporarily unavailable/i),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("textbox", { name: "Name" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Send message" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Send message" }),
+    ).not.toBeInTheDocument();
     expect(actor.submitContact).not.toHaveBeenCalled();
   });
-
 });
