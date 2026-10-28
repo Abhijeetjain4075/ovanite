@@ -46,7 +46,9 @@ describe("WaitlistForm", () => {
   it("shows the unavailable state if no actor is provided", () => {
     useActorMock.mockReturnValue(actorResult(null));
     renderForm();
-    expect(screen.getByRole("status")).toHaveTextContent(/temporarily unavailable/i);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /temporarily unavailable/i,
+    );
     expect(screen.queryByTestId("waitlist.form")).not.toBeInTheDocument();
   });
 
