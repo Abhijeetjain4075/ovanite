@@ -1,6 +1,5 @@
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
-import Prim "mo:⛔";
 import AccessControl "mo:caffeineai-authorization/access-control";
 import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
 import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
@@ -97,70 +96,6 @@ actor {
   include SubmissionsApi(accessControlState, admins, submissions, nextSubmissionId);
   include AnalyticsApi(pageViews);
   include ApiDocMixin();
-
-  /// One-time first-install seed for the public FAQ collection.
-  ///
-  /// Enhanced migration chains run on upgrades, not as a first-install
-  /// initializer. The production deployer must call this immediately after
-  /// installing a fresh canister and before exposing it to visitors.
-  /// The caller must be a canister controller, and the nextFaqId == 0 guard
-  /// makes initialization one-shot even if all FAQs are later deleted.
-  public shared ({ caller }) func initializeDefaultFaqs() : async Bool {
-    if (not Prim.isController(caller)) {
-      return false;
-    };
-    if (nextFaqId.value != 0 or faqs.size() != 0) {
-      return false;
-    };
-
-    faqs.add(1, {
-      id = 1;
-      question = "What does Ovanite build?";
-      answer = "Ovanite builds thoughtful digital products designed to solve meaningful problems. We focus on software that earns its place: clear in purpose, careful in craft, and useful from the first release.";
-      sortOrder = 1;
-      state = #published;
-      createdAt = 0;
-      updatedAt = 0;
-    });
-    faqs.add(2, {
-      id = 2;
-      question = "How does Ovanite work?";
-      answer = "We start from the problem, not the technology. Each product moves from research and definition through design and engineering to a working release, with the same small team carrying the idea from first sketch to shipped software.";
-      sortOrder = 2;
-      state = #published;
-      createdAt = 0;
-      updatedAt = 0;
-    });
-    faqs.add(3, {
-      id = 3;
-      question = "How can I get in touch with Ovanite?";
-      answer = "Use the contact form on this site. Tell us what you are working on and what a good outcome looks like. We read every message and reply to the ones where we can genuinely help.";
-      sortOrder = 3;
-      state = #published;
-      createdAt = 0;
-      updatedAt = 0;
-    });
-    faqs.add(4, {
-      id = 4;
-      question = "How does the waitlist work?";
-      answer = "Join the waitlist to be the first to know when our products launch. We will only email you when there is something real to share, and you can ask to be removed at any time.";
-      sortOrder = 4;
-      state = #published;
-      createdAt = 0;
-      updatedAt = 0;
-    });
-    faqs.add(5, {
-      id = 5;
-      question = "Where does Ovanite operate?";
-      answer = "Ovanite is a software company that works with people wherever they are. Our products are built to be used online, so the work is not limited by a single location.";
-      sortOrder = 5;
-      state = #published;
-      createdAt = 0;
-      updatedAt = 0;
-    });
-    nextFaqId.value := 6;
-    true;
-  };
 
   include Expose({
     entities = [
