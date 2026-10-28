@@ -88,6 +88,35 @@ it("fails closed when owner bootstrap has no configured principal", async () => 
   await expect(arbitraryCaller.listAdmins()).rejects.toThrow();
 });
 
+
+it("keeps owner bootstrap closed after failed and repeated claim attempts", async () => {
+  // Exercise repeated calls and caller changes against the actual canister,
+  // not only source-text assertions. With no configured owner principal,
+  // matching the public email must never grant ownership.
+  const firstPrincipal = await pic!.createCanister();
+  const firstCaller = pic!.createActor<_SERVICE>(idlFactory, canisterId);
+  firstCaller.setPrincipal(firstPrincipal);
+
+  await expect(
+    firstCaller.claimOwner("therealabhijeetjain@gmail.com"),
+  ).rejects.toThrow(/owner principal is not configured|Unauthorized/i);
+  await expect(
+    firstCaller.claimOwner("therealabhijeetjain@gmail.com"),
+  ).rejects.toThrow(/owner principal is not configured|Unauthorized/i);
+
+  const secondPrincipal = await pic!.createCanister();
+  const secondCaller = pic!.createActor<_SERVICE>(idlFactory, canisterId);
+  secondCaller.setPrincipal(secondPrincipal);
+  await expect(
+    secondCaller.claimOwner("therealabhijeetjain@gmail.com"),
+  ).rejects.toThrow(/owner principal is not configured|Unauthorized/i);
+
+  await expect(firstCaller.isOwnerClaimed()).resolves.toBe(true);
+  await expect(secondCaller.isOwnerClaimed()).resolves.toBe(true);
+  await expect(firstCaller.getCallerAdmin()).resolves.toEqual([]);
+  await expect(secondCaller.getCallerAdmin()).resolves.toEqual([]);
+});
+
 it("stores a contact submission through the real canister", async () => {
   const result = await actor.submitContact({
     name: "Ada Lovelace",
