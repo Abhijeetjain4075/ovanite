@@ -36,6 +36,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check submitted patch whitespace
+        run: git diff --check
+
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -72,7 +75,6 @@ jobs:
           test -s src/backend/dist/backend.wasm
           test -s src/backend/dist/backend.did
           test -s src/backend/dist/backend.most
-          git diff --check
 
       - name: Deploy to disposable local ICP network and smoke-test public reads
         shell: bash
