@@ -249,6 +249,29 @@ jobs:
           editor_write="$(icp canister call backend createFaq '(record { question = "Editor write test"; answer = "Editor permission works"; sortOrder = 99 : nat })' --identity ci-editor)"
           printf '%s\n' "$editor_write"
           grep -Fq 'Editor write test' <<<"$editor_write"
+
+          # Product links are external navigation targets: reject script schemes
+          # at the canister boundary, even when called directly by an editor.
+          if unsafe_product="$(icp canister call backend createProduct '(record { name = "Unsafe link test"; description = "Must reject script schemes"; link = opt "javascript:alert(1)"; imageKey = null; imageUrl = null; sortOrder = 99 : nat })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a script-scheme product link was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$unsafe_product"
+          grep -Fq 'Product link must use HTTPS' <<<"$unsafe_product"
+
+          safe_product="$(icp canister call backend createProduct '(record { name = "Safe link test"; description = "HTTPS links are permitted"; link = opt "https://example.com/docs"; imageKey = null; imageUrl = null; sortOrder = 100 : nat })' --identity ci-editor)"
+          printf '%s\n' "$safe_product"
+          grep -Fq 'https://example.com/docs' <<<"$safe_product"
+
+          # Required content text is bounded in the canister, not just the UI.
+          long_question="$(python3 -c 'print("Q" * 301)')"
+          if oversized_faq="$(icp canister call backend createFaq "(record { question = \"$long_question\"; answer = \"Bounded answer\"; sortOrder = 101 : nat })" --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: an oversized FAQ question was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$oversized_faq"
+          grep -Fq 'FAQ question has an invalid length' <<<"$oversized_faq"
+
           if editor_team_change="$(icp canister call backend addAdmin "(principal \"$viewer_principal\", variant { viewer })" --identity ci-editor 2>&1)"; then
             echo "SECURITY FAILURE: editor changed the admin roster." >&2
             exit 1
