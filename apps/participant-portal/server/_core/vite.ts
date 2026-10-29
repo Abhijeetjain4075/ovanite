@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
+import { resolveStaticAssetDirectory } from "./staticPaths";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -48,13 +49,12 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath =
-    process.env.NODE_ENV === "development"
-      ? path.resolve(import.meta.dirname, "../..", "dist", "public")
-      : path.resolve(import.meta.dirname, "public");
-  if (!fs.existsSync(distPath)) {
-    console.error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+  const distPath = resolveStaticAssetDirectory(import.meta.dirname, process.env.NODE_ENV);
+  const indexPath = path.join(distPath, "index.html");
+  if (!fs.existsSync(indexPath)) {
+    // Fail during startup instead of serving a healthy-looking process with 404/500 pages.
+    throw new Error(
+      `Portal static entrypoint is missing at ${indexPath}; build the client before starting the production server.`
     );
   }
 
