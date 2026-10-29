@@ -10,7 +10,7 @@ mixin () {
     "\n" #
     "## Security model\n" #
     "\n" #
-    "The `admins` map is the authority for Ovanite's content, submission, and team-management methods. The generic access-control mixin's `#admin/#user/#guest` roles are a separate role system: a generic access-control admin does not automatically become an Ovanite admin. Each protected canister method checks its caller on the backend; hiding a UI control is not authorization.\n" #
+    "The `admins` map is the sole authority for Ovanite's content, submission, and team-management methods. The generic access-control mixin is retained for the Internet Identity challenge flow, but the standalone migration reserves its generic admin slot and demotes legacy generic admins to ordinary users. Calling `_initialize_access_control()` therefore cannot make a first visitor an administrator. The generic role API is not the Ovanite admin roster. Each protected canister method checks its caller on the backend; hiding a UI control is not authorization.\n" #
     "\n" #
     "### Owner bootstrap\n" #
     "\n" #
