@@ -6,7 +6,7 @@ import {
   StatusDot,
   SurfaceCard,
 } from "@/components/shared/primitives";
-import { hasProductImage, sectionIndex } from "@/lib/format";
+import { sectionIndex } from "@/lib/format";
 import { productImageUrlError } from "@/lib/productImageUrl";
 import type { Product } from "@/types/content";
 
@@ -27,13 +27,12 @@ function monogram(name: string): string {
  * A published product entry: media/logo, name, description, and an external
  * link when one is provided. Cards follow media → title → metadata → action.
  *
- * The image is gated on `hasProductImage` because the backend clears an image
- * by storing a zero-byte blob, which is truthy and would otherwise render a
- * broken `<img>`.
+ * Independent deployments render only validated public HTTPS image URLs.
+ * Legacy `imageKey` references remain in the backend schema for compatibility,
+ * but are not dereferenced until a native storage gateway is verified.
  */
 export function ProductCard({ product, position, total }: ProductCardProps) {
   const counter = `${sectionIndex(position)} / ${sectionIndex(total)}`;
-  const image = hasProductImage(product.imageKey) ? product.imageKey : null;
   const rawImageUrl = product.imageUrl?.trim() ?? "";
   const imageUrl =
     rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
@@ -67,16 +66,6 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
             decoding="async"
             referrerPolicy="no-referrer"
             onError={() => setFailedImageUrl(imageUrl)}
-            width={56}
-            height={56}
-            className="mb-6 h-14 w-14 shrink-0 rounded-sm border border-border object-cover"
-          />
-        ) : image ? (
-          <img
-            src={image.getDirectURL()}
-            alt={`${product.name} product logo`}
-            loading="lazy"
-            decoding="async"
             width={56}
             height={56}
             className="mb-6 h-14 w-14 shrink-0 rounded-sm border border-border object-cover"

@@ -122,6 +122,28 @@ describe("AdminProducts", () => {
     });
   });
 
+  it("does not dereference legacy storage blobs without a verified native gateway", async () => {
+    const getDirectURL = vi.fn(
+      () => "https://storage.example.invalid/legacy.png",
+    );
+    const legacyImage = {
+      getDirectURL,
+      _blob: new Uint8Array([1]),
+    } as unknown as NonNullable<Product["imageKey"]>;
+    const actor = createMockActor();
+    actor.listAllProducts.mockResolvedValue([
+      product({ imageKey: legacyImage }),
+    ]);
+    useActorMock.mockReturnValue(actorResult(actor));
+
+    renderWithProviders(<AdminProducts />);
+
+    const list = await screen.findByTestId("admin.products.list");
+    expect(getDirectURL).not.toHaveBeenCalled();
+    expect(within(list).queryByAltText("Ledger logo")).not.toBeInTheDocument();
+    expect(within(list).getByText("—")).toBeInTheDocument();
+  });
+
   it("shows an error state with a retry action when the list fails to load", async () => {
     const actor = createMockActor();
     actor.listAllProducts.mockRejectedValue(new Error("boom"));

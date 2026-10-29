@@ -77,6 +77,30 @@ describe("Products page", () => {
     expect(within(items[1]).getByText("Atlas")).toBeInTheDocument();
   });
 
+  it("does not dereference legacy storage blobs without a verified native gateway", async () => {
+    const getDirectURL = vi.fn(
+      () => "https://storage.example.invalid/legacy.png",
+    );
+    const legacyImage = {
+      getDirectURL,
+      _blob: new Uint8Array([1]),
+    } as unknown as NonNullable<Product["imageKey"]>;
+    const actor = createMockActor();
+    actor.listPublishedProducts.mockResolvedValue([
+      product({ imageKey: legacyImage }),
+    ]);
+    useActorMock.mockReturnValue(actorResult(actor));
+
+    renderWithProviders(<Products />);
+
+    const item = await screen.findByTestId("products.item.1");
+    expect(getDirectURL).not.toHaveBeenCalled();
+    expect(
+      within(item).queryByAltText("Ledger product logo"),
+    ).not.toBeInTheDocument();
+    expect(within(item).getByText("L")).toBeInTheDocument();
+  });
+
   it("renders breadcrumbs reflecting the page hierarchy", async () => {
     const actor = createMockActor();
     actor.listPublishedProducts.mockResolvedValue([]);
