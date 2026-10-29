@@ -76,7 +76,7 @@ mixin () {
     "\n" #
     "## OQL data surface\n" #
     "\n" #
-    "The canister exposes `schema()` and `execute(qJson)` through OQL. Product, FAQ, and site-content entities are public-read; submission and admin entities are controller-only. Controller-only does not mean ordinary application admins can query those entities; use the protected canister methods for admin data.\n" #
+    "The canister exposes `schema()` and `execute(qJson)` through OQL. Product and FAQ entities are public-read but contain **published records only**; unpublished drafts remain accessible only through the protected admin methods. Site-content is public-read. Submission and admin entities are controller-only. Controller-only does not mean ordinary application admins can query those entities; use the protected canister methods for admin data.\n" #
     "\n" #
     "## Independent-storage limitation\n" #
     "\n" #
