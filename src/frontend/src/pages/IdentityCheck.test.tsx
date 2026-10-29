@@ -56,7 +56,7 @@ describe("IdentityCheck", () => {
     expect(screen.queryByText("test-principal")).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", {
-        name: /canonical production identity check/i,
+        name: /Ovanite production identity check/i,
       }),
     ).toHaveAttribute("href", `${CANONICAL_OVANITE_ORIGIN}/identity-check`);
   });
