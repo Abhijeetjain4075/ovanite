@@ -51,7 +51,9 @@ export function resolveSiteCopy(content: SiteContent | undefined): SiteCopy {
     contactBody:
       stored(content?.contactBody) ??
       "Contact submissions are currently closed while production persistence and operational controls are being verified. No information is collected through this page.",
-    waitlistTitle: stored(content?.waitlistTitle) ?? "Waitlist registration is currently closed.",
+    waitlistTitle:
+      stored(content?.waitlistTitle) ??
+      "Waitlist registration is currently closed.",
     waitlistBody:
       stored(content?.waitlistBody) ??
       "We are preparing the systems for a responsible launch. No registration is active and no details are collected. This page will be updated before registration opens.",
