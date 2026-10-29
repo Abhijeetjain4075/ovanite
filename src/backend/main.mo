@@ -105,6 +105,7 @@ actor {
         .payload("description", func p = p.description, )
         .payload("link", func p = p.link, optionalTextValue)
         .payload("imageKey", func p = p.imageKey, optionalBlobValue)
+        .payload("imageUrl", func p = p.imageUrl, optionalTextValue)
         .payload("sortOrder", func p = p.sortOrder, )
         .payload("state", func p = p.state, publishStateValue)
         .payload("createdAt", func p = p.createdAt, )
@@ -115,6 +116,7 @@ actor {
           description = "";
           link = null;
           imageKey = null;
+          imageUrl = null;
           sortOrder = 0;
           state = #draft;
           createdAt = 0;

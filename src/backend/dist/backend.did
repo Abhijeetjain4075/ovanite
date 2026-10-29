@@ -142,6 +142,7 @@ type ProductPatch =
  record {
    description: opt text;
    imageKey: opt ExternalBlob;
+   imageUrl: opt text;
    link: opt text;
    name: opt text;
    sortOrder: opt nat;
@@ -150,6 +151,7 @@ type ProductInput =
  record {
    description: text;
    imageKey: opt ExternalBlob;
+   imageUrl: opt text;
    link: opt text;
    name: text;
    sortOrder: nat;
@@ -160,6 +162,7 @@ type Product =
    description: text;
    id: Id;
    imageKey: opt ExternalBlob;
+   imageUrl: opt text;
    link: opt text;
    name: text;
    sortOrder: nat;

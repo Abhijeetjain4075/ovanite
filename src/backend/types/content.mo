@@ -13,10 +13,11 @@ module {
     description : Text;
     /// Optional external link (product site, docs, waitlist).
     link : ?Text;
-    /// Optional object-storage blob for the product image/logo. The bytes are
-    /// uploaded by the frontend through the object-storage gateway; the backend
-    /// stores the reference.
+    /// Legacy Caffeine object-storage reference retained for stable-state and
+    /// Candid compatibility. New independent deployments use imageUrl.
     imageKey : ?Storage.ExternalBlob;
+    /// Optional public HTTPS image URL; this does not require a storage gateway.
+    imageUrl : ?Text;
     /// Admin-defined display order; lower values render first.
     sortOrder : Nat;
     state : PublishState;
@@ -92,6 +93,7 @@ module {
     description : Text;
     link : ?Text;
     imageKey : ?Storage.ExternalBlob;
+    imageUrl : ?Text;
     sortOrder : Nat;
   };
 
@@ -101,6 +103,8 @@ module {
     description : ?Text;
     link : ?Text;
     imageKey : ?Storage.ExternalBlob;
+    /// A provided empty string clears the image URL; null leaves it unchanged.
+    imageUrl : ?Text;
     sortOrder : ?Nat;
   };
 

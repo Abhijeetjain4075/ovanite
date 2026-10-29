@@ -20,6 +20,7 @@ import {
   useUpdateProduct,
 } from "@/hooks/useAdminProducts";
 import { formatDate, hasProductImage } from "@/lib/format";
+import { productImageUrlError } from "@/lib/productImageUrl";
 import type { Product, ProductInput } from "@/types/content";
 
 const SKELETON_IDS = Array.from(
@@ -168,6 +169,11 @@ export default function AdminProducts() {
           <ul data-ocid="admin.products.list" className="space-y-3">
             {sorted.map((product, i) => {
               const isPublished = product.state === "published";
+              const rawImageUrl = product.imageUrl?.trim() ?? "";
+              const imageUrl =
+                rawImageUrl && !productImageUrlError(rawImageUrl)
+                  ? rawImageUrl
+                  : null;
               return (
                 <li
                   key={String(product.id)}
@@ -176,10 +182,25 @@ export default function AdminProducts() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="flex min-w-0 gap-4">
-                      {hasProductImage(product.imageKey) && product.imageKey ? (
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={`${product.name} logo`}
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          onError={(event) => {
+                            event.currentTarget.style.visibility = "hidden";
+                          }}
+                          className="h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
+                        />
+                      ) : hasProductImage(product.imageKey) &&
+                        product.imageKey ? (
                         <img
                           src={product.imageKey.getDirectURL()}
                           alt={`${product.name} logo`}
+                          loading="lazy"
+                          decoding="async"
                           className="h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
                         />
                       ) : (

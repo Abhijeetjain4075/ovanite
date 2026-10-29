@@ -1,5 +1,8 @@
 import Map "mo:core/Map";
 import Storage "mo:caffeineai-object-storage/Storage";
+import Char "mo:core/Char";
+import Text "mo:core/Text";
+import Runtime "mo:core/Runtime";
 import Types "../types/content";
 
 module {
@@ -8,6 +11,64 @@ module {
     switch (patch) {
       case (?value) { ?value };
       case null { current };
+    };
+  };
+
+  /// Validates optional public product image URLs for independent deployments.
+  /// Empty strings are the explicit clear operation used by ProductPatch.
+  func normalizeImageUrl(value : ?Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?raw) {
+        let url = raw.trim(#predicate(Char.isWhitespace));
+        if (url == "") { return null };
+        if (Text.size(url) > 2048) {
+          Runtime.trap("Product image URL must be 2048 characters or fewer");
+        };
+        if (not url.startsWith(#text "https://")) {
+          Runtime.trap("Product image URL must use HTTPS");
+        };
+
+        // Parse the authority after the eight-character "https://" prefix.
+        // Stop at the first path, query, or fragment delimiter. Starting at
+        // character zero here incorrectly collected "https:" as the host and
+        // rejected every valid HTTPS URL.
+        var authority = "";
+        var inAuthority = true;
+        var index : Nat = 0;
+        for (c in url.chars()) {
+          if (index >= 8 and inAuthority) {
+            if (c == '/' or c == '?' or c == '#') {
+              inAuthority := false;
+            } else {
+              authority := authority # c.toText();
+            };
+          };
+          index += 1;
+        };
+
+        if (Text.size(authority) == 0 or authority.contains(#char '@')) {
+          Runtime.trap("Product image URL must include a host and must not include credentials");
+        };
+
+        // Reject whitespace anywhere, including in the path, query or fragment.
+        // Trimmed outer whitespace is accepted, then normalized away above.
+        for (c in url.chars()) {
+          if (Char.isWhitespace(c)) {
+            Runtime.trap("Product image URL must not contain whitespace");
+          };
+        };
+        ?url;
+      };
+    };
+  };
+
+  /// Merge a product image URL. An explicit empty string clears it, while
+  /// an absent option leaves the previous value unchanged.
+  func mergeImageUrl(patch : ?Text, current : ?Text) : ?Text {
+    switch (patch) {
+      case null { current };
+      case (?value) { normalizeImageUrl(?value) };
     };
   };
 
@@ -56,6 +117,7 @@ module {
       description = input.description;
       link = input.link;
       imageKey = input.imageKey;
+      imageUrl = normalizeImageUrl(input.imageUrl);
       sortOrder = input.sortOrder;
       state = #draft;
       createdAt = now;
@@ -81,6 +143,7 @@ module {
           description = patch.description ?? existing.description;
           link = mergeText(patch.link, existing.link);
           imageKey = mergeBlob(patch.imageKey, existing.imageKey);
+          imageUrl = mergeImageUrl(patch.imageUrl, existing.imageUrl);
           sortOrder = patch.sortOrder ?? existing.sortOrder;
           state = existing.state;
           createdAt = existing.createdAt;
@@ -108,6 +171,7 @@ module {
           description = existing.description;
           link = existing.link;
           imageKey = existing.imageKey;
+          imageUrl = existing.imageUrl;
           sortOrder = existing.sortOrder;
           state;
           createdAt = existing.createdAt;
