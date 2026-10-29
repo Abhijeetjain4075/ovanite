@@ -381,3 +381,30 @@ jobs:
           owner_status_after_guards="$(icp canister call backend isCallerOwner '()' --identity ci-configured-owner)"
           printf '%s\n' "$owner_status_after_guards"
           grep -Fq 'true' <<<"$owner_status_after_guards"
+
+      - name: Rebuild safe-default backend artifacts after test-only owner fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # The preceding positive-authorization test temporarily compiles a
+          # canister with a generated CI-only owner principal. Its trap restores
+          # the source, but generated Wasm/stable-memory artifacts must also be
+          # rebuilt from the production-safe null owner default before the job
+          # exits. Otherwise a local/CI artifact copied from this workspace could
+          # accidentally carry the ephemeral test principal.
+          grep -Fq 'public let ownerPrincipalText : ?Text = null;' src/backend/lib/admin.mo
+          if ! git diff --quiet -- src/backend/lib/admin.mo; then
+            echo "SECURITY FAILURE: owner source was not restored after the test fixture." >&2
+            exit 1
+          fi
+
+          mops check backend
+          mops build backend
+          icp build backend
+
+          test -s src/backend/dist/backend.wasm
+          test -s src/backend/dist/backend.did
+          test -s src/backend/dist/backend.most
+          grep -Fq 'public let ownerPrincipalText : ?Text = null;' src/backend/lib/admin.mo
+          echo "Safe-default backend artifacts rebuilt from the unconfigured owner source."
