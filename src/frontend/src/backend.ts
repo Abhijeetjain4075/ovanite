@@ -1788,11 +1788,11 @@ async function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise
 }> {
     return {
         sortOrder: value.sortOrder,
-        link: value.link ? candid_some(value.link) : candid_none(),
+        link: value.link !== undefined ? candid_some(value.link) : candid_none(),
         name: value.name,
         description: value.description,
         imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none(),
-        imageUrl: value.imageUrl ? candid_some(value.imageUrl) : candid_none()
+        imageUrl: value.imageUrl !== undefined ? candid_some(value.imageUrl) : candid_none()
     };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1801,7 +1801,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     proposed_top_up_amount: [] | [bigint];
 } {
     return {
-        proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
+        proposed_top_up_amount: value.proposed_top_up_amount !== undefined ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
 function to_candid_record_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1827,7 +1827,7 @@ function to_candid_record_n72(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 } {
     return {
         name: value.name,
-        note: value.note ? candid_some(value.note) : candid_none(),
+        note: value.note !== undefined ? candid_some(value.note) : candid_none(),
         email: value.email
     };
 }
@@ -1841,9 +1841,9 @@ function to_candid_record_n74(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     answer: [] | [string];
 } {
     return {
-        question: value.question ? candid_some(value.question) : candid_none(),
-        sortOrder: value.sortOrder ? candid_some(value.sortOrder) : candid_none(),
-        answer: value.answer ? candid_some(value.answer) : candid_none()
+        question: value.question !== undefined ? candid_some(value.question) : candid_none(),
+        sortOrder: value.sortOrder !== undefined ? candid_some(value.sortOrder) : candid_none(),
+        answer: value.answer !== undefined ? candid_some(value.answer) : candid_none()
     };
 }
 async function to_candid_record_n76(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1862,10 +1862,10 @@ async function to_candid_record_n76(_uploadFile: (file: ExternalBlob) => Promise
     imageUrl: [] | [string];
 }> {
     return {
-        sortOrder: value.sortOrder ? candid_some(value.sortOrder) : candid_none(),
-        link: value.link ? candid_some(value.link) : candid_none(),
-        name: value.name ? candid_some(value.name) : candid_none(),
-        description: value.description ? candid_some(value.description) : candid_none(),
+        sortOrder: value.sortOrder !== undefined ? candid_some(value.sortOrder) : candid_none(),
+        link: value.link !== undefined ? candid_some(value.link) : candid_none(),
+        name: value.name !== undefined ? candid_some(value.name) : candid_none(),
+        description: value.description !== undefined ? candid_some(value.description) : candid_none(),
         imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none(),
         imageUrl: value.imageUrl !== undefined ? candid_some(value.imageUrl) : candid_none()
     };
@@ -1912,25 +1912,25 @@ function to_candid_record_n78(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     waitlistBody: [] | [string];
 } {
     return {
-        contactBody: value.contactBody ? candid_some(value.contactBody) : candid_none(),
-        privacyBody: value.privacyBody ? candid_some(value.privacyBody) : candid_none(),
-        heroDescription: value.heroDescription ? candid_some(value.heroDescription) : candid_none(),
-        primaryCtaHref: value.primaryCtaHref ? candid_some(value.primaryCtaHref) : candid_none(),
-        primaryCtaLabel: value.primaryCtaLabel ? candid_some(value.primaryCtaLabel) : candid_none(),
-        philosophyTitle: value.philosophyTitle ? candid_some(value.philosophyTitle) : candid_none(),
-        contactTitle: value.contactTitle ? candid_some(value.contactTitle) : candid_none(),
-        philosophyBody: value.philosophyBody ? candid_some(value.philosophyBody) : candid_none(),
-        aboutTitle: value.aboutTitle ? candid_some(value.aboutTitle) : candid_none(),
-        waitlistTitle: value.waitlistTitle ? candid_some(value.waitlistTitle) : candid_none(),
-        secondaryCtaHref: value.secondaryCtaHref ? candid_some(value.secondaryCtaHref) : candid_none(),
-        approachBody: value.approachBody ? candid_some(value.approachBody) : candid_none(),
-        aboutBody: value.aboutBody ? candid_some(value.aboutBody) : candid_none(),
-        termsBody: value.termsBody ? candid_some(value.termsBody) : candid_none(),
-        approachTitle: value.approachTitle ? candid_some(value.approachTitle) : candid_none(),
-        heroHeadline: value.heroHeadline ? candid_some(value.heroHeadline) : candid_none(),
-        secondaryCtaLabel: value.secondaryCtaLabel ? candid_some(value.secondaryCtaLabel) : candid_none(),
-        footerText: value.footerText ? candid_some(value.footerText) : candid_none(),
-        waitlistBody: value.waitlistBody ? candid_some(value.waitlistBody) : candid_none()
+        contactBody: value.contactBody !== undefined ? candid_some(value.contactBody) : candid_none(),
+        privacyBody: value.privacyBody !== undefined ? candid_some(value.privacyBody) : candid_none(),
+        heroDescription: value.heroDescription !== undefined ? candid_some(value.heroDescription) : candid_none(),
+        primaryCtaHref: value.primaryCtaHref !== undefined ? candid_some(value.primaryCtaHref) : candid_none(),
+        primaryCtaLabel: value.primaryCtaLabel !== undefined ? candid_some(value.primaryCtaLabel) : candid_none(),
+        philosophyTitle: value.philosophyTitle !== undefined ? candid_some(value.philosophyTitle) : candid_none(),
+        contactTitle: value.contactTitle !== undefined ? candid_some(value.contactTitle) : candid_none(),
+        philosophyBody: value.philosophyBody !== undefined ? candid_some(value.philosophyBody) : candid_none(),
+        aboutTitle: value.aboutTitle !== undefined ? candid_some(value.aboutTitle) : candid_none(),
+        waitlistTitle: value.waitlistTitle !== undefined ? candid_some(value.waitlistTitle) : candid_none(),
+        secondaryCtaHref: value.secondaryCtaHref !== undefined ? candid_some(value.secondaryCtaHref) : candid_none(),
+        approachBody: value.approachBody !== undefined ? candid_some(value.approachBody) : candid_none(),
+        aboutBody: value.aboutBody !== undefined ? candid_some(value.aboutBody) : candid_none(),
+        termsBody: value.termsBody !== undefined ? candid_some(value.termsBody) : candid_none(),
+        approachTitle: value.approachTitle !== undefined ? candid_some(value.approachTitle) : candid_none(),
+        heroHeadline: value.heroHeadline !== undefined ? candid_some(value.heroHeadline) : candid_none(),
+        secondaryCtaLabel: value.secondaryCtaLabel !== undefined ? candid_some(value.secondaryCtaLabel) : candid_none(),
+        footerText: value.footerText !== undefined ? candid_some(value.footerText) : candid_none(),
+        waitlistBody: value.waitlistBody !== undefined ? candid_some(value.waitlistBody) : candid_none()
     };
 }
 function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AdminRole): {
