@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 
 import {
@@ -7,6 +8,7 @@ import {
 } from "@/components/shared/primitives";
 import { hasProductImage, sectionIndex } from "@/lib/format";
 import type { Product } from "@/types/content";
+import { productImageUrlError } from "@/lib/productImageUrl";
 
 type ProductCardProps = {
   product: Product;
@@ -32,6 +34,10 @@ function monogram(name: string): string {
 export function ProductCard({ product, position, total }: ProductCardProps) {
   const counter = `${sectionIndex(position)} / ${sectionIndex(total)}`;
   const image = hasProductImage(product.imageKey) ? product.imageKey : null;
+  const rawImageUrl = product.imageUrl?.trim() ?? "";
+  const imageUrl = rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const showUrlImage = imageUrl !== null && failedImageUrl !== imageUrl;
 
   return (
     <SurfaceCard
@@ -52,7 +58,19 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col p-6">
-        {image ? (
+        {showUrlImage ? (
+          <img
+            src={imageUrl}
+            alt={`${product.name} product logo`}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            onError={() => setFailedImageUrl(imageUrl)}
+            width={56}
+            height={56}
+            className="mb-6 h-14 w-14 shrink-0 rounded-sm border border-border object-cover"
+          />
+        ) : image ? (
           <img
             src={image.getDirectURL()}
             alt={`${product.name} product logo`}
