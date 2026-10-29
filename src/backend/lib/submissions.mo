@@ -35,7 +35,12 @@ module {
 
   func normalizeContactMessage(value : Text) : Text {
     let message = trimmed(value);
-    requireLength(message, 10, 5000, "Contact message must be between 10 and 5000 characters");
+    requireLength(
+      message,
+      10,
+      5000,
+      "Contact message must be between 10 and 5000 characters",
+    );
     message;
   };
 
