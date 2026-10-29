@@ -7,8 +7,21 @@ module {
   type SubmissionKind = { #contact; #waitlist };
   type SubmissionStatus = { #new; #read; #handled };
 
-  // Current Product shape after migration 20261029_100000. This migration
-  // preserves the exact stable record shape while hardening the generic roles.
+  // Previous stable Product shape from migration 20260918_140000.
+  type OldProduct = {
+    id : Nat;
+    name : Text;
+    description : Text;
+    link : ?Text;
+    imageKey : ?Blob;
+    sortOrder : Nat;
+    state : PublishState;
+    createdAt : Nat;
+    updatedAt : Nat;
+  };
+
+  // Current Product shape. Keep imageKey for stable compatibility with
+  // existing generated bindings; new independent deployments use imageUrl.
   type Product = {
     id : Nat;
     name : Text;
@@ -83,11 +96,11 @@ module {
     lastSeenAt : Nat;
   };
 
-  // Exact actor state after migration 20261029_100000.
+  // Exact actor state after migration 20260918_140000; this folds the pending // product-image field and authorization-hardening changes into one migration.
   type OldActor = {
     accessControlState : AccessControl.AccessControlState;
     admins : Map.Map<Principal, Admin>;
-    products : Map.Map<Nat, Product>;
+    products : Map.Map<Nat, OldProduct>;
     faqs : Map.Map<Nat, Faq>;
     submissions : Map.Map<Nat, Submission>;
     siteContent : { var value : SiteContent };
@@ -110,14 +123,28 @@ module {
     pageViews : Map.Map<Text, RouteViews>;
   };
 
-  /// Remove the first-caller privilege from the generic Caffeine role system.
-  /// Ovanite's separate principal-bound admins map remains the sole authority
-  /// for content, submission, and team-management endpoints.
-  ///
-  /// This state migration marks the generic admin slot as permanently reserved
-  /// and demotes any legacy generic #admin role to #user. Thus a first visitor
-  /// cannot gain generic admin access by calling _initialize_access_control().
   public func migration(old : OldActor) : NewActor {
+    let products = Map.empty<Nat, Product>();
+    for (product in old.products.values()) {
+      products.add(product.id, {
+        id = product.id;
+        name = product.name;
+        description = product.description;
+        link = product.link;
+        // Preserve the historical field for stable-state compatibility.
+        // Independent deployments write imageUrl; old blob references are kept
+        // untouched because their gateway has not been verified here.
+        imageKey = product.imageKey;
+        imageUrl = null;
+        sortOrder = product.sortOrder;
+        state = product.state;
+        createdAt = product.createdAt;
+        updatedAt = product.updatedAt;
+      });
+    };
+    // The authorization mixin defaults the first caller to generic #admin.
+    // Reserve this role system for the identity handshake, not Ovanite admin
+    // permissions, and demote any pre-existing generic admins during upgrade.
     let safeUserRoles = Map.map<Principal, AccessControl.UserRole, AccessControl.UserRole>(
       old.accessControlState.userRoles,
       func (_principal : Principal, role : AccessControl.UserRole) : AccessControl.UserRole {
@@ -135,7 +162,7 @@ module {
     {
       accessControlState;
       admins = old.admins;
-      products = old.products;
+      products;
       faqs = old.faqs;
       submissions = old.submissions;
       siteContent = old.siteContent;
