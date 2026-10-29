@@ -198,3 +198,24 @@ it("does not expose admin reads or writes to an anonymous caller", async () => {
   // requires a signed-in caller before it checks the email.
   await expect(actor.claimOwner("not-the-owner@example.com")).rejects.toThrow();
 });
+
+it("caps public FAQ query limits before numeric conversion", async () => {
+  // Nat is arbitrary-precision. A hostile caller must not be able to force
+  // Nat-to-Int overflow by asking for an unbounded public FAQ result.
+  await expect(
+    actor.listPublishedFaqs(999999999999999999999999999999999999n),
+  ).resolves.toHaveLength(5);
+});
+
+it("documents the actual security boundary and closed public write gates", async () => {
+  const apiDoc = await actor.getApiDoc();
+
+  expect(apiDoc).toContain("`ownerPrincipal` is `null`");
+  expect(apiDoc).toContain("Email alone");
+  expect(apiDoc).toContain("Public submissions are disabled by backend release policy");
+  expect(apiDoc).toContain("Public analytics writes are disabled by backend release policy");
+  expect(apiDoc).toContain("`#viewer`");
+  expect(apiDoc).toContain("cannot mutate content or submission records");
+  expect(apiDoc).not.toContain("The first non-anonymous caller to initialize becomes `#admin`.");
+  expect(apiDoc).not.toContain("ownership is bootstrapped by email alone");
+});
