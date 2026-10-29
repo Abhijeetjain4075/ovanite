@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
+import { useState } from "react";
 
 import {
   MicroBadge,
@@ -7,8 +7,8 @@ import {
   SurfaceCard,
 } from "@/components/shared/primitives";
 import { hasProductImage, sectionIndex } from "@/lib/format";
-import type { Product } from "@/types/content";
 import { productImageUrlError } from "@/lib/productImageUrl";
+import type { Product } from "@/types/content";
 
 type ProductCardProps = {
   product: Product;
@@ -35,7 +35,8 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
   const counter = `${sectionIndex(position)} / ${sectionIndex(total)}`;
   const image = hasProductImage(product.imageKey) ? product.imageKey : null;
   const rawImageUrl = product.imageUrl?.trim() ?? "";
-  const imageUrl = rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
+  const imageUrl =
+    rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const showUrlImage = imageUrl !== null && failedImageUrl !== imageUrl;
 
