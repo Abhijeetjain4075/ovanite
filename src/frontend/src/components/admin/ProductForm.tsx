@@ -6,6 +6,7 @@ import { PrimaryButton, SecondaryButton } from "@/components/shared/primitives";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { productImageUrlError } from "@/lib/productImageUrl";
 import type { Product, ProductInput } from "@/types/content";
 
 type ProductFormProps = {
@@ -52,6 +53,8 @@ export function ProductForm({
   const [name, setName] = useState(product?.name ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [link, setLink] = useState(product?.link ?? "");
+  const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? "");
+  const [failedPreviewUrl, setFailedPreviewUrl] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState(
     product ? String(product.sortOrder) : "0",
   );
@@ -65,7 +68,11 @@ export function ProductForm({
   const descriptionError =
     description.trim() === "" ? "A description is required." : null;
 
+  const imageUrlError = productImageUrlError(imageUrl);
+  const normalizedImageUrl = imageUrl.trim();
   const previewUrl = image ? image.getDirectURL() : null;
+  const safeImageUrl = normalizedImageUrl && !imageUrlError ? normalizedImageUrl : null;
+  const showUrlPreview = safeImageUrl !== null && failedPreviewUrl !== safeImageUrl;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -95,7 +102,7 @@ export function ProductForm({
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (nameError || descriptionError || uploading) return;
+    if (nameError || descriptionError || uploading || imageUrlError) return;
     // The backend's mergeBlob treats `undefined` as "leave the stored value
     // untouched", so clearing an image must send an explicit empty blob. The
     // public and admin cards read that zero-byte blob as "no image".
@@ -105,6 +112,7 @@ export function ProductForm({
       description: description.trim(),
       link: link.trim(),
       imageKey,
+      imageUrl: normalizedImageUrl,
       sortOrder: parseSortOrder(sortOrder),
     });
   }
@@ -206,6 +214,55 @@ export function ProductForm({
       </div>
 
       <div>
+        <Label htmlFor="product-image-url" className="mb-2">
+          Image URL <span className="text-muted-foreground">(optional alternative)</span>
+        </Label>
+        <div className="flex items-start gap-4">
+          {showUrlPreview ? (
+            <img
+              src={safeImageUrl}
+              alt="Product image URL preview"
+              loading="lazy"
+              decoding="async"
+              referrerPolicy="no-referrer"
+              onError={() => setFailedPreviewUrl(safeImageUrl)}
+              className="h-16 w-16 rounded-sm border border-border object-cover"
+            />
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-sm border border-dashed border-border text-muted-foreground">
+              <ImagePlus aria-hidden="true" className="h-5 w-5" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <Input
+              id="product-image-url"
+              type="url"
+              inputMode="url"
+              placeholder="https://cdn.example.com/product-logo.webp"
+              value={imageUrl}
+              onChange={(event) => {
+                setImageUrl(event.target.value);
+                setFailedPreviewUrl(null);
+              }}
+              aria-invalid={imageUrlError ? true : undefined}
+              aria-describedby={imageUrlError ? "product-image-url-error" : "product-image-url-help"}
+              data-ocid="admin.product.image_url_input"
+              className="h-11 rounded-sm"
+            />
+            {imageUrlError ? (
+              <p id="product-image-url-error" role="alert" data-ocid="admin.product.image_url_error" className="mt-2 text-sm text-destructive">
+                {imageUrlError}
+              </p>
+            ) : (
+              <p id="product-image-url-help" className="mt-2 text-xs text-muted-foreground">
+                Public HTTPS images load directly in visitors&apos; browsers. Ovanite does not upload or proxy URL images.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div>
         <Label htmlFor="product-image" className="mb-2">
           Image / logo <span className="text-muted-foreground">(optional)</span>
         </Label>
@@ -280,7 +337,7 @@ export function ProductForm({
       <div className="flex flex-wrap gap-3 border-t border-border pt-6">
         <PrimaryButton
           type="submit"
-          disabled={isPending || uploading}
+          disabled={isPending || uploading || Boolean(imageUrlError)}
           data-ocid="admin.product.submit_button"
         >
           {isPending ? "Saving…" : product ? "Save changes" : "Create product"}
