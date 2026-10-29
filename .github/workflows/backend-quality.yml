@@ -100,8 +100,8 @@ jobs:
           # Compiler versions may reformat generated documentation comments.
           # Compare the interface itself, excluding comments and blank lines.
           diff -u \
-            <(git show HEAD:src/backend/dist/backend.did | sed -E '/^[[:space:]]*\\/\\//d; /^[[:space:]]*$/d') \
-            <(sed -E '/^[[:space:]]*\\/\\//d; /^[[:space:]]*$/d' src/backend/dist/backend.did)
+            <(git show HEAD:src/backend/dist/backend.did | sed -E '/^[[:space:]]*\/\//d; /^[[:space:]]*$/d') \
+            <(sed -E '/^[[:space:]]*\/\//d; /^[[:space:]]*$/d' src/backend/dist/backend.did)
 
           # Regenerate the TypeScript actor and declarations from that exact DID.
           # Pin the generator so CI and developers produce the same contract.
@@ -110,7 +110,7 @@ jobs:
 
           # Ignore generated documentation-comment differences but fail on any
           # functional change to the actor or declarations.
-          git diff --exit-code --ignore-matching-lines='^[[:space:]]*(//|/\\*|\\*|\\*/)' -- src/frontend/src/backend.ts src/frontend/src/declarations
+          git diff --exit-code --ignore-matching-lines='^[[:space:]]*(//|/\*|\*|\*/)' -- src/frontend/src/backend.ts src/frontend/src/declarations
 
       - name: Deploy to disposable local ICP network and smoke-test public reads
         shell: bash
