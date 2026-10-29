@@ -16,7 +16,7 @@ module {
     let normalized = value.trim(#predicate(Char.isWhitespace));
     let length = Text.size(normalized);
     if (length == 0 or length > maximum) {
-      Runtime.trap(label # " must be between 1 and " # maximum.toText() # " characters");
+      Runtime.trap(label # " has an invalid length");
     };
     normalized;
   };
@@ -29,7 +29,7 @@ module {
         let normalized = raw.trim(#predicate(Char.isWhitespace));
         if (normalized == "") { return null };
         if (Text.size(normalized) > maximum) {
-          Runtime.trap(label # " must be " # maximum.toText() # " characters or fewer");
+          Runtime.trap(label # " exceeds the maximum allowed length");
         };
         ?normalized;
       };
