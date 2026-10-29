@@ -109,8 +109,9 @@ jobs:
 
           # Regenerate the TypeScript actor and declarations from that exact DID.
           # Pin the generator so CI and developers produce the same contract.
-          npm install --global @caffeineai/bindgen@0.2.2
-          caffeine-bindgen --did-file ./src/backend/dist/backend.did --out-dir ./src/frontend/src --actor-interface-file --force
+          npm install --global pnpm@10.18.0 @caffeineai/bindgen@0.2.2
+          pnpm bindgen
+          node --test scripts/normalize-generated-candid-options.test.mjs
 
           # Ignore generated documentation-comment differences but fail on any
           # functional change to the actor or declarations.
