@@ -60,19 +60,11 @@ export default function ThankYou() {
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
             </PrimaryButton>
-            {isConfirmed && isWaitlist ? (
-              <SecondaryButton asChild size="lg">
-                <Link to="/products" data-ocid="thank_you.contact_button">
-                  Explore products
-                </Link>
-              </SecondaryButton>
-            ) : (
-              <SecondaryButton asChild size="lg">
-                <Link to="/" data-ocid="thank_you.home_button">
-                  Back to home
-                </Link>
-              </SecondaryButton>
-            )}
+            <SecondaryButton asChild size="lg">
+              <Link to="/" data-ocid="thank_you.home_button">
+                Back to home
+              </Link>
+            </SecondaryButton>
           </div>
         </div>
       </Container>
