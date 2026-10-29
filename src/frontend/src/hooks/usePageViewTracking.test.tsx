@@ -24,7 +24,6 @@ vi.mock("@/backend", async (importOriginal) => {
 
 import { usePageViewTracking } from "@/hooks/usePageViewTracking";
 
-/** Minimal host so the hook runs inside a real router location. */
 function Tracker() {
   usePageViewTracking();
   return null;
@@ -45,69 +44,41 @@ describe("usePageViewTracking", () => {
     useActorMock.mockReset();
   });
 
-  it("does not record a page view before consent is granted", async () => {
-    const actor = createMockActor();
-    actor.recordPageView.mockResolvedValue({ ignored: null });
-
-    renderAt("/products", actor);
-
-    // Give the effect a chance to run; it must not have called the backend.
-    await waitFor(() => {
-      expect(useActorMock).toHaveBeenCalled();
-    });
-    expect(actor.recordPageView).not.toHaveBeenCalled();
-  });
-
-  it("does not record a page view when consent was declined", async () => {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, "declined");
-    const actor = createMockActor();
-    actor.recordPageView.mockResolvedValue({ ignored: null });
-
-    renderAt("/products", actor);
-
-    await waitFor(() => {
-      expect(useActorMock).toHaveBeenCalled();
-    });
-    expect(actor.recordPageView).not.toHaveBeenCalled();
-  });
-
-  it("records the public route once consent is accepted", async () => {
+  it("never records a page view when analytics collection is disabled", async () => {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
     const actor = createMockActor();
     actor.recordPageView.mockResolvedValue({ ignored: null });
 
     renderAt("/products", actor);
 
-    await waitFor(() => {
-      expect(actor.recordPageView).toHaveBeenCalledWith("/products");
-    });
-    expect(actor.recordPageView).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(useActorMock).toHaveBeenCalled());
+    expect(actor.recordPageView).not.toHaveBeenCalled();
   });
 
-  it("never records an admin route even with consent accepted", async () => {
+  it("never records page views from declined or missing legacy consent", async () => {
+    const actor = createMockActor();
+    actor.recordPageView.mockResolvedValue({ ignored: null });
+
+    renderAt("/products", actor);
+    await waitFor(() => expect(useActorMock).toHaveBeenCalled());
+    expect(actor.recordPageView).not.toHaveBeenCalled();
+
+    window.localStorage.setItem(CONSENT_STORAGE_KEY, "declined");
+    const secondActor = createMockActor();
+    secondActor.recordPageView.mockResolvedValue({ ignored: null });
+    renderAt("/about", secondActor);
+
+    await waitFor(() => expect(useActorMock).toHaveBeenCalled());
+    expect(secondActor.recordPageView).not.toHaveBeenCalled();
+  });
+
+  it("never attempts analytics updates on admin routes", async () => {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
     const actor = createMockActor();
     actor.recordPageView.mockResolvedValue({ ignored: null });
 
     renderAt("/admin/faqs", actor);
-
-    await waitFor(() => {
-      expect(useActorMock).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(useActorMock).toHaveBeenCalled());
     expect(actor.recordPageView).not.toHaveBeenCalled();
-  });
-
-  it("swallows a backend failure without surfacing it", async () => {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
-    const actor = createMockActor();
-    actor.recordPageView.mockRejectedValue(new Error("backend unavailable"));
-
-    renderAt("/about", actor);
-
-    await waitFor(() => {
-      expect(actor.recordPageView).toHaveBeenCalledWith("/about");
-    });
-    // No unhandled rejection and no thrown error: the component still rendered.
-    expect(actor.recordPageView).toHaveBeenCalledTimes(1);
   });
 });
