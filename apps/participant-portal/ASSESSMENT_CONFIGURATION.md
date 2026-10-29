@@ -41,7 +41,7 @@ In the GitHub repository's Actions configuration, set:
 
 The callback secret is delivered only to separate lightweight workflow jobs that mark a run started or return its sanitized result. It is not set in the job that checks out and scans candidate source. The scanner job has read-only repository permissions, checks out a public repository at the pinned SHA without persisting checkout credentials, and does not execute files from that repository.
 
-The candidate workflow must first exist on the Ovanite repository's default branch before the portal's workflow-dispatch API can reliably start it. Since code changes are in a draft PR on `mavis`, do not expect live dispatch to work until the PR has been reviewed/merged and deployment/migration/configuration are completed. Do not merge without the owner's review approval.
+The candidate workflow is present on the Ovanite repository's default branch at `.github/workflows/candidate-static-assessment.yml`. Live dispatch still requires a deployed portal, a reachable HTTPS callback URL, the required least-privilege GitHub Actions dispatch credential, the matching callback secret, an applied additive database migration, and server/repository configuration. A workflow file on `main` alone is not proof of a working end-to-end scan.
 
 ## How to verify after activation
 
