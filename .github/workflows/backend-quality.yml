@@ -5,6 +5,10 @@ on:
     paths:
       - "src/backend/**"
       - "test/pocketic/backend.test.ts"
+      - "scripts/verify-backend-contract-parity.mjs"
+      - "src/frontend/src/backend.ts"
+      - "src/frontend/src/declarations/backend.did.d.ts"
+      - "src/frontend/src/declarations/backend.did.js"
       - "mops.toml"
       - "mops.lock"
       - "icp.yaml"
@@ -91,6 +95,9 @@ jobs:
           test -s src/backend/dist/backend.wasm
           test -s src/backend/dist/backend.did
           test -s src/backend/dist/backend.most
+
+      - name: Verify Candid and generated frontend binding parity
+        run: node scripts/verify-backend-contract-parity.mjs
 
       - name: Deploy to disposable local ICP network and smoke-test public reads
         shell: bash
