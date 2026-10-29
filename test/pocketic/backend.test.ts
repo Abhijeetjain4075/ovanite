@@ -117,93 +117,44 @@ it("keeps owner bootstrap closed after failed and repeated claim attempts", asyn
   await expect(secondCaller.getCallerAdmin()).resolves.toEqual([]);
 });
 
-it("stores a contact submission through the real canister", async () => {
-  const result = await actor.submitContact({
-    name: "Ada Lovelace",
-    email: "ada@example.com",
-    message: "I would like to learn more about your products.",
-  });
+it("rejects Contact and Waitlist writes while the backend release policy is closed", async () => {
+  await expect(
+    actor.submitContact({
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      message: "I would like to learn more about your products.",
+    }),
+  ).rejects.toThrow(/public submissions are disabled by backend release policy/i);
 
-  expect(result).toHaveProperty("created");
-  const created = result.created;
-  expect(created.name).toBe("Ada Lovelace");
-  expect(created.kind).toEqual({ contact: null });
-  expect(created.status).toEqual({ new: null });
+  await expect(
+    actor.submitWaitlist({
+      name: "Grace Hopper",
+      email: "grace@example.com",
+      note: ["Interested in early access."],
+    }),
+  ).rejects.toThrow(/public submissions are disabled by backend release policy/i);
 });
 
-it("stores a waitlist submission through the real canister", async () => {
-  const result = await actor.submitWaitlist({
-    name: "Grace Hopper",
-    email: "grace@example.com",
-    note: ["Interested in early access."],
-  });
+it("does not allow a non-anonymous principal to bypass the server-side submission gate", async () => {
+  const principal = await pic!.createCanister();
+  const caller = pic!.createActor<_SERVICE>(idlFactory, canisterId);
+  caller.setPrincipal(principal);
 
-  expect(result).toHaveProperty("created");
-  const created = result.created;
-  expect(created.name).toBe("Grace Hopper");
-  expect(created.kind).toEqual({ waitlist: null });
-});
+  await expect(
+    caller.submitContact({
+      name: "Direct Caller",
+      email: "direct@example.com",
+      message: "This direct canister call must remain blocked.",
+    }),
+  ).rejects.toThrow(/public submissions are disabled by backend release policy/i);
 
-it("reports a duplicate contact instead of storing a second record", async () => {
-  // A fresh email keeps this test independent of the records earlier tests
-  // created in the same shared canister.
-  const input = {
-    name: "Duplicate Contact",
-    email: "duplicate-contact@example.com",
-    message: "This exact message is sent twice.",
-  };
-
-  const first = await actor.submitContact(input);
-  expect(first).toHaveProperty("created");
-
-  // Same email and message, differing only in surrounding whitespace and email
-  // case: normalization must still recognize it as the same submission.
-  const second = await actor.submitContact({
-    name: "Duplicate Contact",
-    email: "  DUPLICATE-CONTACT@example.com  ",
-    message: "  This exact message is sent twice.  ",
-  });
-
-  expect(second).toHaveProperty("duplicate");
-  expect(second.duplicate.id).toBe(first.created.id);
-});
-
-it("reports a duplicate waitlist entry instead of storing a second record", async () => {
-  const input = {
-    name: "Duplicate Waitlist",
-    email: "duplicate-waitlist@example.com",
-    note: ["This exact note is sent twice."],
-  };
-
-  const first = await actor.submitWaitlist(input);
-  expect(first).toHaveProperty("created");
-
-  const second = await actor.submitWaitlist({
-    name: "Duplicate Waitlist",
-    email: "DUPLICATE-WAITLIST@example.com",
-    note: ["This exact note is sent twice."],
-  });
-
-  expect(second).toHaveProperty("duplicate");
-  expect(second.duplicate.id).toBe(first.created.id);
-});
-
-it("treats an absent note and an empty note as the same waitlist submission", async () => {
-  const first = await actor.submitWaitlist({
-    name: "Alan Turing",
-    email: "alan@example.com",
-    note: [],
-  });
-  expect(first).toHaveProperty("created");
-
-  const second = await actor.submitWaitlist({
-    name: "Alan Turing",
-    email: "alan@example.com",
-    note: [""],
-  });
-
-  expect(second).toHaveProperty("duplicate");
-  expect(second.duplicate.id).toBe(first.created.id);
+  await expect(
+    caller.submitWaitlist({
+      name: "Direct Caller",
+      email: "direct@example.com",
+      note: [],
+    }),
+  ).rejects.toThrow(/public submissions are disabled by backend release policy/i);
 });
 
 it("records an aggregate page view and reads it back", async () => {
