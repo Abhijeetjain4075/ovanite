@@ -71,6 +71,22 @@ module {
     };
   };
 
+  /// Duplicate receipts deliberately omit stored contact data so a public
+  /// caller cannot recover another person's name/email by replaying a known
+  /// email/message pair.
+  func duplicateReceipt(existing : Types.Submission) : Types.Submission {
+    {
+      id = 0;
+      kind = existing.kind;
+      name = "";
+      email = "";
+      message = null;
+      status = #new;
+      createdAt = 0;
+      updatedAt = 0;
+    };
+  };
+
   /// Returns the first stored submission of `kind` whose normalized email and
   /// normalized message/note both match, or `null` when none does.
   func findDuplicate(
@@ -96,17 +112,20 @@ module {
     input : Types.ContactInput,
     now : Nat,
   ) : Types.SubmitResult {
-    switch (findDuplicate(submissions, #contact, input.email, ?input.message)) {
-      case (?existing) { #duplicate(existing) };
+    let name = normalizePublicName(input.name);
+    let email = normalizePublicEmail(input.email);
+    let message = normalizeContactMessage(input.message);
+    switch (findDuplicate(submissions, #contact, email, ?message)) {
+      case (?existing) { #duplicate(duplicateReceipt(existing)) };
       case null {
         let id = nextId.value;
         nextId.value := id + 1;
         let submission : Types.Submission = {
           id;
           kind = #contact;
-          name = input.name;
-          email = input.email;
-          message = ?input.message;
+          name;
+          email;
+          message = ?message;
           status = #new;
           createdAt = now;
           updatedAt = now;
@@ -126,17 +145,20 @@ module {
     input : Types.WaitlistInput,
     now : Nat,
   ) : Types.SubmitResult {
-    switch (findDuplicate(submissions, #waitlist, input.email, input.note)) {
-      case (?existing) { #duplicate(existing) };
+    let name = normalizePublicName(input.name);
+    let email = normalizePublicEmail(input.email);
+    let note = normalizeWaitlistNote(input.note);
+    switch (findDuplicate(submissions, #waitlist, email, note)) {
+      case (?existing) { #duplicate(duplicateReceipt(existing)) };
       case null {
         let id = nextId.value;
         nextId.value := id + 1;
         let submission : Types.Submission = {
           id;
           kind = #waitlist;
-          name = input.name;
-          email = input.email;
-          message = input.note;
+          name;
+          email;
+          message = note;
           status = #new;
           createdAt = now;
           updatedAt = now;
