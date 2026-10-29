@@ -15,6 +15,7 @@ import PrincipalValue "mo:caffeineai-oql/PrincipalValue";
 import BoolValue "mo:caffeineai-oql/BoolValue";
 import BlobValue "mo:caffeineai-oql/BlobValue";
 import ContentTypes "types/content";
+import ContentLib "lib/content";
 import SubmissionTypes "types/submissions";
 import AdminTypes "types/admin";
 import AnalyticsTypes "types/analytics";
