@@ -78,7 +78,9 @@ describe("Products page", () => {
   });
 
   it("does not dereference legacy storage blobs without a verified native gateway", async () => {
-    const getDirectURL = vi.fn(() => "https://storage.example.invalid/legacy.png");
+    const getDirectURL = vi.fn(
+      () => "https://storage.example.invalid/legacy.png",
+    );
     const legacyImage = {
       getDirectURL,
       _blob: new Uint8Array([1]),
