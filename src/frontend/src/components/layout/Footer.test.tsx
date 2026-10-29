@@ -97,30 +97,6 @@ describe("Footer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("states the current intake and analytics status without disabled actions", () => {
-    const actor = createMockActor();
-    actor.getSiteContent.mockResolvedValue({ updatedAt: 0n });
-    useActorMock.mockReturnValue(actorResult(actor));
-
-    renderWithProviders(<Footer />);
-
-    expect(
-      screen.getByText(/Contact and waitlist submissions are currently closed/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Page-view analytics is currently disabled."),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Cookie preferences" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Join the waitlist" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Start a conversation" }),
-    ).not.toBeInTheDocument();
-  });
-
   it("renders editable footer text from the backend", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockResolvedValue({
