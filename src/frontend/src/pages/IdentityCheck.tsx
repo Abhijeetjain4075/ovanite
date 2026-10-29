@@ -82,16 +82,19 @@ export default function IdentityCheck({
             <section
               className="mt-8 border border-border bg-card p-6"
               data-ocid="identity.origin_warning"
-              role="status"
+              aria-live="polite"
             >
-              <ShieldAlert aria-hidden="true" className="h-5 w-5 text-primary" />
+              <ShieldAlert
+                aria-hidden="true"
+                className="h-5 w-5 text-primary"
+              />
               <h2 className="mt-4 font-display text-xl font-semibold">
                 Open the canonical production domain
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Preview deployments and alternate domains can derive a
-                different principal. For Ovanite's production owner setup, open
-                this utility on the canonical domain only.
+                Preview deployments and alternate domains can derive a different
+                principal. For Ovanite's production owner setup, open this
+                utility on the canonical domain only.
               </p>
               <a
                 className="mt-5 inline-flex text-sm font-medium underline underline-offset-4"
@@ -116,8 +119,8 @@ export default function IdentityCheck({
                 Sign in to view your principal
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Use the same Internet Identity method that you intend to use
-                for Ovanite administration. Sign-in alone does not grant admin
+                Use the same Internet Identity method that you intend to use for
+                Ovanite administration. Sign-in alone does not grant admin
                 privileges.
               </p>
               {isLoginError ? (
@@ -148,7 +151,10 @@ export default function IdentityCheck({
               data-ocid="identity.principal_panel"
             >
               <div className="flex items-center gap-3">
-                <Fingerprint aria-hidden="true" className="h-5 w-5 text-primary" />
+                <Fingerprint
+                  aria-hidden="true"
+                  className="h-5 w-5 text-primary"
+                />
                 <h2 className="font-display text-xl font-semibold">
                   Your Ovanite-origin principal
                 </h2>
