@@ -9,7 +9,8 @@ Set these under the Vercel project's Environment Variables only after the corres
 | Variable | Purpose | Required for current production? |
 | --- | --- | --- |
 | `OVANITE_BACKEND_HOST` | ICP API host, normally `https://icp-api.io` | No; generated as the ICP default for deployed builds |
-| `OVANITE_BACKEND_CANISTER_ID` | Canonical principal of the deployed Ovanite backend canister; Vite maps this to the Caffeine SDK variable `CANISTER_ID_BACKEND` | Yes, before the app can use backend methods |\n| `OVANITE_PUBLIC_FORMS_ENABLED` | Explicit release switch for public Contact/Waitlist data collection | No; defaults to closed. Set to `true` only after persistence, abuse controls, privacy handling, and end-to-end checks pass |
+| `OVANITE_BACKEND_CANISTER_ID` | Canonical principal of the deployed Ovanite backend canister; Vite maps this to the Caffeine SDK variable `CANISTER_ID_BACKEND` | Yes, before the app can use backend methods |
+| `OVANITE_PUBLIC_FORMS_ENABLED` | Explicit release switch for public Contact/Waitlist data collection | No; defaults to closed. Set to `true` only after persistence, abuse controls, privacy handling, and end-to-end checks pass |
 | `OVANITE_II_DERIVATION_ORIGIN` | Optional final Internet Identity derivation origin | Leave unset until the identity design is verified |
 | `OVANITE_CAFFEINE_PROJECT_ID` | Caffeine project identifier used only by Caffeine-specific infrastructure | Do not set just because it was provided for the old hosted project |
 | `OVANITE_STORAGE_GATEWAY_URL` | Storage gateway expected by the exported Caffeine object-storage adapter | Leave unset until independent storage compatibility is proven |
@@ -24,6 +25,7 @@ The build resolves `OVANITE_BACKEND_CANISTER_ID` and `CANISTER_ID_BACKEND` to a 
 - Vercel does not yet have a verified backend canister ID, so the actor intentionally remains unavailable and public forms remain hidden.
 - Owner principal remains intentionally `null`; do not claim ownership from an email address or Caffeine project ID.
 - The exported object-storage package still expects Caffeine-specific storage integration. Never guess its gateway URL.
-- Contact/Waitlist forms stay closed until `OVANITE_PUBLIC_FORMS_ENABLED=true` is deliberately set after auth, storage, data persistence, abuse controls, privacy handling, and end-to-end checks pass.\n- Participant intake stays closed until its separate identity, persistence, permissions, migrations, lifecycle, and security gates pass.
+- Contact/Waitlist forms stay closed until `OVANITE_PUBLIC_FORMS_ENABLED=true` is deliberately set after auth, storage, data persistence, abuse controls, privacy handling, and end-to-end checks pass.
+- Participant intake stays closed until its separate identity, persistence, permissions, migrations, lifecycle, and security gates pass.
 
 For the independent Motoko build and disposable local deployment test, see [PR #11: independent ICP backend build and deployment audit](https://github.com/Abhijeetjain4075/ovanite/pull/11).
