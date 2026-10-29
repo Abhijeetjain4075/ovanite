@@ -78,55 +78,55 @@ mixin (
 
   /// Creates a product. Admin only.
   public shared ({ caller }) func createProduct(input : Types.ProductInput) : async Types.Product {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.createProduct(products, nextProductId, input, Time.now().toNat());
   };
 
   /// Applies a partial update to a product. Admin only.
   public shared ({ caller }) func updateProduct(id : Nat, patch : Types.ProductPatch) : async ?Types.Product {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.updateProduct(products, id, patch, Time.now().toNat());
   };
 
   /// Publishes or unpublishes a product. Admin only.
   public shared ({ caller }) func setProductState(id : Nat, state : Types.PublishState) : async ?Types.Product {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.setProductState(products, id, state, Time.now().toNat());
   };
 
   /// Deletes a product. Admin only.
   public shared ({ caller }) func deleteProduct(id : Nat) : async Bool {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.deleteProduct(products, id);
   };
 
   /// Creates an FAQ. Admin only.
   public shared ({ caller }) func createFaq(input : Types.FaqInput) : async Types.Faq {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.createFaq(faqs, nextFaqId, input, Time.now().toNat());
   };
 
   /// Applies a partial update to an FAQ. Admin only.
   public shared ({ caller }) func updateFaq(id : Nat, patch : Types.FaqPatch) : async ?Types.Faq {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.updateFaq(faqs, id, patch, Time.now().toNat());
   };
 
   /// Publishes or unpublishes an FAQ. Admin only.
   public shared ({ caller }) func setFaqState(id : Nat, state : Types.PublishState) : async ?Types.Faq {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.setFaqState(faqs, id, state, Time.now().toNat());
   };
 
   /// Deletes an FAQ. Admin only.
   public shared ({ caller }) func deleteFaq(id : Nat) : async Bool {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.deleteFaq(faqs, id);
   };
 
   /// Merges a partial patch into the editable site copy. Admin only.
   public shared ({ caller }) func updateSiteContent(patch : Types.SiteContentPatch) : async Types.SiteContent {
-    requireContentEditor(caller)
+    requireContentEditor(caller);
     ContentLib.updateSiteContent(siteContent, patch, Time.now().toNat());
   };
 };
