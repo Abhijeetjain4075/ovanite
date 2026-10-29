@@ -6,11 +6,55 @@ import Runtime "mo:core/Runtime";
 import Types "../types/content";
 
 module {
+  /// Hard bounds keep administrative input and public query responses finite.
+  public let maxProductCount : Nat = 100;
+  public let maxFaqCount : Nat = 100;
+  public let maxPublicFaqLimit : Nat = 20;
+
+  /// Validates and normalizes required text at the canister boundary.
+  func normalizeRequiredText(value : Text, maximum : Nat, label : Text) : Text {
+    let normalized = value.trim(#predicate(Char.isWhitespace));
+    let length = Text.size(normalized);
+    if (length == 0 or length > maximum) {
+      Runtime.trap(label # " must be between 1 and " # maximum.toText() # " characters");
+    };
+    normalized;
+  };
+
+  /// Validates optional text; an explicit empty string clears the value.
+  func normalizeOptionalText(value : ?Text, maximum : Nat, label : Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?raw) {
+        let normalized = raw.trim(#predicate(Char.isWhitespace));
+        if (normalized == "") { return null };
+        if (Text.size(normalized) > maximum) {
+          Runtime.trap(label # " must be " # maximum.toText() # " characters or fewer");
+        };
+        ?normalized;
+      };
+    };
+  };
+
   /// Returns the patch value when present, otherwise the stored value.
+  /// Site-copy fields are bounded independently from the frontend validation.
   func mergeText(patch : ?Text, current : ?Text) : ?Text {
     switch (patch) {
-      case (?value) { ?value };
+      case (?value) {
+        if (Text.size(value) > 10000) {
+          Runtime.trap("Site content fields must be 10000 characters or fewer");
+        };
+        ?value;
+      };
       case null { current };
+    };
+  };
+
+  /// A more restrictive merge helper for optional fields such as product links.
+  func mergeOptionalText(patch : ?Text, current : ?Text, maximum : Nat, label : Text) : ?Text {
+    switch (patch) {
+      case null { current };
+      case (?value) { normalizeOptionalText(?value, maximum, label) };
     };
   };
 
@@ -94,6 +138,7 @@ module {
 
   /// Returns only published products, sorted by `sortOrder` then id.
   public func listPublishedProducts(products : Map.Map<Nat, Types.Product>) : [Types.Product] {
+    // The collection itself is capped on writes, so the public result is bounded.
     listProducts(products).filter(func(p) { p.state == #published });
   };
 
@@ -109,13 +154,16 @@ module {
     input : Types.ProductInput,
     now : Nat,
   ) : Types.Product {
+    if (products.size() >= maxProductCount) {
+      Runtime.trap("Maximum of 100 products reached");
+    };
     let id = nextId.value;
     nextId.value := id + 1;
     let product : Types.Product = {
       id;
-      name = input.name;
-      description = input.description;
-      link = input.link;
+      name = normalizeRequiredText(input.name, 120, "Product name");
+      description = normalizeRequiredText(input.description, 5000, "Product description");
+      link = normalizeOptionalText(input.link, 2048, "Product link");
       imageKey = input.imageKey;
       imageUrl = normalizeImageUrl(input.imageUrl);
       sortOrder = input.sortOrder;
@@ -139,9 +187,9 @@ module {
       case (?existing) {
         let updated : Types.Product = {
           id = existing.id;
-          name = patch.name ?? existing.name;
-          description = patch.description ?? existing.description;
-          link = mergeText(patch.link, existing.link);
+          name = normalizeRequiredText(patch.name ?? existing.name, 120, "Product name");
+          description = normalizeRequiredText(patch.description ?? existing.description, 5000, "Product description");
+          link = mergeOptionalText(patch.link, existing.link, 2048, "Product link");
           imageKey = mergeBlob(patch.imageKey, existing.imageKey);
           imageUrl = mergeImageUrl(patch.imageUrl, existing.imageUrl);
           sortOrder = patch.sortOrder ?? existing.sortOrder;
@@ -208,9 +256,12 @@ module {
 
   /// Returns up to `limit` published FAQs, sorted by `sortOrder` then id.
   public func listPublishedFaqs(faqs : Map.Map<Nat, Types.Faq>, limit : Nat) : [Types.Faq] {
+    // Cap the public argument before converting Nat to Int or slicing. A caller
+    // cannot submit an enormous Nat to force conversion traps or oversized output.
+    let safeLimit = if (limit > maxPublicFaqLimit) { maxPublicFaqLimit } else { limit };
     let published = listFaqs(faqs).filter(func(f) { f.state == #published });
-    if (published.size() <= limit) { published } else {
-      published.sliceToArray(0, limit.toInt());
+    if (published.size() <= safeLimit) { published } else {
+      published.sliceToArray(0, safeLimit.toInt());
     };
   };
 
@@ -226,12 +277,15 @@ module {
     input : Types.FaqInput,
     now : Nat,
   ) : Types.Faq {
+    if (faqs.size() >= maxFaqCount) {
+      Runtime.trap("Maximum of 100 FAQs reached");
+    };
     let id = nextId.value;
     nextId.value := id + 1;
     let faq : Types.Faq = {
       id;
-      question = input.question;
-      answer = input.answer;
+      question = normalizeRequiredText(input.question, 300, "FAQ question");
+      answer = normalizeRequiredText(input.answer, 10000, "FAQ answer");
       sortOrder = input.sortOrder;
       state = #draft;
       createdAt = now;
@@ -253,8 +307,8 @@ module {
       case (?existing) {
         let updated : Types.Faq = {
           id = existing.id;
-          question = patch.question ?? existing.question;
-          answer = patch.answer ?? existing.answer;
+          question = normalizeRequiredText(patch.question ?? existing.question, 300, "FAQ question");
+          answer = normalizeRequiredText(patch.answer ?? existing.answer, 10000, "FAQ answer");
           sortOrder = patch.sortOrder ?? existing.sortOrder;
           state = existing.state;
           createdAt = existing.createdAt;
