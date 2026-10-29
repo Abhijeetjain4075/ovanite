@@ -39,7 +39,7 @@ The policy is enforced inside Motoko methods. The UI is not a security boundary.
 
 ### Safe owner bootstrap
 
-`src/backend/lib/admin.mo` deliberately defaults `ownerPrincipal` to `null`. In that state, owner bootstrap fails closed and `isOwnerClaimed()` returns `true`. A reviewed release may configure the exact operator principal only after the final Internet Identity origin is established and the operator obtains the principal on that origin.
+`src/backend/lib/admin.mo` deliberately defaults `ownerPrincipalText` to `null`. In that state, owner bootstrap fails closed and `isOwnerClaimed()` returns `true`. A reviewed release may configure the exact operator principal only after the final Internet Identity origin is established and the operator obtains the principal on that origin.
 
 The configured principal is the primary identity check; the configured email is a secondary consistency check only. Never use an email string, Caffeine project UUID, or principal copied from a preview origin as proof of identity. Do not put identity seeds, passkeys, private keys, delegations, or tokens in the repository or public runtime configuration.
 
