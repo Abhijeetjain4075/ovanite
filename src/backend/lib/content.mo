@@ -1,5 +1,8 @@
 import Map "mo:core/Map";
 import Storage "mo:caffeineai-object-storage/Storage";
+import Char "mo:core/Char";
+import Text "mo:core/Text";
+import Runtime "mo:core/Runtime";
 import Types "../types/content";
 
 module {
@@ -8,6 +11,52 @@ module {
     switch (patch) {
       case (?value) { ?value };
       case null { current };
+    };
+  };
+
+  /// Validates optional public product image URLs for independent deployments.
+  /// Empty strings are the explicit clear operation used by ProductPatch.
+  func normalizeImageUrl(value : ?Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?raw) {
+        let url = raw.trim(#predicate(Char.isWhitespace));
+        if (url == "") { return null };
+        if (Text.size(url) > 2048) {
+          Runtime.trap("Product image URL must be 2048 characters or fewer");
+        };
+        if (not url.startsWith(#text "https://")) {
+          Runtime.trap("Product image URL must use HTTPS");
+        };
+        var hasAuthority = false;
+        var authority = "";
+        var inAuthority = true;
+        for (c in url.chars()) {
+          if (inAuthority and c == '/') {
+            if (authority == "") { inAuthority := false } else { inAuthority := false };
+          } else if (inAuthority) {
+            authority := authority # c.toText();
+          };
+        };
+        if (authority.size() <= 8 or authority == "https://" or authority.contains(#char '@')) {
+          Runtime.trap("Product image URL must include a valid HTTPS host");
+        };
+        for (c in url.chars()) {
+          if (Char.isWhitespace(c) or c == '\\n' or c == '\\r' or c == '\\t') {
+            Runtime.trap("Product image URL must not contain whitespace");
+          };
+        };
+        ?url;
+      };
+    };
+  };
+
+  /// Merge a product image URL. An explicit empty string clears it, while
+  /// an absent option leaves the previous value unchanged.
+  func mergeImageUrl(patch : ?Text, current : ?Text) : ?Text {
+    switch (patch) {
+      case null { current };
+      case (?value) { normalizeImageUrl(?value) };
     };
   };
 
@@ -56,6 +105,7 @@ module {
       description = input.description;
       link = input.link;
       imageKey = input.imageKey;
+      imageUrl = normalizeImageUrl(input.imageUrl);
       sortOrder = input.sortOrder;
       state = #draft;
       createdAt = now;
@@ -81,6 +131,7 @@ module {
           description = patch.description ?? existing.description;
           link = mergeText(patch.link, existing.link);
           imageKey = mergeBlob(patch.imageKey, existing.imageKey);
+          imageUrl = mergeImageUrl(patch.imageUrl, existing.imageUrl);
           sortOrder = patch.sortOrder ?? existing.sortOrder;
           state = existing.state;
           createdAt = existing.createdAt;
@@ -108,6 +159,7 @@ module {
           description = existing.description;
           link = existing.link;
           imageKey = existing.imageKey;
+          imageUrl = existing.imageUrl;
           sortOrder = existing.sortOrder;
           state;
           createdAt = existing.createdAt;
