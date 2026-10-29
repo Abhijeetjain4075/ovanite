@@ -30,10 +30,9 @@ describe("ThankYou page", () => {
     expect(
       screen.getByRole("link", { name: /Explore products/ }),
     ).toHaveAttribute("href", "/products");
-    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
-      "href",
-      "/",
-    );
+    expect(
+      screen.getByRole("link", { name: "Back to home" }),
+    ).toHaveAttribute("href", "/");
   });
 
   it("shows waitlist confirmation messaging when routed from the waitlist", () => {
