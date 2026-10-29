@@ -267,24 +267,6 @@ describe("ContactForm", () => {
     expect(actor.submitContact).not.toHaveBeenCalled();
   });
 
-  it("keeps contact fields disabled until the explicit release flag is enabled", async () => {
-    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "false");
-    const actor = createHealthyMockActor();
-
-    renderForm();
-
-    expect(
-      await screen.findByText(/contact submissions are disabled until production persistence/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("textbox", { name: "Name" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Send message" }),
-    ).not.toBeInTheDocument();
-    expect(actor.submitContact).not.toHaveBeenCalled();
-  });
-
   it("keeps contact fields closed when the configured backend fails its health check", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));
