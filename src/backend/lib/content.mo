@@ -12,11 +12,11 @@ module {
   public let maxPublicFaqLimit : Nat = 20;
 
   /// Validates and normalizes required text at the canister boundary.
-  func normalizeRequiredText(value : Text, maximum : Nat, label : Text) : Text {
+  func normalizeRequiredText(value : Text, maximum : Nat, fieldName : Text) : Text {
     let normalized = value.trim(#predicate(Char.isWhitespace));
     let length = Text.size(normalized);
     if (length == 0 or length > maximum) {
-      Runtime.trap(label # " has an invalid length");
+      Runtime.trap(fieldName # " has an invalid length");
     };
     normalized;
   };
