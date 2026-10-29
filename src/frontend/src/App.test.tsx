@@ -57,6 +57,10 @@ describe("App routing", () => {
     vi.unstubAllEnvs();
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("renders the home page on the default route", async () => {
     renderAppAt("/");
 
