@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, screen } from "@testing-library/react";
 import { render } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { actorResult, createMockActor } from "@/test/utils";
 
@@ -36,6 +36,7 @@ function renderAppAt(path: string) {
 
 describe("App routing", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "true");
     useActorMock.mockReset();
     useInternetIdentityMock.mockReset();
     useInternetIdentityMock.mockReturnValue({
@@ -50,6 +51,10 @@ describe("App routing", () => {
     actor.getCallerAdmin.mockResolvedValue(null);
     actor.isOwnerClaimed.mockResolvedValue(true);
     useActorMock.mockReturnValue(actorResult(actor));
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("renders the home page on the default route", async () => {
