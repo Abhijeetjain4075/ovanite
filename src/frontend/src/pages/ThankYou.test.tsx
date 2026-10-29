@@ -30,9 +30,10 @@ describe("ThankYou page", () => {
     expect(
       screen.getByRole("link", { name: /Explore products/ }),
     ).toHaveAttribute("href", "/products");
-    expect(
-      screen.getByRole("link", { name: "Back to home" }),
-    ).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("shows waitlist confirmation messaging when routed from the waitlist", () => {
@@ -47,9 +48,10 @@ describe("ThankYou page", () => {
     expect(
       screen.getAllByRole("link", { name: /Explore products/ }),
     ).toHaveLength(1);
-    expect(
-      screen.getByRole("link", { name: "Back to home" }),
-    ).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("does not claim a submission was received when no state is present", () => {
