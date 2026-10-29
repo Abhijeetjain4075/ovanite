@@ -307,6 +307,42 @@ jobs:
           printf '%s\n' "$safe_product"
           grep -Fq 'https://example.com/docs' <<<"$safe_product"
 
+          # Independent deployments support public HTTPS image URLs without a
+          # storage gateway. Exercise acceptance and server-side URL rejection
+          # directly against the compiled Motoko canister.
+          safe_image_url="$(icp canister call backend createProduct '(record { name = "Safe image URL test"; description = "HTTPS image URLs are supported"; link = null; imageKey = null; imageUrl = opt "https://cdn.example.com/logo.webp?version=1"; sortOrder = 102 : nat })' --identity ci-editor)"
+          printf '%s\n' "$safe_image_url"
+          grep -Fq 'https://cdn.example.com/logo.webp?version=1' <<<"$safe_image_url"
+
+          if unsafe_image_url="$(icp canister call backend createProduct '(record { name = "Unsafe image URL test"; description = "Script schemes must be rejected"; link = null; imageKey = null; imageUrl = opt "javascript:alert(1)"; sortOrder = 103 : nat })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a script-scheme product image URL was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$unsafe_image_url"
+          grep -Fq 'Product image URL must use HTTPS' <<<"$unsafe_image_url"
+
+          if credentialed_image_url="$(icp canister call backend createProduct '(record { name = "Credentialed image URL test"; description = "URL credentials must be rejected"; link = null; imageKey = null; imageUrl = opt "https://user:pass@cdn.example.com/logo.webp"; sortOrder = 104 : nat })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a credential-bearing product image URL was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$credentialed_image_url"
+          grep -Fq 'Product image URL must include a host and must not include credentials' <<<"$credentialed_image_url"
+
+          if whitespace_image_url="$(icp canister call backend createProduct '(record { name = "Whitespace image URL test"; description = "Whitespace in URLs must be rejected"; link = null; imageKey = null; imageUrl = opt "https://cdn.example.com/logo image.webp"; sortOrder = 105 : nat })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a whitespace-containing product image URL was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$whitespace_image_url"
+          grep -Fq 'Product image URL must not contain whitespace' <<<"$whitespace_image_url"
+
+          long_image_url="$(python3 -c 'print("https://cdn.example.com/" + "x" * 2050)')"
+          if oversized_image_url="$(icp canister call backend createProduct "(record { name = \"Oversized image URL test\"; description = \"Image URLs are bounded\"; link = null; imageKey = null; imageUrl = opt \"$long_image_url\"; sortOrder = 106 : nat })" --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: an overlong product image URL was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$oversized_image_url"
+          grep -Fq 'Product image URL must be 2048 characters or fewer' <<<"$oversized_image_url"
+
           # Required content text is bounded in the canister, not just the UI.
           long_question="$(python3 -c 'print("Q" * 301)')"
           if oversized_faq="$(icp canister call backend createFaq "(record { question = \"$long_question\"; answer = \"Bounded answer\"; sortOrder = 101 : nat })" --identity ci-editor 2>&1)"; then
