@@ -11,19 +11,24 @@ export default function ThankYou() {
   const location = useLocation();
   const state = location.state as ThankYouState | null;
   const isWaitlist = state?.kind === "waitlist";
+  const isConfirmed = state?.kind === "contact" || isWaitlist;
 
-  const heading = isWaitlist
-    ? "You're on the list."
-    : "Thank you for reaching out.";
-  const body = isWaitlist
-    ? "We have your details and will be in touch when there is something real to share. No noise in between."
-    : "We have received your message and will reply as soon as we can. In the meantime, feel free to explore what we are building.";
+  const heading = !isConfirmed
+    ? "No submission was sent."
+    : isWaitlist
+      ? "You're on the list."
+      : "Thank you for reaching out.";
+  const body = !isConfirmed
+    ? "This page only confirms an accepted submission. Contact and waitlist intake are currently closed, so no details have been collected. Explore the products in development instead."
+    : isWaitlist
+      ? "We have your details and will be in touch when there is something real to share. No noise in between."
+      : "We have received your message and will reply as soon as we can. In the meantime, feel free to explore what we are building.";
 
   return (
     <>
       <PageMeta
         title="Thank you"
-        description="Thank you for getting in touch with Ovanite. We have received your submission."
+        description={isConfirmed ? "Thank you for getting in touch with Ovanite. We have received your submission." : "No submission was sent. Contact and waitlist intake are currently closed."}
       />
       <Container className="py-24 md:py-36">
         <div className="mx-auto min-w-0 max-w-2xl">
@@ -51,10 +56,10 @@ export default function ThankYou() {
                 <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </Link>
             </PrimaryButton>
-            {isWaitlist ? (
+            {isConfirmed && isWaitlist ? (
               <SecondaryButton asChild size="lg">
-                <Link to="/contact" data-ocid="thank_you.contact_button">
-                  Send us a message
+                <Link to="/products" data-ocid="thank_you.contact_button">
+                  Explore products
                 </Link>
               </SecondaryButton>
             ) : (
