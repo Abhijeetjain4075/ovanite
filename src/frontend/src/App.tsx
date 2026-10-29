@@ -15,6 +15,7 @@ const ThankYou = lazy(() => import("@/pages/ThankYou"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const IdentityCheck = lazy(() => import("@/pages/IdentityCheck"));
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminFaqs = lazy(() => import("@/pages/admin/AdminFaqs"));
 const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/participants" element={<Participants />} />
+            <Route path="/identity-check" element={<IdentityCheck />} />
             <Route path="/participants/submit" element={<Participants />} />
             <Route
               path="/participants/my-submissions"
