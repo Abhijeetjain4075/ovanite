@@ -48,7 +48,7 @@ All values written to `env.json` are public and must never contain passwords, pr
 
 ## Security posture
 
-- `src/backend/lib/admin.mo` deliberately keeps `ownerPrincipal = null`. Owner bootstrap is disabled until the exact operator principal for Ovanite's final identity origin has been verified and configured in a reviewed backend change. Never use an email address or Caffeine project ID as identity proof.
+- `src/backend/lib/admin.mo` deliberately keeps `ownerPrincipalText = null`. Owner bootstrap is disabled until the exact operator principal for Ovanite's final identity origin has been verified and configured in a reviewed backend change. Never use an email address or Caffeine project ID as identity proof.
 - `src/backend/lib/submission-policy.mo` separately disables direct Contact/Waitlist writes. The frontend form flag cannot override this backend authorization gate. Both public forms currently render no personal-data fields.
 - `src/backend/lib/analytics-policy.mo` now disables public page-view updates at the Motoko boundary. The frontend consent banner cannot stop direct canister calls; before this gate, arbitrary distinct paths could grow persistent analytics state and repeated calls could consume cycles. Do not enable analytics writes until route cardinality and ingress abuse/cost controls are implemented and tested.
 - `/participants/submit` remains an overview-only route; participant intake must stay closed.
@@ -67,7 +67,7 @@ All values written to `env.json` are public and must never contain passwords, pr
 4. Confirm the mainnet architecture and cycle budget. ICP mainnet canisters consume cycles for compute and storage; local pre-funded development does not establish free production operation. Explicitly approve funding and ongoing costs before mainnet deployment. References: https://docs.internetcomputer.org/concepts/cycles/ and https://cli.internetcomputer.org/1.7/guides/deploying-to-mainnet/.
 5. Build and deploy the backend to mainnet using the confirmed deployment identity and funded cycle balance. Capture the actual backend canister ID, check its controller and cycle status, and verify that its deployed Candid interface matches the generated frontend bindings.
 6. Configure Vercel with the verified backend ID. Use the generated runtime-config contract; do not hardcode or commit a guess into `env.json`. Confirm the production `/env.json` advertises the exact deployed canister ID.
-7. Configure `ownerPrincipal` to the verified principal in a reviewed backend change; rebuild and deploy. Prove the configured owner succeeds while anonymous, wrong-principal, and repeated claims fail.
+7. Configure `ownerPrincipalText` to the verified principal in a reviewed backend change; rebuild and deploy. Prove the configured owner succeeds while anonymous, wrong-principal, and repeated claims fail.
 8. Test admin CRUD, owner-only team changes, authorization boundaries, data isolation, upgrade/migration compatibility, public data reads, and storage operations against local/staging and production canisters.
 9. Keep Contact/Waitlist disabled until persistence, deduplication, rate/abuse controls, privacy/retention, operational support, and end-to-end checks pass. The frontend flag is not authorization.
 10. Keep participant intake closed until the separate participant portal has verified identity, database persistence, data ownership, reviewer permissions, migrations, rate limits, callback credentials, privacy controls, and end-to-end tests.
