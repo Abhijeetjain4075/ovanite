@@ -180,7 +180,7 @@ module {
     principal : Principal,
   ) : Bool {
     switch (admins.get(principal)) {
-      case (?existing) { existing.isOwner or existing.role == #editor };
+      case (?existing) { (existing.isOwner and isConfiguredOwner(principal)) or existing.role == #editor };
       case null { false };
     };
   };
@@ -191,7 +191,7 @@ module {
     principal : Principal,
   ) : Bool {
     switch (admins.get(principal)) {
-      case (?existing) { existing.isOwner };
+      case (?existing) { existing.isOwner and isConfiguredOwner(principal) };
       case null { false };
     };
   };
