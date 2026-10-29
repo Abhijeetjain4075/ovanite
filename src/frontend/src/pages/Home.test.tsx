@@ -222,7 +222,9 @@ describe("Home page", () => {
     });
     expect(screen.getByText("Products in development.")).toBeInTheDocument();
     expect(
-      screen.getByText(/Product information will appear here as individual products are ready to share/),
+      screen.getByText(
+        /Product information will appear here as individual products are ready to share/,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Join the waitlist" }),
