@@ -15,6 +15,10 @@ describe("resolveSiteCopy", () => {
     expect(copy.philosophyTitle).toBe("Built with purpose.");
     expect(copy.approachTitle).toBe("From idea to impact.");
     expect(copy.footerText).toContain("Ovanite builds software products");
+    expect(copy.contactBody).toContain("currently closed");
+    expect(copy.waitlistBody).toContain("no details are collected");
+    expect(copy.privacyBody).toContain("Page-view analytics is also disabled");
+    expect(copy.privacyBody).not.toContain("We also count page views");
   });
 
   it("prefers stored values over the defaults", () => {
