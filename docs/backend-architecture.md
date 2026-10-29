@@ -55,7 +55,7 @@ The configured principal is the primary identity check; the configured email is 
 
 - Public product reads are bounded by the 100-record collection limit.
 - Public FAQ list arguments are clamped to at most 20 before numeric conversion/slicing.
-- Product names/descriptions, product links/image URLs, FAQ question/answer text, and site-copy fields have explicit server-side length limits.
+- Product names/descriptions, product links/image URLs, FAQ question/answer text, and site-copy fields have explicit server-side length limits. Product links and image URLs must use HTTPS, include a host, and exclude embedded credentials and whitespace.
 - Owner/editor-only mutations are separate from admin read access. Viewers may use protected read endpoints but cannot create/update/delete content or alter submission status.
 - Only the owner can grant/revoke/re-role administrators. Owner-role assignment through ordinary admin mutations is rejected.
 - Submission and analytics policy flags are hard-coded closed in the source; frontend configuration cannot override a Motoko-level rejection.
