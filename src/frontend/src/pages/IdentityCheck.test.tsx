@@ -44,7 +44,12 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "test-principal" }) },
+        identity: {
+          getPrincipal: () => ({
+            isAnonymous: () => false,
+            toText: () => "test-principal",
+          }),
+        },
       }),
     );
 
@@ -81,7 +86,12 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "non-anonymous-principal-fixture" }) },
+        identity: {
+          getPrincipal: () => ({
+            isAnonymous: () => false,
+            toText: () => "non-anonymous-principal-fixture",
+          }),
+        },
       }),
     );
 
@@ -114,7 +124,9 @@ describe("IdentityCheck", () => {
       <IdentityCheck currentOrigin={CANONICAL_OVANITE_ORIGIN} />,
     );
 
-    expect(screen.queryByTestId("identity.principal_value")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("identity.principal_value"),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("2vxsx-fae")).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /sign in with internet identity/i }),
@@ -140,7 +152,11 @@ describe("IdentityCheck", () => {
 
     fireEvent.click(screen.getByTestId("identity.copy_button"));
 
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith("non-anonymous-principal-fixture"));
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        "non-anonymous-principal-fixture",
+      ),
+    );
     expect(await screen.findByTestId("identity.copy_status")).toHaveTextContent(
       "Principal copied to clipboard.",
     );
