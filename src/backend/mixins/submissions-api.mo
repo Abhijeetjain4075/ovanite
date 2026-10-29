@@ -72,13 +72,13 @@ mixin (
 
   /// Sets a submission's review status. Admin only.
   public shared ({ caller }) func setSubmissionStatus(id : Nat, status : Types.SubmissionStatus) : async ?Types.Submission {
-    requireSubmissionEditor(caller)
+    requireSubmissionEditor(caller);
     SubmissionLib.setSubmissionStatus(submissions, id, status, Time.now().toNat());
   };
 
   /// Deletes a submission. Admin only.
   public shared ({ caller }) func deleteSubmission(id : Nat) : async Bool {
-    requireSubmissionEditor(caller)
+    requireSubmissionEditor(caller);
     SubmissionLib.deleteSubmission(submissions, id);
   };
 };
