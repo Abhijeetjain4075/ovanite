@@ -256,7 +256,9 @@ describe("ContactForm", () => {
     renderForm();
 
     expect(
-      await screen.findByText(/contact submissions are disabled until production persistence/i),
+      await screen.findByText(
+        /contact submissions are disabled until production persistence/i,
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Name" }),
