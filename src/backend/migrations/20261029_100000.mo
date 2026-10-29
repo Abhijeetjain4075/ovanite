@@ -131,8 +131,9 @@ module {
         name = product.name;
         description = product.description;
         link = product.link;
-        // Preserve the historical field for reversible schema compatibility.
-        // The independent frontend no longer renders/uploads this legacy blob.
+        // Preserve the historical field for stable-state compatibility.
+        // Independent deployments write imageUrl; old blob references are kept
+        // untouched because their gateway has not been verified here.
         imageKey = product.imageKey;
         imageUrl = null;
         sortOrder = product.sortOrder;

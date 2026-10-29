@@ -1,6 +1,5 @@
-import { ExternalBlob } from "@caffeineai/object-storage";
-import { ImagePlus, Loader2, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { ImagePlus } from "lucide-react";
+import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/shared/primitives";
 import { Input } from "@/components/ui/input";
@@ -18,18 +17,6 @@ type ProductFormProps = {
   errorMessage?: string;
 };
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
-/**
- * A zero-byte blob used to clear a stored image. The backend's `mergeBlob`
- * treats `null` as "leave untouched", so clearing requires an explicit blob.
- * Consumers treat a zero-byte blob as "no image" (see `hasProductImage`) and
- * render their fallback instead of a broken `<img>`.
- */
-function emptyBlob(): ExternalBlob {
-  return ExternalBlob.fromBytes(new Uint8Array(0), "application/octet-stream");
-}
-
 function parseSortOrder(value: string): bigint {
   const parsed = Number.parseInt(value, 10);
   if (Number.isNaN(parsed) || parsed < 0) return 0n;
@@ -37,9 +24,9 @@ function parseSortOrder(value: string): bigint {
 }
 
 /**
- * Create/edit form for a product. The selected image is held as an
- * `ExternalBlob` and passed through `createProduct`/`updateProduct` as
- * `imageKey`, which is what actually uploads the bytes to object storage.
+ * Create/edit form for a product. Independent deployments use public HTTPS
+ * image URLs. File uploads remain disabled until a native storage gateway has
+ * been deployed and its access, size, and lifecycle controls have been tested.
  */
 export function ProductForm({
   product,
@@ -48,8 +35,6 @@ export function ProductForm({
   isPending,
   errorMessage,
 }: ProductFormProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [name, setName] = useState(product?.name ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [link, setLink] = useState(product?.link ?? "");
@@ -58,62 +43,24 @@ export function ProductForm({
   const [sortOrder, setSortOrder] = useState(
     product ? String(product.sortOrder) : "0",
   );
-  const [image, setImage] = useState<ExternalBlob | null>(
-    product?.imageKey ?? null,
-  );
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
   const nameError = name.trim() === "" ? "A product name is required." : null;
   const descriptionError =
     description.trim() === "" ? "A description is required." : null;
 
   const imageUrlError = productImageUrlError(imageUrl);
   const normalizedImageUrl = imageUrl.trim();
-  const previewUrl = image ? image.getDirectURL() : null;
   const safeImageUrl =
     normalizedImageUrl && !imageUrlError ? normalizedImageUrl : null;
   const showUrlPreview =
     safeImageUrl !== null && failedPreviewUrl !== safeImageUrl;
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-
-    setUploadError(null);
-    if (!file.type.startsWith("image/")) {
-      setUploadError("Choose an image file (PNG, JPG, SVG, or WebP).");
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setUploadError("Images must be 5 MB or smaller.");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      setImage(ExternalBlob.fromBytes(bytes, file.type, file.name));
-    } catch {
-      setUploadError("Upload failed. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (nameError || descriptionError || uploading || imageUrlError) return;
-    // The backend's mergeBlob treats `undefined` as "leave the stored value
-    // untouched", so clearing an image must send an explicit empty blob. The
-    // public and admin cards read that zero-byte blob as "no image".
-    const imageKey = image ?? (product?.imageKey ? emptyBlob() : undefined);
+    if (nameError || descriptionError || imageUrlError) return;
     onSubmit({
       name: name.trim(),
       description: description.trim(),
       link: link.trim(),
-      imageKey,
       imageUrl: normalizedImageUrl,
       sortOrder: parseSortOrder(sortOrder),
     });
@@ -217,8 +164,7 @@ export function ProductForm({
 
       <div>
         <Label htmlFor="product-image-url" className="mb-2">
-          Image URL{" "}
-          <span className="text-muted-foreground">(optional alternative)</span>
+          Image URL <span className="text-muted-foreground">(optional)</span>
         </Label>
         <div className="flex items-start gap-4">
           {showUrlPreview ? (
@@ -271,73 +217,12 @@ export function ProductForm({
                 className="mt-2 text-xs text-muted-foreground"
               >
                 Public HTTPS images load directly in visitors&apos; browsers.
-                Ovanite does not upload or proxy URL images.
+                Ovanite does not upload or proxy URL images. Direct file uploads
+                remain disabled until a native storage gateway is verified.
               </p>
             )}
           </div>
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="product-image" className="mb-2">
-          Image / logo <span className="text-muted-foreground">(optional)</span>
-        </Label>
-        <div className="flex flex-wrap items-center gap-4">
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="Product preview"
-              className="h-16 w-16 rounded-sm border border-border object-cover"
-            />
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-sm border border-dashed border-border text-muted-foreground">
-              <ImagePlus aria-hidden="true" className="h-5 w-5" />
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            id="product-image"
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={handleFileChange}
-            data-ocid="admin.product.image_input"
-          />
-          <SecondaryButton
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            data-ocid="admin.product.upload_button"
-          >
-            {uploading ? (
-              <>
-                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-                Uploading…
-              </>
-            ) : (
-              "Upload image"
-            )}
-          </SecondaryButton>
-          {previewUrl ? (
-            <SecondaryButton
-              type="button"
-              onClick={() => setImage(null)}
-              data-ocid="admin.product.remove_image_button"
-            >
-              <X aria-hidden="true" className="h-4 w-4" />
-              Remove
-            </SecondaryButton>
-          ) : null}
-        </div>
-        {uploadError ? (
-          <p
-            role="alert"
-            data-ocid="admin.product.upload_error"
-            className="mt-2 text-sm text-destructive"
-          >
-            {uploadError}
-          </p>
-        ) : null}
       </div>
 
       {errorMessage ? (
@@ -353,7 +238,7 @@ export function ProductForm({
       <div className="flex flex-wrap gap-3 border-t border-border pt-6">
         <PrimaryButton
           type="submit"
-          disabled={isPending || uploading || Boolean(imageUrlError)}
+          disabled={isPending || Boolean(imageUrlError)}
           data-ocid="admin.product.submit_button"
         >
           {isPending ? "Saving…" : product ? "Save changes" : "Create product"}

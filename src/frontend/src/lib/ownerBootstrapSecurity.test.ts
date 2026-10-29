@@ -12,7 +12,7 @@ const adminApi = readFileSync(
 describe("owner bootstrap security invariant", () => {
   it("defaults to a closed bootstrap until an operator principal is configured", () => {
     expect(adminLibrary).toContain(
-      "public let ownerPrincipal : ?Principal = null;",
+      "public let ownerPrincipalText : ?Text = null;",
     );
     expect(adminApi).toContain(
       "not AdminLib.isEmpty(admins) or not AdminLib.isOwnerBootstrapConfigured()",
@@ -29,7 +29,7 @@ describe("owner bootstrap security invariant", () => {
     expect(emailCheck).toBeGreaterThan(-1);
     expect(configuredPrincipalCheck).toBeLessThan(emailCheck);
     expect(adminLibrary).toContain(
-      "case (?expected) { Principal.equal(expected, principal) };",
+      'expected != "" and Principal.toText(principal) == expected;',
     );
   });
 
