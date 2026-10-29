@@ -28,21 +28,33 @@ module {
         if (not url.startsWith(#text "https://")) {
           Runtime.trap("Product image URL must use HTTPS");
         };
-        var hasAuthority = false;
+
+        // Parse the authority after the eight-character "https://" prefix.
+        // Stop at the first path, query, or fragment delimiter. Starting at
+        // character zero here incorrectly collected "https:" as the host and
+        // rejected every valid HTTPS URL.
         var authority = "";
         var inAuthority = true;
+        var index : Nat = 0;
         for (c in url.chars()) {
-          if (inAuthority and c == '/') {
-            if (authority == "") { inAuthority := false } else { inAuthority := false };
-          } else if (inAuthority) {
-            authority := authority # c.toText();
+          if (index >= 8 and inAuthority) {
+            if (c == '/' or c == '?' or c == '#') {
+              inAuthority := false;
+            } else {
+              authority := authority # c.toText();
+            };
           };
+          index += 1;
         };
-        if (authority.size() <= 8 or authority == "https://" or authority.contains(#char '@')) {
-          Runtime.trap("Product image URL must include a valid HTTPS host");
+
+        if (Text.size(authority) == 0 or authority.contains(#char '@')) {
+          Runtime.trap("Product image URL must include a host and must not include credentials");
         };
+
+        // Reject whitespace anywhere, including in the path, query or fragment.
+        // Trimmed outer whitespace is accepted, then normalized away above.
         for (c in url.chars()) {
-          if (Char.isWhitespace(c) or c == '\\n' or c == '\\r' or c == '\\t') {
+          if (Char.isWhitespace(c)) {
             Runtime.trap("Product image URL must not contain whitespace");
           };
         };
