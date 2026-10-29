@@ -60,7 +60,7 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
       <div className="flex min-w-0 flex-1 flex-col p-6">
         {showUrlImage ? (
           <img
-            src={imageUrl}
+            src={imageUrl ?? undefined}
             alt={`${product.name} product logo`}
             loading="lazy"
             decoding="async"
