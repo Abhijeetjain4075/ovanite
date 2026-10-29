@@ -30,7 +30,8 @@ export function ContactForm() {
   const navigate = useNavigate();
   const { actor, isFetching } = useActor(createActor);
   const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
-  const publicFormsEnabled = import.meta.env.VITE_PUBLIC_FORMS_ENABLED === "true";
+  const publicFormsEnabled =
+    import.meta.env.VITE_PUBLIC_FORMS_ENABLED === "true";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
