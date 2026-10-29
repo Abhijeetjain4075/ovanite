@@ -58,6 +58,55 @@ module {
     };
   };
 
+  /// Product hyperlinks are external URLs, not arbitrary browser schemes.
+  /// Restrict them to HTTPS and reject credentials and whitespace.
+  func normalizeProductLink(value : ?Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?raw) {
+        let url = raw.trim(#predicate(Char.isWhitespace));
+        if (url == "") { return null };
+        if (Text.size(url) > 2048) {
+          Runtime.trap("Product link must be 2048 characters or fewer");
+        };
+        if (not url.startsWith(#text "https://")) {
+          Runtime.trap("Product link must use HTTPS");
+        };
+        var authority = "";
+        var inAuthority = true;
+        var index : Nat = 0;
+        for (c in url.chars()) {
+          if (index >= 8 and inAuthority) {
+            if (c == '/' or c == '?' or c == '#') {
+              inAuthority := false;
+            } else {
+              authority := authority # c.toText();
+            };
+          };
+          index += 1;
+        };
+        if (Text.size(authority) == 0 or authority.contains(#char '@')) {
+          Runtime.trap("Product link must include a host and must not include credentials");
+        };
+        for (c in url.chars()) {
+          if (Char.isWhitespace(c)) {
+            Runtime.trap("Product link must not contain whitespace");
+          };
+        };
+        ?url;
+      };
+    };
+  };
+
+  /// Merge an optional external product link; null preserves the current value,
+  /// while an explicit empty string clears it.
+  func mergeProductLink(patch : ?Text, current : ?Text) : ?Text {
+    switch (patch) {
+      case null { current };
+      case (?value) { normalizeProductLink(?value) };
+    };
+  };
+
   /// Validates optional public product image URLs for independent deployments.
   /// Empty strings are the explicit clear operation used by ProductPatch.
   func normalizeImageUrl(value : ?Text) : ?Text {
@@ -163,7 +212,7 @@ module {
       id;
       name = normalizeRequiredText(input.name, 120, "Product name");
       description = normalizeRequiredText(input.description, 5000, "Product description");
-      link = normalizeOptionalText(input.link, 2048, "Product link");
+      link = normalizeProductLink(input.link);
       imageKey = input.imageKey;
       imageUrl = normalizeImageUrl(input.imageUrl);
       sortOrder = input.sortOrder;
@@ -189,7 +238,7 @@ module {
           id = existing.id;
           name = normalizeRequiredText(patch.name ?? existing.name, 120, "Product name");
           description = normalizeRequiredText(patch.description ?? existing.description, 5000, "Product description");
-          link = mergeOptionalText(patch.link, existing.link, 2048, "Product link");
+          link = mergeProductLink(patch.link, existing.link);
           imageKey = mergeBlob(patch.imageKey, existing.imageKey);
           imageUrl = mergeImageUrl(patch.imageUrl, existing.imageUrl);
           sortOrder = patch.sortOrder ?? existing.sortOrder;
