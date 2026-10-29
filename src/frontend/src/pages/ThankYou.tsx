@@ -28,7 +28,11 @@ export default function ThankYou() {
     <>
       <PageMeta
         title="Thank you"
-        description={isConfirmed ? "Thank you for getting in touch with Ovanite. We have received your submission." : "No submission was sent. Contact and waitlist intake are currently closed."}
+        description={
+          isConfirmed
+            ? "Thank you for getting in touch with Ovanite. We have received your submission."
+            : "No submission was sent. Contact and waitlist intake are currently closed."
+        }
       />
       <Container className="py-24 md:py-36">
         <div className="mx-auto min-w-0 max-w-2xl">
