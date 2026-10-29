@@ -142,7 +142,12 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "non-anonymous-principal-fixture" }) },
+        identity: {
+          getPrincipal: () => ({
+            isAnonymous: () => false,
+            toText: () => "non-anonymous-principal-fixture",
+          }),
+        },
       }),
     );
 
