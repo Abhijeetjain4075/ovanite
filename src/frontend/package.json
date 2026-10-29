@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && pnpm copy:env",
-    "copy:env": "cp env.json dist/ && node scripts/prepare-public-assets.mjs",
+    "copy:env": "node scripts/generate-runtime-config.mjs && node scripts/prepare-public-assets.mjs",
     "typecheck": "tsc --noEmit",
     "check": "biome check src",
     "fix": "biome check --write src",
-    "test": "vitest run --environment jsdom"
+    "test": "vitest run --environment jsdom && node --test scripts/generate-runtime-config.test.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

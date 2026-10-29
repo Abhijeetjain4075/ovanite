@@ -38,6 +38,13 @@ function renderForm() {
   );
 }
 
+function createHealthyMockActor() {
+  const actor = createMockActor();
+  actor.getSiteContent.mockResolvedValue({});
+  useActorMock.mockReturnValue(actorResult(actor));
+  return actor;
+}
+
 describe("ContactForm", () => {
   beforeEach(() => {
     useActorMock.mockReset();
@@ -45,11 +52,11 @@ describe("ContactForm", () => {
 
   it("shows inline validation errors and does not call the backend for invalid input", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
+    await screen.findByRole("button", { name: "Send message" });
 
     await user.click(screen.getByRole("button", { name: "Send message" }));
 
@@ -67,13 +74,13 @@ describe("ContactForm", () => {
 
   it("rejects a malformed email with an inline error", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "not-an-email");
     await user.type(
       screen.getByLabelText("Message"),
@@ -89,13 +96,13 @@ describe("ContactForm", () => {
 
   it("submits valid input, stores the submission, and routes to Thank You", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -117,9 +124,8 @@ describe("ContactForm", () => {
 
   it("routes a valid submission to the contact confirmation heading", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderWithProviders(
       <Routes>
@@ -129,7 +135,9 @@ describe("ContactForm", () => {
       { route: "/contact" },
     );
 
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -146,7 +154,7 @@ describe("ContactForm", () => {
 
   it("shows the 'Already received' message and does not route when the backend reports a duplicate", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockResolvedValue({
       __kind__: "duplicate",
       duplicate: {
@@ -160,11 +168,11 @@ describe("ContactForm", () => {
         updatedAt: 0n,
       },
     });
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -183,13 +191,13 @@ describe("ContactForm", () => {
 
   it("shows an error state when the backend rejects the submission", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitContact.mockRejectedValue(new Error("backend down"));
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -207,7 +215,7 @@ describe("ContactForm", () => {
 
   it("disables the submit button and shows a loading label while the submission is in flight", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     let resolveSubmit: (() => void) | undefined;
     actor.submitContact.mockImplementation(
       () =>
@@ -215,11 +223,11 @@ describe("ContactForm", () => {
           resolveSubmit = resolve;
         }),
     );
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Name"), "Ada Lovelace");
+    await screen.findByRole("button", { name: "Send message" });
     await user.type(screen.getByLabelText("Email"), "ada@example.com");
     await user.type(
       screen.getByLabelText("Message"),
@@ -235,5 +243,23 @@ describe("ContactForm", () => {
     expect(
       await screen.findByRole("heading", { name: "Thank you page" }),
     ).toBeInTheDocument();
+  });
+  it("keeps contact fields closed when the configured backend fails its health check", async () => {
+    const actor = createMockActor();
+    actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));
+    useActorMock.mockReturnValue(actorResult(actor));
+
+    renderForm();
+
+    expect(
+      await screen.findByText(/contact form is temporarily unavailable/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Send message" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitContact).not.toHaveBeenCalled();
   });
 });

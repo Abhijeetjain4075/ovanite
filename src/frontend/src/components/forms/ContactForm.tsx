@@ -6,6 +6,7 @@ import { PrimaryButton } from "@/components/shared/primitives";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useBackendHealth } from "@/hooks/useBackendHealth";
 import {
   type FieldErrors,
   isDuplicateResult,
@@ -27,7 +28,8 @@ const FIELD_IDS: Record<ContactFields, string> = {
 /** Accessible contact form with inline validation and success routing. */
 export function ContactForm() {
   const navigate = useNavigate();
-  const { actor } = useActor(createActor);
+  const { actor, isFetching } = useActor(createActor);
+  const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -41,7 +43,7 @@ export function ContactForm() {
       email: string;
       message: string;
     }) => {
-      if (!actor) throw new Error("Backend is not ready");
+      if (!actor || !isHealthy) throw new Error("Backend is not ready");
       return actor.submitContact(input);
     },
     onSuccess: (result) => {
@@ -66,12 +68,27 @@ export function ContactForm() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAlreadyReceived(false);
-    if (!validate()) return;
+    if (!validate() || !actor || !isHealthy) return;
     mutation.mutate({
       name: name.trim(),
       email: email.trim(),
       message: message.trim(),
     });
+  }
+
+  if (!actor || !isHealthy) {
+    return (
+      <output
+        aria-live="polite"
+        aria-busy={isChecking ? true : undefined}
+        data-ocid="contact.unavailable_state"
+        className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      >
+        The contact form is temporarily unavailable until the submission service
+        passes its connectivity check. No information has been submitted. Please
+        check back soon.
+      </output>
+    );
   }
 
   return (

@@ -38,6 +38,13 @@ function renderForm() {
   );
 }
 
+function createHealthyMockActor() {
+  const actor = createMockActor();
+  actor.getSiteContent.mockResolvedValue({});
+  useActorMock.mockReturnValue(actorResult(actor));
+  return actor;
+}
+
 describe("WaitlistForm", () => {
   beforeEach(() => {
     useActorMock.mockReset();
@@ -45,11 +52,11 @@ describe("WaitlistForm", () => {
 
   it("shows inline validation errors for invalid input", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
+    await screen.findByRole("button", { name: "Join the waitlist" });
 
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -64,13 +71,13 @@ describe("WaitlistForm", () => {
 
   it("submits valid input with an optional note and routes to Thank You", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.type(
       screen.getByLabelText(/Note/),
@@ -92,13 +99,13 @@ describe("WaitlistForm", () => {
 
   it("omits an empty note from the submission payload", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -112,9 +119,8 @@ describe("WaitlistForm", () => {
 
   it("routes a valid submission to the waitlist confirmation heading", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({});
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderWithProviders(
       <Routes>
@@ -124,7 +130,9 @@ describe("WaitlistForm", () => {
       { route: "/waitlist" },
     );
 
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -135,7 +143,7 @@ describe("WaitlistForm", () => {
 
   it("shows the 'Already received' message and does not route when the backend reports a duplicate", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockResolvedValue({
       __kind__: "duplicate",
       duplicate: {
@@ -149,11 +157,11 @@ describe("WaitlistForm", () => {
         updatedAt: 0n,
       },
     });
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.type(
       screen.getByLabelText(/Note/),
@@ -172,13 +180,13 @@ describe("WaitlistForm", () => {
 
   it("shows an error state when the backend rejects the submission", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     actor.submitWaitlist.mockRejectedValue(new Error("backend down"));
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -189,7 +197,7 @@ describe("WaitlistForm", () => {
 
   it("disables the submit button and shows a loading label while the submission is in flight", async () => {
     const user = userEvent.setup();
-    const actor = createMockActor();
+    const actor = createHealthyMockActor();
     let resolveSubmit: (() => void) | undefined;
     actor.submitWaitlist.mockImplementation(
       () =>
@@ -197,11 +205,11 @@ describe("WaitlistForm", () => {
           resolveSubmit = resolve;
         }),
     );
-    useActorMock.mockReturnValue(actorResult(actor));
 
     renderForm();
-
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Name"), "Grace Hopper");
+    await screen.findByRole("button", { name: "Join the waitlist" });
     await user.type(screen.getByLabelText("Email"), "grace@example.com");
     await user.click(screen.getByRole("button", { name: "Join the waitlist" }));
 
@@ -213,5 +221,23 @@ describe("WaitlistForm", () => {
     expect(
       await screen.findByRole("heading", { name: "Thank you page" }),
     ).toBeInTheDocument();
+  });
+  it("hides waitlist fields when the backend is unavailable", async () => {
+    const actor = createMockActor();
+    actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));
+    useActorMock.mockReturnValue(actorResult(actor));
+
+    renderForm();
+
+    expect(
+      await screen.findByText(/waitlist is temporarily unavailable/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitWaitlist).not.toHaveBeenCalled();
   });
 });

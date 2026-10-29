@@ -128,7 +128,7 @@ describe("App routing", () => {
     expect(
       await screen.findByRole("heading", { name: "Start a conversation." }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("contact.form")).toBeInTheDocument();
+    expect(await screen.findByTestId("contact.form")).toBeInTheDocument();
   });
 
   it("renders the Waitlist page with its form", async () => {
@@ -137,7 +137,7 @@ describe("App routing", () => {
     expect(
       await screen.findByRole("heading", { name: "Join the waitlist." }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId("waitlist.form")).toBeInTheDocument();
+    expect(await screen.findByTestId("waitlist.form")).toBeInTheDocument();
   });
 
   it("renders the Thank You page on its own route", async () => {
