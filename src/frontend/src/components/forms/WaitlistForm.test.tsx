@@ -245,6 +245,24 @@ describe("WaitlistForm", () => {
     expect(actor.submitWaitlist).not.toHaveBeenCalled();
   });
 
+  it("keeps waitlist fields disabled until the explicit release flag is enabled", async () => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "false");
+    const actor = createHealthyMockActor();
+
+    renderForm();
+
+    expect(
+      await screen.findByText(/waitlist submissions are disabled until production persistence/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitWaitlist).not.toHaveBeenCalled();
+  });
+
   it("hides waitlist fields when the backend is unavailable", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));
