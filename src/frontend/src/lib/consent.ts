@@ -1,9 +1,10 @@
 /**
- * Visitor analytics consent.
- *
- * The choice is stored locally under a single key and never sent anywhere.
- * No page-view data is recorded until the visitor explicitly accepts.
+ * Visitor analytics consent. Collection is deliberately disabled until the
+ * production backend and a bounded analytics policy are independently verified.
+ * Keep this client release switch aligned with the server-side Motoko gate.
  */
+
+export const ANALYTICS_COLLECTION_ENABLED = false;
 
 export const CONSENT_STORAGE_KEY = "ovanite.analytics-consent";
 
@@ -52,5 +53,5 @@ export function clearConsent(): void {
 
 /** True only when the visitor has explicitly accepted analytics. */
 export function hasAnalyticsConsent(): boolean {
-  return readConsent() === "accepted";
+  return ANALYTICS_COLLECTION_ENABLED && readConsent() === "accepted";
 }
