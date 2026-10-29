@@ -220,7 +220,7 @@ export function ProductForm({
         <div className="flex items-start gap-4">
           {showUrlPreview ? (
             <img
-              src={safeImageUrl}
+              src={safeImageUrl ?? undefined}
               alt="Product image URL preview"
               loading="lazy"
               decoding="async"
