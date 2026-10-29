@@ -11,7 +11,7 @@
     "typecheck": "pnpm -r --if-present run typecheck",
     "check": "pnpm -r --if-present run check",
     "fix": "pnpm -r --if-present run fix",
-    "bindgen": "caffeine-bindgen --did-file ./src/backend/dist/backend.did --out-dir ./src/frontend/src --actor-interface-file --force",
+    "bindgen": "caffeine-bindgen --did-file ./src/backend/dist/backend.did --out-dir ./src/frontend/src --actor-interface-file --force && node scripts/normalize-generated-candid-options.mjs",
     "test": "pnpm --dir src/frontend test && pnpm run test:backend",
     "test:backend": "node test/pocketic/run-backend-lane.mjs"
   },
