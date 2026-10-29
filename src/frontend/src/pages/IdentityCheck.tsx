@@ -108,7 +108,7 @@ export default function IdentityCheck({
             <div
               className="mt-8 flex items-center gap-3 border border-border bg-card p-6 text-sm text-muted-foreground"
               data-ocid="identity.initializing_state"
-              role="status"
+              aria-live="polite"
             >
               <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
               Restoring the local identity session…
