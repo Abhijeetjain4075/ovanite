@@ -176,7 +176,7 @@ jobs:
           fi
           grep -Fiq "Public submissions are disabled by backend release policy" <<<"$waitlist_output"
 
-      - name: Build a test-only owner-configured backend fixture
+      - name: Verify owner, editor, viewer, and owner-role uniqueness on local ICP
         shell: bash
         run: |
           set -euo pipefail
@@ -187,13 +187,22 @@ jobs:
             cp "$backup" "$source_file"
             rm -f "$backup"
           }
-          trap restore_source EXIT
+          cleanup() {
+            icp network stop || true
+            restore_source
+          }
+          trap cleanup EXIT
 
-          # Create an ephemeral test identity without ever logging key material.
+          # Create disposable test identities without logging their key material.
           icp identity new --storage plaintext ci-configured-owner >/dev/null 2>&1
+          icp identity new --storage plaintext ci-viewer >/dev/null 2>&1
+          icp identity new --storage plaintext ci-editor >/dev/null 2>&1
           owner_principal="$(icp identity principal --identity ci-configured-owner)"
+          viewer_principal="$(icp identity principal --identity ci-viewer)"
+          editor_principal="$(icp identity principal --identity ci-editor)"
           test -n "$owner_principal"
-          printf 'OVANITE_CI_OWNER_PRINCIPAL=%s\n' "$owner_principal" >> "$GITHUB_ENV"
+          test -n "$viewer_principal"
+          test -n "$editor_principal"
 
           python3 - "$source_file" "$owner_principal" <<'PY'
           from pathlib import Path
@@ -209,37 +218,24 @@ jobs:
           path.write_text(source.replace(old, new))
           PY
 
-          # The fixture changes only the compile-time owner identity. The file
-          # is restored by the trap; the null-default production source is not
-          # modified by this test.
+          # This fixture exists only for this isolated test step. The cleanup
+          # trap restores the safe-default production source even after failure.
           mops check backend
           mops build backend
           icp build backend
-
-      - name: Verify owner, editor, viewer, and owner-role uniqueness on local ICP
-        shell: bash
-        run: |
-          set -euo pipefail
           icp network start -d
-          trap 'icp network stop || true' EXIT
           icp deploy backend
 
-          owner_principal="${OVANITE_CI_OWNER_PRINCIPAL:?owner fixture principal missing}"
           claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-configured-owner)"
           printf '%s\n' "$claim_output"
           grep -Fq 'true' <<<"$claim_output"
-
-          icp identity new --storage plaintext ci-viewer >/dev/null 2>&1
-          icp identity new --storage plaintext ci-editor >/dev/null 2>&1
-          viewer_principal="$(icp identity principal --identity ci-viewer)"
-          editor_principal="$(icp identity principal --identity ci-editor)"
 
           viewer_add="$(icp canister call backend addAdmin "(principal \"$viewer_principal\", variant { viewer })" --identity ci-configured-owner)"
           editor_add="$(icp canister call backend addAdmin "(principal \"$editor_principal\", variant { editor })" --identity ci-configured-owner)"
           grep -Fq 'true' <<<"$viewer_add"
           grep -Fq 'true' <<<"$editor_add"
 
-          # Viewers can read protected content, but all mutation APIs must reject them.
+          # Viewers can read protected content, but all mutation APIs reject them.
           viewer_read="$(icp canister call backend listAllFaqs '()' --identity ci-viewer)"
           test -n "$viewer_read"
           if viewer_write="$(icp canister call backend createFaq '(record { question = "Viewer must not write"; answer = "This must be rejected"; sortOrder = 99 : nat })' --identity ci-viewer 2>&1)"; then
