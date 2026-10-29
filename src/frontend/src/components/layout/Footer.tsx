@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { OvaniteWordmark } from "@/components/brand/OvaniteMark";
 import { Container } from "@/components/layout/Container";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import { clearConsent } from "@/lib/consent";
 
 const FOOTER_NAV = [
   { label: "Products", to: "/products" },
@@ -76,27 +75,11 @@ export function Footer() {
           </nav>
 
           <div className="md:col-span-2">
-            <h2 className="eyebrow text-ink-foreground/60">Contact</h2>
-            <ul className="mt-5 space-y-3">
-              <li>
-                <Link
-                  to="/contact"
-                  data-ocid="footer.contact_link"
-                  className="rounded-sm text-sm text-ink-foreground/80 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-                >
-                  Start a conversation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/waitlist"
-                  data-ocid="footer.waitlist_link"
-                  className="rounded-sm text-sm text-ink-foreground/80 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-                >
-                  Join the waitlist
-                </Link>
-              </li>
-            </ul>
+            <h2 className="eyebrow text-ink-foreground/60">Availability</h2>
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-foreground/70">
+              Contact and waitlist submissions are currently closed while the
+              production systems are being verified.
+            </p>
           </div>
         </div>
 
@@ -104,14 +87,7 @@ export function Footer() {
           <p className="font-mono uppercase tracking-[0.16em]">
             © {year} Ovanite. All rights reserved.
           </p>
-          <button
-            type="button"
-            data-ocid="footer.cookie_preferences_button"
-            onClick={() => clearConsent()}
-            className="self-start rounded-sm text-left underline underline-offset-4 transition-colors hover:text-ink-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-foreground/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink sm:self-auto"
-          >
-            Cookie preferences
-          </button>
+          <p>Page-view analytics is currently disabled.</p>
         </div>
       </Container>
     </footer>
