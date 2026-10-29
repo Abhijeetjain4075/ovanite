@@ -157,88 +157,32 @@ it("does not allow a non-anonymous principal to bypass the server-side submissio
   ).rejects.toThrow(/public submissions are disabled by backend release policy/i);
 });
 
-it("records an aggregate page view and reads it back", async () => {
-  // A path unique to this test keeps the assertion independent of any other
-  // test that records views in the same shared canister.
-  const path = "/pocketic-analytics-read";
+it("rejects public analytics writes while the backend release policy is closed", async () => {
+  // Client consent cannot protect a public canister method from direct calls.
+  // Reject typical routes and many distinct caller-controlled paths before any
+  // Map entry or counter can be written, regardless of caller identity.
+  for (const path of [
+    "/",
+    "/products",
+    "/attacker-generated-route-1",
+    `/${"x".repeat(120)}`,
+  ]) {
+    await expect(actor.recordPageView(path)).rejects.toThrow(
+      /public analytics writes are disabled by backend release policy/i,
+    );
+  }
 
-  const first = await actor.recordPageView(path);
-  expect(first).toHaveProperty("recorded");
-  expect(first.recorded.path).toBe(path);
-  expect(first.recorded.views).toBe(1n);
+  const signedInPrincipal = await pic!.createCanister();
+  const signedInCaller = pic!.createActor<_SERVICE>(idlFactory, canisterId);
+  signedInCaller.setPrincipal(signedInPrincipal);
+  await expect(
+    signedInCaller.recordPageView("/direct-signed-in-write"),
+  ).rejects.toThrow(/public analytics writes are disabled by backend release policy/i);
 
-  const read = await actor.getPageViews(path);
-  expect(read).toHaveLength(1);
-  expect(read[0]?.views).toBe(1n);
-  expect(read[0]?.path).toBe(path);
-});
-
-it("increments the aggregate total additively on repeated views", async () => {
-  const path = "/pocketic-analytics-additive";
-
-  await actor.recordPageView(path);
-  await actor.recordPageView(path);
-  const third = await actor.recordPageView(path);
-
-  expect(third).toHaveProperty("recorded");
-  expect(third.recorded.views).toBe(3n);
-
-  const read = await actor.getPageViews(path);
-  expect(read[0]?.views).toBe(3n);
-});
-
-it("ignores admin paths and stores nothing for them", async () => {
-  const before = await actor.listPageViews();
-
-  const admin = await actor.recordPageView("/admin");
-  expect(admin).toEqual({ ignored: null });
-
-  const nested = await actor.recordPageView("/admin/faqs");
-  expect(nested).toEqual({ ignored: null });
-
-  // No admin path appears in the aggregate list, and the list is unchanged.
-  const after = await actor.listPageViews();
-  expect(after).toHaveLength(before.length);
-  expect(after.some((entry) => entry.path.startsWith("/admin"))).toBe(false);
-  await expect(actor.getPageViews("/admin")).resolves.toEqual([]);
-});
-
-it("normalizes a public path before counting it", async () => {
-  // Query strings, fragments, duplicate slashes, and a trailing slash all
-  // collapse to the same canonical route, so they share one aggregate total.
-  const canonical = "/pocketic-analytics-normalized";
-
-  await actor.recordPageView(`${canonical}?utm_source=test`);
-  await actor.recordPageView(`${canonical}#section`);
-  await actor.recordPageView(`${canonical}//`);
-  const last = await actor.recordPageView(`  ${canonical}/  `);
-
-  expect(last).toHaveProperty("recorded");
-  expect(last.recorded.path).toBe(canonical);
-  expect(last.recorded.views).toBe(4n);
-
-  const read = await actor.getPageViews(canonical);
-  expect(read[0]?.views).toBe(4n);
-});
-
-it("ignores malformed paths instead of storing them", async () => {
-  await expect(actor.recordPageView("not-a-path")).resolves.toEqual({
-    ignored: null,
-  });
-  await expect(actor.recordPageView("")).resolves.toEqual({ ignored: null });
-  await expect(actor.getPageViews("not-a-path")).resolves.toEqual([]);
-});
-
-it("lists every recorded route with its aggregate total", async () => {
-  const path = "/pocketic-analytics-listed";
-  await actor.recordPageView(path);
-
-  const all = await actor.listPageViews();
-  const entry = all.find((row) => row.path === path);
-  expect(entry).toBeDefined();
-  expect(entry?.views).toBe(1n);
-  expect(entry?.firstSeenAt).toBeGreaterThan(0n);
-  expect(entry?.lastSeenAt).toBeGreaterThanOrEqual(entry?.firstSeenAt ?? 0n);
+  // The failed update attempts have not inserted caller-controlled route keys.
+  await expect(actor.getPageViews("/products")).resolves.toEqual([]);
+  await expect(actor.getPageViews("/attacker-generated-route-1")).resolves.toEqual([]);
+  await expect(actor.listPageViews()).resolves.toEqual([]);
 });
 
 it("does not expose admin reads or writes to an anonymous caller", async () => {

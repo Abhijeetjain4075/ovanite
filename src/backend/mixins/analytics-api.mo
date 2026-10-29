@@ -1,18 +1,26 @@
 import Map "mo:core/Map";
+import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Types "../types/analytics";
 import AnalyticsLib "../lib/analytics";
+import AnalyticsPolicy "../lib/analytics-policy";
 
 mixin (views : Map.Map<Types.RoutePath, Types.RouteViews>) {
-  /// Records one view of a public route. Callable by anyone, including
-  /// anonymous callers, because the frontend only calls it after the visitor
-  /// has consented to analytics.
-  ///
-  /// The path is normalized and validated by the backend; an invalid path or an
-  /// admin route is ignored and stores nothing. The counter is additive and
-  /// stores only an aggregate total — no IP, user agent, principal, or session
-  /// identifier is ever read or stored.
+  /// The browser's consent banner is a usability/privacy control, not a
+  /// canister authorization boundary. poka-yoke: prevent direct public update
+  /// calls from creating arbitrary persistent route keys or consuming cycles
+  /// until server-side abuse and cost controls are designed and verified.
+  func requirePublicAnalyticsWritesEnabled() {
+    if (not AnalyticsPolicy.publicAnalyticsWritesEnabled) {
+      Runtime.trap("Public analytics writes are disabled by backend release policy");
+    };
+  };
+
+  /// Records one aggregate view only after a deliberate server-side release.
+  /// Currently closed: callers can bypass frontend consent and invoke canisters
+  /// directly, so consent alone cannot protect state size or cycle consumption.
   public shared func recordPageView(path : Text) : async Types.RecordViewResult {
+    requirePublicAnalyticsWritesEnabled();
     AnalyticsLib.recordView(views, path, Time.now().toNat());
   };
 
