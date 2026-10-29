@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { Button } from "@/components/ui/button";
 import {
+  ANALYTICS_COLLECTION_ENABLED,
   CONSENT_CHANGE_EVENT,
   type ConsentChoice,
   readConsent,
@@ -10,11 +11,8 @@ import {
 } from "@/lib/consent";
 
 /**
- * First-visit analytics consent banner.
- *
- * Renders only while no choice is stored. Accept and Decline both persist the
- * choice and dismiss the banner; the footer's "Cookie preferences" link clears
- * the choice and brings it back.
+ * First-visit analytics consent banner. It remains hidden while analytics
+ * collection is disabled; asking for consent for an inactive feature is misleading.
  */
 export function ConsentBanner() {
   const [choice, setChoice] = useState<ConsentChoice | null>(() =>
@@ -35,7 +33,7 @@ export function ConsentBanner() {
     };
   }, []);
 
-  if (choice !== null) return null;
+  if (!ANALYTICS_COLLECTION_ENABLED || choice !== null) return null;
 
   function decide(next: ConsentChoice) {
     writeConsent(next);
@@ -53,10 +51,9 @@ export function ConsentBanner() {
           <div className="max-w-2xl">
             <p className="eyebrow text-muted-foreground">Privacy</p>
             <p className="mt-2 text-sm leading-relaxed text-foreground">
-              We count anonymous page views to understand which parts of the
-              site are useful. No personal data, no third-party analytics, and
-              no tracking cookies — just aggregate totals stored in our own
-              backend.
+              Page-view analytics is currently disabled. No page views are
+              being recorded by Ovanite. This notice will be updated before any
+              analytics collection is enabled.
             </p>
           </div>
 
