@@ -8,7 +8,7 @@ The tracked src/frontend/env.json uses the Caffeine-generated runtime placeholde
 
 A committed Motoko source file, generated WASM/Candid, and a READY Vercel deployment do not establish that a Motoko canister exists or that backend methods work.
 
-The standalone ICP CLI manifest is defined in the repository root as `icp.yaml` and declares only the Motoko `backend` canister. The backend-quality workflow now checks Mops dependency lock integrity, Motoko type/lint/stable-state compatibility, Mops and ICP CLI builds, generated artifacts, and deploys to a disposable local ICP network. The local smoke test verifies all five published FAQs are present after a fresh install, checks public backend reads, and confirms anonymous owner-claim attempts are rejected. This local test does not create a mainnet canister and does not prove the Vercel frontend integration is working.
+The standalone ICP CLI manifest is defined in the repository root as `icp.yaml` and declares only the Motoko `backend` canister. The backend-quality workflow now checks Mops dependency lock integrity, Motoko type/lint/stable-state compatibility, Mops and ICP CLI builds, generated artifacts, and deploys to a disposable local ICP network. The local smoke test verifies all five published FAQs are present after a fresh install, checks public backend reads, verifies owner bootstrap remains closed, checks the admin-list authorization boundary, and confirms direct Contact/Waitlist writes are rejected by the server-side release policy. This local test does not create a mainnet canister and does not prove the Vercel frontend integration is working.
 
 
 
@@ -22,14 +22,15 @@ The Motoko entry points `submitContact` and `submitWaitlist` check `src/backend/
 - Do not configure the owner principal until the final Internet Identity origin is chosen and the principal is verified through Ovanite at that origin.
 - Keep participant intake closed.
 - Public contact/waitlist forms also depend on backend connectivity and must be tested after integration.
-- Both backend and frontend use Caffeine object-storage packages. A standalone canister does not by itself provide a working storage gateway. Image upload/download is a separate release blocker until verified or replaced.
+- Both backend and frontend use Caffeine object-storage packages. A standalone canister does not by itself provide a working storage gateway. `OVANITE_STORAGE_GATEWAY_URL` remains unverified; image upload/download is a separate release blocker until a compatible gateway is proven with create/read/delete tests or the adapter is replaced.
+- The Vercel runtime-config generator has been implemented, but no independently deployed backend canister ID, validated identity-origin setup, or compatible storage gateway is currently configured in the user's Vercel project.
 
 ## Required release gates
 
-1. Preserve passing CI evidence for the pinned Mops/ICP CLI toolchain and disposable local deployment smoke test. Do not use legacy dfx instructions.
+1. Preserve passing CI evidence for the pinned Mops/ICP CLI toolchain and disposable local deployment smoke test. Confirm that the workflow actually reaches the build and local-deploy steps: the separate PocketIC lane can skip successfully if its sidecar or artifacts are absent. Do not use legacy dfx instructions.
 2. Review the manifest and deployment target; the current manifest declares the backend only and does not deploy automatically.
 3. Resolve object storage for independent hosting; never guess storage_gateway_url. The Caffeine object-storage adapter must either be proven compatible with a standalone deployment or replaced with a documented, tested storage solution.
-4. Implement a Vercel-compatible runtime configuration and actor/identity adapter. Validate missing configuration and render a safe unavailable state rather than silently using invalid IDs. Keep the five Caffeine-specific runtime placeholders from being treated as working Vercel configuration.
+4. The Vercel runtime-config generator and backend-canister ID mapping are already present in `src/frontend/scripts/generate-runtime-config.mjs` and `src/frontend/scripts/backend-canister-env.mjs`. Deployed builds default to `https://icp-api.io`, and the generator leaves the backend ID unconfigured until a valid value is supplied. No verified backend canister ID is available yet, so do not configure `OVANITE_BACKEND_CANISTER_ID`. After independent deployment, set that public canister ID in Vercel and rebuild; verify generated `dist/env.json`, actor initialization, and live calls all target that exact canister. The generator validates syntax, not whether a canister exists, is reachable, or exposes the expected interface.
 5. Review mainnet cycle requirements and get explicit approval for funding and ongoing costs. Local pre-funded development is not proof of free mainnet operation.
 6. Choose the identity origin and verify the exact app-specific Internet Identity principal using that origin; only then configure backend `ownerPrincipal` in a reviewed backend change.
 7. Extend end-to-end coverage beyond the successful local install/read/FAQ checks: test wrong/repeated non-anonymous owner claims, admin authorization, contact/waitlist persistence, CRUD, data isolation, upgrade compatibility, and object storage against a local/staging canister before production.

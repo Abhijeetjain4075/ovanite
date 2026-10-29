@@ -13,6 +13,7 @@ on:
     branches: [main, mavis]
     paths:
       - "src/backend/**"
+      - "test/pocketic/backend.test.ts"
       - "mops.toml"
       - "mops.lock"
       - "icp.yaml"
@@ -112,7 +113,20 @@ jobs:
           icp canister call backend listPublishedProducts '()'
           icp canister call backend getSiteContent '()'
           owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
+          printf '%s\n' "$owner_claimed"
           grep -Fq 'true' <<<"$owner_claimed"
+
+          # An unregistered caller must not see administrative state.
+          is_admin="$(icp canister call backend isCallerAdmin '()')"
+          printf '%s\n' "$is_admin"
+          grep -Fq 'false' <<<"$is_admin"
+
+          if admins_output="$(icp canister call backend listAdmins '()' 2>&1)"; then
+            echo "SECURITY FAILURE: an unregistered caller read the admin list." >&2
+            exit 1
+          fi
+          printf '%s\n' "$admins_output"
+          grep -Fq "Unauthorized: admin access required" <<<"$admins_output"
 
           # The default local CLI caller is anonymous; it must be rejected
           # before any email-based owner bootstrap can occur.
@@ -120,6 +134,31 @@ jobs:
             echo "SECURITY FAILURE: anonymous owner claim unexpectedly succeeded" >&2
             exit 1
           fi
+
+          # Create an ephemeral, non-anonymous test identity only for this
+          # disposable CI network. Suppress all CLI output: identity creation
+          # can print a seed phrase, which must never appear in CI logs.
+          icp identity new --storage plaintext ci-unregistered >/dev/null 2>&1
+
+          signed_in_owner_claimed="$(icp canister call backend isOwnerClaimed '()' --identity ci-unregistered)"
+          printf '%s\n' "$signed_in_owner_claimed"
+          grep -Fq '(true)' <<<"$signed_in_owner_claimed"
+
+          # This verifies the signed-in, but unconfigured, owner-bootstrap path
+          # (the anonymous negative test above covers its earlier guard).
+          if signed_in_claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-unregistered 2>&1)"; then
+            echo "SECURITY FAILURE: a signed-in unconfigured principal claimed ownership." >&2
+            exit 1
+          fi
+          printf '%s\n' "$signed_in_claim_output"
+          grep -Fq "owner principal is not configured" <<<"$signed_in_claim_output"
+
+          if signed_in_admins_output="$(icp canister call backend listAdmins '()' --identity ci-unregistered 2>&1)"; then
+            echo "SECURITY FAILURE: a signed-in unregistered principal read the admin list." >&2
+            exit 1
+          fi
+          printf '%s\n' "$signed_in_admins_output"
+          grep -Fq "Unauthorized: admin access required" <<<"$signed_in_admins_output"
 
           # The backend release policy must reject direct canister calls even
           # though the frontend has a separate UI-only release flag.
