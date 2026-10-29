@@ -96,7 +96,7 @@ module {
     lastSeenAt : Nat;
   };
 
-  // Exact actor state after migration 20260918_140000.
+  // Exact actor state after migration 20260918_140000; this folds the pending // product-image field and authorization-hardening changes into one migration.
   type OldActor = {
     accessControlState : AccessControl.AccessControlState;
     admins : Map.Map<Principal, Admin>;
@@ -142,8 +142,25 @@ module {
         updatedAt = product.updatedAt;
       });
     };
+    // The authorization mixin defaults the first caller to generic #admin.
+    // Reserve this role system for the identity handshake, not Ovanite admin
+    // permissions, and demote any pre-existing generic admins during upgrade.
+    let safeUserRoles = Map.map<Principal, AccessControl.UserRole, AccessControl.UserRole>(
+      old.accessControlState.userRoles,
+      func (_principal : Principal, role : AccessControl.UserRole) : AccessControl.UserRole {
+        switch (role) {
+          case (#admin) { #user };
+          case (#user) { #user };
+          case (#guest) { #guest };
+        };
+      },
+    );
+    let accessControlState : AccessControl.AccessControlState = {
+      var adminAssigned = true;
+      userRoles = safeUserRoles;
+    };
     {
-      accessControlState = old.accessControlState;
+      accessControlState;
       admins = old.admins;
       products;
       faqs = old.faqs;

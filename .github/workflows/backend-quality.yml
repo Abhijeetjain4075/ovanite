@@ -201,6 +201,33 @@ jobs:
           printf '%s\n' "$signed_in_owner_claimed"
           grep -Fq '(true)' <<<"$signed_in_owner_claimed"
 
+          # The generic Caffeine role mixin normally lets the first principal
+          # calling _initialize_access_control become #admin. That generic role
+          # is not Ovanite's admin map, but it is still unnecessary privilege.
+          # The latest migration reserves the generic admin slot and demotes
+          # legacy generic admins. Verify the first authenticated caller stays
+          # a normal user and cannot self-assign generic admin.
+          icp canister call backend _initialize_access_control '()' --identity ci-unregistered
+          generic_role="$(icp canister call backend getCallerUserRole '()' --identity ci-unregistered)"
+          printf '%s\n' "$generic_role"
+          grep -Fq 'user' <<<"$generic_role"
+          if grep -Fq 'admin' <<<"$generic_role"; then
+            echo "SECURITY FAILURE: first signed-in caller became a generic access-control admin." >&2
+            exit 1
+          fi
+          generic_is_admin="$(icp canister call backend isCallerAdmin '()' --identity ci-unregistered)"
+          printf '%s\n' "$generic_is_admin"
+          grep -Fq 'false' <<<"$generic_is_admin"
+
+          ci_unregistered_principal="$(icp identity principal --identity ci-unregistered)"
+          if generic_role_assignment="$(icp canister call backend assignCallerUserRole "(principal \"$ci_unregistered_principal\", variant { admin })" --identity ci-unregistered 2>&1)"; then
+            echo "SECURITY FAILURE: an ordinary caller assigned itself the generic admin role." >&2
+            exit 1
+          fi
+          printf '%s\n' "$generic_role_assignment"
+          grep -Fq "Unauthorized: Only admins can assign user roles" <<<"$generic_role_assignment"
+          # The generic role system must not grant Ovanite-specific administration.
+
           # This verifies the signed-in, but unconfigured, owner-bootstrap path
           # (the anonymous negative test above covers its earlier guard).
           if signed_in_claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-unregistered 2>&1)"; then
