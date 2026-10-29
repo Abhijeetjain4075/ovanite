@@ -72,6 +72,7 @@ export interface Product {
   'updatedAt' : Timestamp,
   'state' : PublishState,
   'imageKey' : [] | [ExternalBlob],
+  'imageUrl' : [] | [string],
 }
 export interface ProductInput {
   'sortOrder' : bigint,
@@ -79,6 +80,7 @@ export interface ProductInput {
   'name' : string,
   'description' : string,
   'imageKey' : [] | [ExternalBlob],
+  'imageUrl' : [] | [string],
 }
 export interface ProductPatch {
   'sortOrder' : [] | [bigint],
@@ -86,6 +88,7 @@ export interface ProductPatch {
   'name' : [] | [string],
   'description' : [] | [string],
   'imageKey' : [] | [ExternalBlob],
+  'imageUrl' : [] | [string],
 }
 export type PublishState = { 'published' : null } |
   { 'draft' : null };
