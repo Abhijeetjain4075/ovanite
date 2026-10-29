@@ -221,5 +221,14 @@ describe("Home page", () => {
       ).toBeInTheDocument();
     });
     expect(screen.getByText("Products in development.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Product information will appear here as individual products are ready to share/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Start a conversation" }),
+    ).not.toBeInTheDocument();
   });
 });
