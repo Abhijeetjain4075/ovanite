@@ -36,7 +36,7 @@ function renderAppAt(path: string) {
 
 describe("App routing", () => {
   beforeEach(() => {
-    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "true");
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "false");
     useActorMock.mockReset();
     useInternetIdentityMock.mockReset();
     useInternetIdentityMock.mockReturnValue({
@@ -112,7 +112,7 @@ describe("App routing", () => {
       await screen.findByRole("heading", { name: "Privacy Policy" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Ovanite collects only the information/),
+      screen.getByText(/contact and waitlist forms are currently disabled/i),
     ).toBeInTheDocument();
   });
 
@@ -127,22 +127,24 @@ describe("App routing", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the Contact page with its form", async () => {
+  it("renders the Contact page with intake closed", async () => {
     renderAppAt("/contact");
 
     expect(
-      await screen.findByRole("heading", { name: "Start a conversation." }),
+      await screen.findByRole("heading", { name: "Contact intake is currently closed." }),
     ).toBeInTheDocument();
-    expect(await screen.findByTestId("contact.form")).toBeInTheDocument();
+    expect(await screen.findByTestId("contact.disabled_state")).toBeInTheDocument();
+    expect(screen.queryByTestId("contact.form")).not.toBeInTheDocument();
   });
 
-  it("renders the Waitlist page with its form", async () => {
+  it("renders the Waitlist page with intake closed", async () => {
     renderAppAt("/waitlist");
 
     expect(
-      await screen.findByRole("heading", { name: "Join the waitlist." }),
+      await screen.findByRole("heading", { name: "Waitlist registration is currently closed." }),
     ).toBeInTheDocument();
-    expect(await screen.findByTestId("waitlist.form")).toBeInTheDocument();
+    expect(await screen.findByTestId("waitlist.disabled_state")).toBeInTheDocument();
+    expect(screen.queryByTestId("waitlist.form")).not.toBeInTheDocument();
   });
 
   it("renders the Thank You page on its own route", async () => {
@@ -150,7 +152,7 @@ describe("App routing", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Thank you for reaching out.",
+        name: "No submission was sent.",
       }),
     ).toBeInTheDocument();
   });
