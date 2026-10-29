@@ -210,7 +210,7 @@ it("caps public FAQ query limits before numeric conversion", async () => {
 it("documents the actual security boundary and closed public write gates", async () => {
   const apiDoc = await actor.getApiDoc();
 
-  expect(apiDoc).toContain("`ownerPrincipal` is `null`");
+  expect(apiDoc).toContain("`ownerPrincipalText` is `null`");
   expect(apiDoc).toContain("Email alone");
   expect(apiDoc).toContain("Public submissions are disabled by backend release policy");
   expect(apiDoc).toContain("Public analytics writes are disabled by backend release policy");
