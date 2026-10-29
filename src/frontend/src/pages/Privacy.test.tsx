@@ -30,7 +30,7 @@ describe("Privacy Policy", () => {
     useActorMock.mockReset();
   });
 
-  it("describes the aggregate counter, what is stored, and consent", async () => {
+  it("accurately describes the currently disabled collection features", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockResolvedValue({ updatedAt: 0n });
     useActorMock.mockReturnValue(actorResult(actor));
@@ -41,22 +41,18 @@ describe("Privacy Policy", () => {
       await screen.findByRole("heading", { name: "Privacy Policy" }),
     ).toBeInTheDocument();
 
-    // The counter is described as aggregate and stored in the app's own backend.
     expect(
-      screen.getByText(/we store a route path and a running view count/i),
+      screen.getByText(/contact and waitlist forms are currently disabled/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/no third-party analytics service is involved/i),
-    ).toBeInTheDocument();
-
-    // Consent is granted on first visit and can be withdrawn from the footer.
-    expect(
-      screen.getByText(/only happens after you accept the consent banner/i),
+      screen.getByText(/page-view analytics is also disabled/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/change or withdraw your consent at any time/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Cookie preferences/i)).toBeInTheDocument();
+      screen.queryByText(/page-view analytics is also disabled/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Cookie preferences/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders admin-edited privacy copy instead of the default", async () => {
