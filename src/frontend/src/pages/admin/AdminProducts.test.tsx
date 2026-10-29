@@ -70,8 +70,19 @@ describe("AdminProducts", () => {
     await screen.findByTestId("admin.products.empty_state");
     await user.click(screen.getByTestId("admin.products.empty_create_button"));
 
+    expect(
+      screen.queryByRole("button", { name: /upload image/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("admin.product.image_input"),
+    ).not.toBeInTheDocument();
+
     await user.type(screen.getByLabelText("Name"), "Ledger");
     await user.type(screen.getByLabelText("Description"), "A precise product.");
+    await user.type(
+      screen.getByLabelText(/Image URL/i),
+      "https://cdn.example.com/ledger.png",
+    );
     await user.click(screen.getByRole("button", { name: "Create product" }));
 
     await waitFor(() => {
@@ -79,9 +90,12 @@ describe("AdminProducts", () => {
         expect.objectContaining({
           name: "Ledger",
           description: "A precise product.",
+          imageUrl: "https://cdn.example.com/ledger.png",
           sortOrder: 0n,
         }),
       );
+      const [submitted] = actor.createProduct.mock.calls[0] ?? [];
+      expect(submitted).not.toHaveProperty("imageKey");
     });
   });
 
