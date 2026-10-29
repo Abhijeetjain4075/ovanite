@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "src/backend/**"
+      - "src/frontend/src/backend.ts"
+      - "src/frontend/src/declarations/**"
       - "test/pocketic/backend.test.ts"
       - "mops.toml"
       - "mops.lock"
@@ -13,6 +15,8 @@ on:
     branches: [main, mavis]
     paths:
       - "src/backend/**"
+      - "src/frontend/src/backend.ts"
+      - "src/frontend/src/declarations/**"
       - "test/pocketic/backend.test.ts"
       - "mops.toml"
       - "mops.lock"
