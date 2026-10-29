@@ -215,7 +215,7 @@ it("documents the actual security boundary and closed public write gates", async
   expect(apiDoc).toContain("Public submissions are disabled by backend release policy");
   expect(apiDoc).toContain("Public analytics writes are disabled by backend release policy");
   expect(apiDoc).toContain("`#viewer`");
-  expect(apiDoc).toContain("cannot mutate content or submission records");
+  expect(apiDoc).toContain("Unauthorized: editor or owner access required");
   expect(apiDoc).not.toContain("The first non-anonymous caller to initialize becomes `#admin`.");
   expect(apiDoc).not.toContain("ownership is bootstrapped by email alone");
 });
