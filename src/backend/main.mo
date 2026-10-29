@@ -15,6 +15,7 @@ import PrincipalValue "mo:caffeineai-oql/PrincipalValue";
 import BoolValue "mo:caffeineai-oql/BoolValue";
 import BlobValue "mo:caffeineai-oql/BlobValue";
 import ContentTypes "types/content";
+import ContentLib "lib/content";
 import SubmissionTypes "types/submissions";
 import AdminTypes "types/admin";
 import AnalyticsTypes "types/analytics";
@@ -99,7 +100,14 @@ actor {
 
   include Expose({
     entities = [
-      products.toEntityManual("product", "Product", "id")
+      OQL.Entity.manual<ContentTypes.Product>(
+        "product",
+        // The generic OQL endpoint is public. Keep unpublished products out of
+        // this iterator; admin list methods still read the full backing map.
+        func () = ContentLib.listPublishedProducts(products).values(),
+        "Product",
+        "id",
+      )
         .payload("id", func p = p.id, )
         .payload("name", func p = p.name, )
         .payload("description", func p = p.description, )
@@ -124,7 +132,14 @@ actor {
         })
         .public_()
         .build(),
-      faqs.toEntityManual("faq", "Faq", "id")
+      OQL.Entity.manual<ContentTypes.Faq>(
+        "faq",
+        // Apply the same published-only boundary as the ordinary public FAQ
+        // API. The admin methods continue to query the full backing map.
+        func () = ContentLib.listPublishedFaqs(faqs, ContentLib.maxPublicFaqLimit).values(),
+        "Faq",
+        "id",
+      )
         .payload("id", func f = f.id, )
         .payload("question", func f = f.question, )
         .payload("answer", func f = f.answer, )

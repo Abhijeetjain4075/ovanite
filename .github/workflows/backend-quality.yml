@@ -413,6 +413,46 @@ jobs:
           printf '%s\n' "$owner_status_after_guards"
           grep -Fq 'true' <<<"$owner_status_after_guards"
 
+          # Regression: OQL is publicly queryable, but draft content must not
+          # leak through the generic endpoint. Verify both entity types directly
+          # against the canister, not through mocked frontend hooks.
+          draft_product_output="$(icp canister call backend createProduct '(record { name = "OQL draft product sentinel"; description = "Must remain private until published"; link = null; imageKey = null; imageUrl = null; sortOrder = 190 : nat })' --identity ci-editor)"
+          printf '%s\n' "$draft_product_output"
+          draft_product_id="$(grep -oE 'id = [0-9_]+ : nat' <<<"$draft_product_output" | head -n1 | sed -E 's/id = ([0-9_]+) : nat/\1/' | tr -d '_')"
+          if [[ ! "$draft_product_id" =~ ^[0-9]+$ ]]; then
+            echo "TEST FAILURE: could not parse the created draft product ID." >&2
+            exit 1
+          fi
+          draft_product_oql="$(icp canister call backend execute '("{\"start\":\"product\",\"where\":{\"eq\":{\"field\":\"name\",\"value\":\"OQL draft product sentinel\"}},\"limit\":10}")' --query)"
+          printf '%s\n' "$draft_product_oql"
+          if grep -Fq 'OQL draft product sentinel' <<<"$draft_product_oql"; then
+            echo "SECURITY FAILURE: public OQL exposed an unpublished product." >&2
+            exit 1
+          fi
+          icp canister call backend setProductState "($draft_product_id : nat, variant { published })" --identity ci-configured-owner >/dev/null
+          published_product_oql="$(icp canister call backend execute '("{\"start\":\"product\",\"where\":{\"eq\":{\"field\":\"name\",\"value\":\"OQL draft product sentinel\"}},\"limit\":10}")' --query)"
+          printf '%s\n' "$published_product_oql"
+          grep -Fq 'OQL draft product sentinel' <<<"$published_product_oql"
+
+          draft_faq_output="$(icp canister call backend createFaq '(record { question = "OQL draft FAQ sentinel"; answer = "Must remain private until published"; sortOrder = 190 : nat })' --identity ci-editor)"
+          printf '%s\n' "$draft_faq_output"
+          draft_faq_id="$(grep -oE 'id = [0-9_]+ : nat' <<<"$draft_faq_output" | head -n1 | sed -E 's/id = ([0-9_]+) : nat/\1/' | tr -d '_')"
+          if [[ ! "$draft_faq_id" =~ ^[0-9]+$ ]]; then
+            echo "TEST FAILURE: could not parse the created draft FAQ ID." >&2
+            exit 1
+          fi
+          draft_faq_oql="$(icp canister call backend execute '("{\"start\":\"faq\",\"where\":{\"eq\":{\"field\":\"question\",\"value\":\"OQL draft FAQ sentinel\"}},\"limit\":10}")' --query)"
+          printf '%s\n' "$draft_faq_oql"
+          if grep -Fq 'OQL draft FAQ sentinel' <<<"$draft_faq_oql"; then
+            echo "SECURITY FAILURE: public OQL exposed an unpublished FAQ." >&2
+            exit 1
+          fi
+          icp canister call backend setFaqState "($draft_faq_id : nat, variant { published })" --identity ci-configured-owner >/dev/null
+          published_faq_oql="$(icp canister call backend execute '("{\"start\":\"faq\",\"where\":{\"eq\":{\"field\":\"question\",\"value\":\"OQL draft FAQ sentinel\"}},\"limit\":10}")' --query)"
+          printf '%s\n' "$published_faq_oql"
+          grep -Fq 'OQL draft FAQ sentinel' <<<"$published_faq_oql"
+
+
       - name: Rebuild safe-default backend artifacts after test-only owner fixture
         shell: bash
         run: |
