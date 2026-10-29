@@ -13,7 +13,7 @@ export default function Contact() {
     <>
       <PageMeta
         title="Contact"
-        description="Start a conversation with Ovanite. Tell us what you are working on and what a good outcome looks like."
+        description="Ovanite contact submissions are currently closed. No information is collected through this page."
       />
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Contact" }]} />
 
@@ -38,9 +38,9 @@ export default function Contact() {
           <div className="md:col-span-7">
             <div className="border border-border bg-card">
               <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-10">
-                <span className="eyebrow">New enquiry</span>
+                <span className="eyebrow">Contact intake closed</span>
                 <span className="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground">
-                  Replies within 2 business days
+                  No information is being collected
                 </span>
               </div>
               <div className="p-6 md:p-10">
