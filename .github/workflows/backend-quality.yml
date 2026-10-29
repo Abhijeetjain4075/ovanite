@@ -1,0 +1,121 @@
+name: Backend source quality
+
+on:
+  pull_request:
+    paths:
+      - "src/backend/**"
+      - "mops.toml"
+      - "mops.lock"
+      - "icp.yaml"
+      - ".github/workflows/backend-quality.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "src/backend/**"
+      - "mops.toml"
+      - "mops.lock"
+      - "icp.yaml"
+      - ".github/workflows/backend-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-source-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Motoko checks and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Check submitted patch whitespace
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git diff --check "$PR_BASE_SHA" "$PR_HEAD_SHA"
+          elif [[ "$GITHUB_EVENT_NAME" == "push" && "$PUSH_BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            git diff --check "$PUSH_BEFORE" "$GITHUB_SHA"
+          else
+            git diff --check HEAD^ HEAD
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Install pinned Mops
+        run: npm install --global ic-mops@3.5.1
+
+      - name: Install pinned ICP CLI and Wasm tooling
+        run: npm install --global @icp-sdk/icp-cli@1.7.0 @icp-sdk/ic-wasm@0.11.1
+
+      - name: Report tool versions
+        run: |
+          mops --version
+          icp --version
+          ic-wasm --version
+
+      - name: Validate locked dependencies
+        run: mops install --locked
+
+      - name: Typecheck, lint, and check stable-state compatibility
+        run: mops check backend
+
+      - name: Build backend with Mops
+        run: mops build backend
+
+      - name: Validate standalone ICP CLI recipe
+        run: icp build backend
+
+      - name: Verify backend artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s src/backend/dist/backend.wasm
+          test -s src/backend/dist/backend.did
+          test -s src/backend/dist/backend.most
+
+      - name: Deploy to disposable local ICP network and smoke-test public reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          icp network start -d
+          trap 'icp network stop || true' EXIT
+          icp deploy backend
+
+          # A fresh install must apply the enhanced migration chain and seed all
+          # five public FAQs before the application is exposed.
+          faq_output="$(icp canister call backend listPublishedFaqs '(10 : nat)')"
+          printf '%s\n' "$faq_output"
+          grep -Fq "What does Ovanite build?" <<<"$faq_output"
+          grep -Fq "How does Ovanite work?" <<<"$faq_output"
+          grep -Fq "How can I get in touch with Ovanite?" <<<"$faq_output"
+          grep -Fq "How does the waitlist work?" <<<"$faq_output"
+          grep -Fq "Where does Ovanite operate?" <<<"$faq_output"
+
+          icp canister call backend listPublishedProducts '()'
+          icp canister call backend getSiteContent '()'
+          owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
+          grep -Fq 'true' <<<"$owner_claimed"
+
+          # The default local CLI caller is anonymous; it must be rejected
+          # before any email-based owner bootstrap can occur.
+          if icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")'; then
+            echo "SECURITY FAILURE: anonymous owner claim unexpectedly succeeded" >&2
+            exit 1
+          fi
