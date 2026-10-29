@@ -71,8 +71,10 @@ export function ProductForm({
   const imageUrlError = productImageUrlError(imageUrl);
   const normalizedImageUrl = imageUrl.trim();
   const previewUrl = image ? image.getDirectURL() : null;
-  const safeImageUrl = normalizedImageUrl && !imageUrlError ? normalizedImageUrl : null;
-  const showUrlPreview = safeImageUrl !== null && failedPreviewUrl !== safeImageUrl;
+  const safeImageUrl =
+    normalizedImageUrl && !imageUrlError ? normalizedImageUrl : null;
+  const showUrlPreview =
+    safeImageUrl !== null && failedPreviewUrl !== safeImageUrl;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -215,13 +217,14 @@ export function ProductForm({
 
       <div>
         <Label htmlFor="product-image-url" className="mb-2">
-          Image URL <span className="text-muted-foreground">(optional alternative)</span>
+          Image URL{" "}
+          <span className="text-muted-foreground">(optional alternative)</span>
         </Label>
         <div className="flex items-start gap-4">
           {showUrlPreview ? (
             <img
               src={safeImageUrl ?? undefined}
-              alt="Product image URL preview"
+              alt="Product URL preview"
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
@@ -245,17 +248,30 @@ export function ProductForm({
                 setFailedPreviewUrl(null);
               }}
               aria-invalid={imageUrlError ? true : undefined}
-              aria-describedby={imageUrlError ? "product-image-url-error" : "product-image-url-help"}
+              aria-describedby={
+                imageUrlError
+                  ? "product-image-url-error"
+                  : "product-image-url-help"
+              }
               data-ocid="admin.product.image_url_input"
               className="h-11 rounded-sm"
             />
             {imageUrlError ? (
-              <p id="product-image-url-error" role="alert" data-ocid="admin.product.image_url_error" className="mt-2 text-sm text-destructive">
+              <p
+                id="product-image-url-error"
+                role="alert"
+                data-ocid="admin.product.image_url_error"
+                className="mt-2 text-sm text-destructive"
+              >
                 {imageUrlError}
               </p>
             ) : (
-              <p id="product-image-url-help" className="mt-2 text-xs text-muted-foreground">
-                Public HTTPS images load directly in visitors&apos; browsers. Ovanite does not upload or proxy URL images.
+              <p
+                id="product-image-url-help"
+                className="mt-2 text-xs text-muted-foreground"
+              >
+                Public HTTPS images load directly in visitors&apos; browsers.
+                Ovanite does not upload or proxy URL images.
               </p>
             )}
           </div>
