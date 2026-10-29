@@ -34,7 +34,9 @@ describe("IdentityCheck", () => {
 
   it("recognizes only the canonical production origin", () => {
     expect(isCanonicalOvaniteOrigin(CANONICAL_OVANITE_ORIGIN)).toBe(true);
-    expect(isCanonicalOvaniteOrigin("https://preview.example.test")).toBe(false);
+    expect(isCanonicalOvaniteOrigin("https://preview.example.test")).toBe(
+      false,
+    );
     expect(isCanonicalOvaniteOrigin("http://ovanite.vercel.app")).toBe(false);
   });
 
@@ -53,7 +55,9 @@ describe("IdentityCheck", () => {
     expect(screen.getByTestId("identity.origin_warning")).toBeInTheDocument();
     expect(screen.queryByText("test-principal")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /canonical production identity check/i }),
+      screen.getByRole("link", {
+        name: /canonical production identity check/i,
+      }),
     ).toHaveAttribute("href", `${CANONICAL_OVANITE_ORIGIN}/identity-check`);
   });
 
@@ -88,7 +92,9 @@ describe("IdentityCheck", () => {
     expect(screen.getByTestId("identity.principal_value")).toHaveTextContent(
       "2vxsx-fae",
     );
-    expect(screen.queryByRole("button", { name: /claim owner access/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /claim owner access/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("copies only the public principal identifier and confirms success", async () => {
