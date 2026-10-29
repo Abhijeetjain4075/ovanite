@@ -334,14 +334,14 @@ jobs:
 
           # Even the configured owner cannot accidentally demote or remove itself.
           owner_demotion="$(icp canister call backend setAdminRole "(principal \"$owner_principal\", variant { viewer })" --identity ci-configured-owner)"
-          printf '%s\\n' "$owner_demotion"
+          printf '%s\n' "$owner_demotion"
           grep -Fq 'null' <<<"$owner_demotion"
 
           owner_self_removal="$(icp canister call backend removeAdmin "(principal \"$owner_principal\")" --identity ci-configured-owner)"
-          printf '%s\\n' "$owner_self_removal"
+          printf '%s\n' "$owner_self_removal"
           grep -Fq 'false' <<<"$owner_self_removal"
 
           # Failed self-demotion/removal must not compromise the unique owner.
           owner_status_after_guards="$(icp canister call backend isCallerOwner '()' --identity ci-configured-owner)"
-          printf '%s\\n' "$owner_status_after_guards"
+          printf '%s\n' "$owner_status_after_guards"
           grep -Fq 'true' <<<"$owner_status_after_guards"
