@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   actorResult,
@@ -47,7 +47,12 @@ function createHealthyMockActor() {
 
 describe("WaitlistForm", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "true");
     useActorMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("shows inline validation errors for invalid input", async () => {
@@ -222,6 +227,26 @@ describe("WaitlistForm", () => {
       await screen.findByRole("heading", { name: "Thank you page" }),
     ).toBeInTheDocument();
   });
+  it("keeps waitlist fields disabled until the explicit release flag is enabled", async () => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "false");
+    const actor = createHealthyMockActor();
+
+    renderForm();
+
+    expect(
+      await screen.findByText(
+        /waitlist submissions are disabled until production persistence/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitWaitlist).not.toHaveBeenCalled();
+  });
+
   it("hides waitlist fields when the backend is unavailable", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));

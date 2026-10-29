@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   actorResult,
@@ -47,7 +47,12 @@ function createHealthyMockActor() {
 
 describe("ContactForm", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "true");
     useActorMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("shows inline validation errors and does not call the backend for invalid input", async () => {
@@ -244,6 +249,26 @@ describe("ContactForm", () => {
       await screen.findByRole("heading", { name: "Thank you page" }),
     ).toBeInTheDocument();
   });
+  it("keeps contact fields disabled until the explicit release flag is enabled", async () => {
+    vi.stubEnv("VITE_PUBLIC_FORMS_ENABLED", "false");
+    const actor = createHealthyMockActor();
+
+    renderForm();
+
+    expect(
+      await screen.findByText(
+        /contact submissions are disabled until production persistence/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Name" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Send message" }),
+    ).not.toBeInTheDocument();
+    expect(actor.submitContact).not.toHaveBeenCalled();
+  });
+
   it("keeps contact fields closed when the configured backend fails its health check", async () => {
     const actor = createMockActor();
     actor.getSiteContent.mockRejectedValue(new Error("backend unavailable"));

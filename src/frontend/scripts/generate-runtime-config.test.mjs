@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildRuntimeConfig } from "./generate-runtime-config.mjs";
 import { configureBackendCanisterId, resolveBackendCanisterId } from "./backend-canister-env.mjs";
+import { configurePublicFormsActivation } from "./public-forms-env.mjs";
 
 test("development stays fail-closed when no backend deployment is configured", () => {
   assert.deepEqual(buildRuntimeConfig({ NODE_ENV: "development" }), {
@@ -128,4 +129,22 @@ test("a literal undefined SDK placeholder is treated as unconfigured", () => {
   assert.equal(resolveBackendCanisterId(env), undefined);
   configureBackendCanisterId(env);
   assert.equal("CANISTER_ID_BACKEND" in env, false);
+});
+
+test("public forms default to closed when no explicit release flag exists", () => {
+  const env = {};
+  assert.equal(configurePublicFormsActivation(env), false);
+  assert.equal(env.VITE_PUBLIC_FORMS_ENABLED, "false");
+});
+
+test("public forms enable only when the release flag is explicitly true", () => {
+  const enabledEnv = { OVANITE_PUBLIC_FORMS_ENABLED: "TRUE" };
+  assert.equal(configurePublicFormsActivation(enabledEnv), true);
+  assert.equal(enabledEnv.VITE_PUBLIC_FORMS_ENABLED, "true");
+
+  for (const value of ["", "false", "1", "yes", "undefined"]) {
+    const env = { OVANITE_PUBLIC_FORMS_ENABLED: value };
+    assert.equal(configurePublicFormsActivation(env), false, value);
+    assert.equal(env.VITE_PUBLIC_FORMS_ENABLED, "false", value);
+  }
 });
