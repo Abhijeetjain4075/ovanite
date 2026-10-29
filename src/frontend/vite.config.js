@@ -3,9 +3,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import environment from "vite-plugin-environment";
 import { configureBackendCanisterId } from "./scripts/backend-canister-env.mjs";
+import { configurePublicFormsActivation } from "./scripts/public-forms-env.mjs";
 
 // Keep the generated Caffeine actor hook and public env.json on one backend ID.
 configureBackendCanisterId(process.env);
+configurePublicFormsActivation(process.env);
 
 const ii_url =
   process.env.DFX_NETWORK === "local"
