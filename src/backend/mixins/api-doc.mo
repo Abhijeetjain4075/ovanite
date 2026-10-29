@@ -14,7 +14,7 @@ mixin () {
     "\n" #
     "### Owner bootstrap\n" #
     "\n" #
-    "Owner bootstrap is fail-closed. In the current source, `ownerPrincipal` is `null`, so `claimOwner(email)` is deliberately unavailable and `isOwnerClaimed()` returns `true`. Before bootstrap can be enabled, the source must be configured with the exact verified principal derived from Ovanite's final Internet Identity origin. A claim additionally requires a non-anonymous caller, an empty admin map, and the configured owner email as a secondary consistency check. Email alone, a Caffeine project UUID, or a principal from a different origin is never sufficient to grant ownership.\n" #
+    "Owner bootstrap is fail-closed. In the current source, `ownerPrincipalText` is `null`, so `claimOwner(email)` is deliberately unavailable and `isOwnerClaimed()` returns `true`. Before bootstrap can be enabled, the source must be configured with the exact verified principal derived from Ovanite's final Internet Identity origin. A claim additionally requires a non-anonymous caller, an empty admin map, and the configured owner email as a secondary consistency check. Email alone, a Caffeine project UUID, or a principal from a different origin is never sufficient to grant ownership.\n" #
     "\n" #
     "### Ovanite admin roles\n" #
     "\n" #
