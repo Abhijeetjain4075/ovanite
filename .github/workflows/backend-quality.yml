@@ -92,6 +92,24 @@ jobs:
           test -s src/backend/dist/backend.did
           test -s src/backend/dist/backend.most
 
+      - name: Verify Candid and generated frontend bindings are current
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # The generated Candid contract must be reproducible from the current
+          # Motoko source with the repository-pinned compiler toolchain.
+          git diff --exit-code -- src/backend/dist/backend.did
+
+          # Regenerate the TypeScript actor and declarations from that exact DID.
+          # Pin the generator so CI and developers produce the same contract.
+          npm install --global @caffeineai/bindgen@0.2.2
+          caffeine-bindgen --did-file ./src/backend/dist/backend.did --out-dir ./src/frontend/src --actor-interface-file --force
+
+          # A stale checked-in actor can otherwise compile while calling a
+          # different method/type contract than the canister being built.
+          git diff --exit-code -- src/frontend/src/backend.ts src/frontend/src/declarations
+
       - name: Deploy to disposable local ICP network and smoke-test public reads
         shell: bash
         run: |
