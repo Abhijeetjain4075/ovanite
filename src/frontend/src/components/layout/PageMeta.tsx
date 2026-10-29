@@ -8,9 +8,9 @@ type PageMetaProps = {
 };
 
 function removeMeta(selector: string) {
-  document.head
-    .querySelectorAll(selector)
-    .forEach((element) => element.remove());
+  for (const element of document.head.querySelectorAll(selector)) {
+    element.remove();
+  }
 }
 
 function setMeta(
