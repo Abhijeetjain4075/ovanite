@@ -19,7 +19,7 @@ import {
   useSetProductState,
   useUpdateProduct,
 } from "@/hooks/useAdminProducts";
-import { formatDate, hasProductImage } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { productImageUrlError } from "@/lib/productImageUrl";
 import type { Product, ProductInput } from "@/types/content";
 
@@ -192,15 +192,6 @@ export default function AdminProducts() {
                           onError={(event) => {
                             event.currentTarget.style.visibility = "hidden";
                           }}
-                          className="h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
-                        />
-                      ) : hasProductImage(product.imageKey) &&
-                        product.imageKey ? (
-                        <img
-                          src={product.imageKey.getDirectURL()}
-                          alt={`${product.name} logo`}
-                          loading="lazy"
-                          decoding="async"
                           className="h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
                         />
                       ) : (
