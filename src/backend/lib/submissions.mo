@@ -1,8 +1,55 @@
 import Char "mo:core/Char";
+import Runtime "mo:core/Runtime";
+import Text "mo:core/Text";
 import Map "mo:core/Map";
 import Types "../types/submissions";
 
 module {
+  // Bound user-controlled payloads before storage. Frontend validation is for
+  // usability only; a direct canister caller must not be able to bypass limits.
+  func trimmed(value : Text) : Text {
+    value.trim(#predicate(Char.isWhitespace));
+  };
+
+  func requireLength(value : Text, minimum : Nat, maximum : Nat, message : Text) {
+    let count = Text.size(value);
+    if (count < minimum or count > maximum) {
+      Runtime.trap(message);
+    };
+  };
+
+  func normalizePublicEmail(value : Text) : Text {
+    let email = trimmed(value);
+    requireLength(email, 3, 254, "Email length is invalid");
+    if (not Text.contains(email, #char '@')) {
+      Runtime.trap("Email must contain an @ sign");
+    };
+    email;
+  };
+
+  func normalizePublicName(value : Text) : Text {
+    let name = trimmed(value);
+    requireLength(name, 2, 100, "Name must be between 2 and 100 characters");
+    name;
+  };
+
+  func normalizeContactMessage(value : Text) : Text {
+    let message = trimmed(value);
+    requireLength(message, 10, 5000, "Contact message must be between 10 and 5000 characters");
+    message;
+  };
+
+  func normalizeWaitlistNote(value : ?Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?note) {
+        let cleaned = trimmed(note);
+        requireLength(cleaned, 0, 500, "Waitlist note must not exceed 500 characters");
+        if (cleaned == "") { null } else { ?cleaned };
+      };
+    };
+  };
+
   /// Conservative, deterministic normalization: trim surrounding whitespace and
   /// case-fold. Used for the email only, so genuinely different submissions are
   /// never blocked.
