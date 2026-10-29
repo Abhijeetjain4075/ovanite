@@ -44,7 +44,7 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ toText: () => "test-principal" }) },
+        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "test-principal" }) },
       }),
     );
 
@@ -81,7 +81,7 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ toText: () => "2vxsx-fae" }) },
+        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "non-anonymous-principal-fixture" }) },
       }),
     );
 
@@ -90,11 +90,35 @@ describe("IdentityCheck", () => {
     );
 
     expect(screen.getByTestId("identity.principal_value")).toHaveTextContent(
-      "2vxsx-fae",
+      "non-anonymous-principal-fixture",
     );
     expect(
       screen.queryByRole("button", { name: /claim owner access/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("never presents the anonymous principal as an owner candidate", () => {
+    useInternetIdentityMock.mockReturnValue(
+      unauthenticated({
+        isAuthenticated: true,
+        identity: {
+          getPrincipal: () => ({
+            isAnonymous: () => true,
+            toText: () => "2vxsx-fae",
+          }),
+        },
+      }),
+    );
+
+    renderWithProviders(
+      <IdentityCheck currentOrigin={CANONICAL_OVANITE_ORIGIN} />,
+    );
+
+    expect(screen.queryByTestId("identity.principal_value")).not.toBeInTheDocument();
+    expect(screen.queryByText("2vxsx-fae")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /sign in with internet identity/i }),
+    ).toBeInTheDocument();
   });
 
   it("copies only the public principal identifier and confirms success", async () => {
@@ -106,7 +130,7 @@ describe("IdentityCheck", () => {
     useInternetIdentityMock.mockReturnValue(
       unauthenticated({
         isAuthenticated: true,
-        identity: { getPrincipal: () => ({ toText: () => "2vxsx-fae" }) },
+        identity: { getPrincipal: () => ({ isAnonymous: () => false, toText: () => "non-anonymous-principal-fixture" }) },
       }),
     );
 
@@ -116,7 +140,7 @@ describe("IdentityCheck", () => {
 
     fireEvent.click(screen.getByTestId("identity.copy_button"));
 
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith("2vxsx-fae"));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("non-anonymous-principal-fixture"));
     expect(await screen.findByTestId("identity.copy_status")).toHaveTextContent(
       "Principal copied to clipboard.",
     );
