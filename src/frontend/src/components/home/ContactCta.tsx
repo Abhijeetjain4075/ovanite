@@ -46,7 +46,7 @@ export function ContactCta() {
                 className="border-ink-foreground/25 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
               >
                 <Link to="/about" data-ocid="home.waitlist_cta_button">
-                  About Ovanite
+                  Learn about Ovanite
                 </Link>
               </SecondaryButton>
             </div>
