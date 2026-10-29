@@ -8,6 +8,20 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { assessmentCallbackHandler } from "../portal/assessmentCallback";
+import { getDb } from "../db";
+import {
+  automatedAssessmentRuns,
+  decisions,
+  evaluations,
+  portalAuditEvents,
+  rubricVersions,
+  submissions,
+  termsVersions,
+  users,
+  validationResults,
+  withdrawals,
+} from "../../drizzle/schema";
+import { checkPortalReadiness } from "./readiness";
 
 async function startServer() {
   const app = express();
@@ -35,7 +49,39 @@ async function startServer() {
     void assessmentCallbackHandler(req, res).catch(next);
   });
 
-  app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+  // Liveness proves only that the process can answer HTTP requests.
+  app.get("/api/health/live", (_req, res) => res.json({ status: "ok" }));
+
+  // Readiness also verifies secrets/configuration, database connectivity, and
+  // every table required for submissions, terms, evaluations, and audit history.
+  // Keep /api/health as a backwards-compatible readiness check; it must not
+  // report "ok" merely because the Node process started.
+  const readinessHandler: express.RequestHandler = (_req, res, next) => {
+    void checkPortalReadiness(process.env, async () => {
+      const db = await getDb();
+      if (!db) throw new Error("Database is not configured or unavailable.");
+      await db.select().from(users).limit(0);
+      await db.select().from(termsVersions).limit(0);
+      await db.select().from(submissions).limit(0);
+      await db.select().from(rubricVersions).limit(0);
+      await db.select().from(validationResults).limit(0);
+      await db.select().from(evaluations).limit(0);
+      await db.select().from(decisions).limit(0);
+      await db.select().from(withdrawals).limit(0);
+      await db.select().from(automatedAssessmentRuns).limit(0);
+      await db.select().from(portalAuditEvents).limit(0);
+    }).then(result => {
+      if (!result.ready) {
+        // Only variable names or a generic probe label are logged—never values.
+        console.warn("[Readiness] Portal is not ready:", result.missing);
+        res.status(503).json({ status: "not_ready" });
+        return;
+      }
+      res.status(200).json({ status: "ready" });
+    }).catch(next);
+  };
+  app.get("/api/health", readinessHandler);
+  app.get("/api/health/ready", readinessHandler);
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
