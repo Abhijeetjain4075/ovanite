@@ -158,9 +158,7 @@ describe("IdentityCheck", () => {
     fireEvent.click(screen.getByTestId("identity.copy_button"));
 
     await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(
-        "non-anonymous-principal-fixture",
-      ),
+      expect(writeText).toHaveBeenCalledWith("non-anonymous-principal-fixture"),
     );
     expect(await screen.findByTestId("identity.copy_status")).toHaveTextContent(
       "Principal copied to clipboard.",
