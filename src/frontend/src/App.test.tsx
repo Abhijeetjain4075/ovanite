@@ -131,9 +131,13 @@ describe("App routing", () => {
     renderAppAt("/contact");
 
     expect(
-      await screen.findByRole("heading", { name: "Contact intake is currently closed." }),
+      await screen.findByRole("heading", {
+        name: "Contact intake is currently closed.",
+      }),
     ).toBeInTheDocument();
-    expect(await screen.findByTestId("contact.disabled_state")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("contact.disabled_state"),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("contact.form")).not.toBeInTheDocument();
   });
 
@@ -141,9 +145,13 @@ describe("App routing", () => {
     renderAppAt("/waitlist");
 
     expect(
-      await screen.findByRole("heading", { name: "Waitlist registration is currently closed." }),
+      await screen.findByRole("heading", {
+        name: "Waitlist registration is currently closed.",
+      }),
     ).toBeInTheDocument();
-    expect(await screen.findByTestId("waitlist.disabled_state")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("waitlist.disabled_state"),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("waitlist.form")).not.toBeInTheDocument();
   });
 
