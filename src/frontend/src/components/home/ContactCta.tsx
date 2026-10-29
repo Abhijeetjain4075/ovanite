@@ -35,8 +35,8 @@ export function ContactCta() {
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <PrimaryButton asChild size="lg">
-                <Link to="/products" data-ocid="home.contact_cta_button">
-                  Explore products
+                <Link to="/products" data-ocid="home.products_cta_button">
+                  View products
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </PrimaryButton>
@@ -45,7 +45,7 @@ export function ContactCta() {
                 size="lg"
                 className="border-ink-foreground/25 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
               >
-                <Link to="/about" data-ocid="home.waitlist_cta_button">
+                <Link to="/about" data-ocid="home.about_cta_button">
                   Learn about Ovanite
                 </Link>
               </SecondaryButton>
