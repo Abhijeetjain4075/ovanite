@@ -7,9 +7,10 @@ type PageMetaProps = {
   image?: string;
 };
 
-
 function removeMeta(selector: string) {
-  document.head.querySelectorAll(selector).forEach((element) => element.remove());
+  document.head
+    .querySelectorAll(selector)
+    .forEach((element) => element.remove());
 }
 
 function setMeta(
