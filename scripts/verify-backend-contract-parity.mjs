@@ -72,22 +72,22 @@ if (candidServiceStart < 0) {
 const candidMethods = serviceRecords(
   candid,
   candidServiceStart,
-  /^  (_?[A-Za-z][A-Za-z0-9_]*)\\s*:\\s*\\(/gm,
+  /^  (_?[A-Za-z][A-Za-z0-9_]*)\s*:\s*\(/gm,
   "Candid service methods",
-  (declaration) => /\\)\\s*query\\s*;/.test(declaration),
+  (declaration) => /\)\s*query\s*;/.test(declaration),
 );
 
 const serviceTypeStart = declarations.indexOf("export interface _SERVICE {");
 if (serviceTypeStart < 0) {
   throw new Error(`${files.declarations} does not export the generated _SERVICE interface.`);
 }
-const serviceTypeEnd = declarations.indexOf("\\n}", serviceTypeStart);
+const serviceTypeEnd = declarations.indexOf("\n}", serviceTypeStart);
 if (serviceTypeEnd < 0) {
   throw new Error(`Could not find the end of the _SERVICE interface in ${files.declarations}.`);
 }
 const typedMethods = collectMatches(
   declarations.slice(serviceTypeStart, serviceTypeEnd),
-  /^  '(_?[A-Za-z][A-Za-z0-9_]*)'\\s*:\\s*ActorMethod</gm,
+  /^  '(_?[A-Za-z][A-Za-z0-9_]*)'\s*:\s*ActorMethod</gm,
   "generated ActorMethod declarations",
 ).map(({ name }) => name);
 
@@ -98,9 +98,9 @@ if (idlServiceStart < 0) {
 const idlMethods = serviceRecords(
   idl,
   idlServiceStart,
-  /^    '(_?[A-Za-z][A-Za-z0-9_]*)'\\s*:\\s*IDL\\.Func\\(/gm,
+  /^    '(_?[A-Za-z][A-Za-z0-9_]*)'\s*:\s*IDL\.Func\(/gm,
   "generated IDL service methods",
-  (declaration) => /\\[\\s*['"]query['"]\\s*\\]/.test(declaration),
+  (declaration) => /\[\s*['"]query['"]\s*\]/.test(declaration),
 );
 
 const wrapperStart = wrapper.indexOf("export class Backend implements backendInterface {");
@@ -110,7 +110,7 @@ if (wrapperStart < 0 || wrapperEnd < 0) {
 }
 const wrapperMethods = collectMatches(
   wrapper.slice(wrapperStart, wrapperEnd),
-  /^ {4}async ([A-Za-z][A-Za-z0-9_]*)\\s*\\(/gm,
+  /^ {4}async ([A-Za-z][A-Za-z0-9_]*)\s*\(/gm,
   "public Backend wrapper methods",
 ).map(({ name }) => name);
 
