@@ -29,7 +29,7 @@ describe("owner bootstrap security invariant", () => {
     expect(emailCheck).toBeGreaterThan(-1);
     expect(configuredPrincipalCheck).toBeLessThan(emailCheck);
     expect(adminLibrary).toContain(
-      "expected != \"\" and Principal.toText(principal) == expected;",
+      'expected != "" and Principal.toText(principal) == expected;',
     );
   });
 
