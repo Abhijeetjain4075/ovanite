@@ -49,7 +49,7 @@ This file is the project ToDo fallback because no native project ToDo tool is av
 
 ## [ ] Automated static-assessment production activation and next-stage verification
 
-- Merge the draft PR only after explicit owner review; ensure the candidate assessment workflow exists on the repository's default branch.
+- The candidate assessment workflow is now present on the default branch. Verify live dispatch and callback only after the separate portal, database migration, authentication, callback credentials, and HTTPS portal URL have been configured; workflow presence alone is not an end-to-end test.
 - Apply the reviewed additive migration in the actual participant-portal database; do not reset or seed production data.
 - Deploy the participant portal itself with valid existing authentication and database configuration; the marketing site deployment alone does not prove that this separate portal is deployed.
 - Configure the least-privilege GitHub Actions dispatch token, matching callback secret, portal HTTPS base URL, and GitHub Actions variable/secret; verify a callback round-trip using an explicitly authorized public test repository.
@@ -60,5 +60,5 @@ This file is the project ToDo fallback because no native project ToDo tool is av
 
 ## [ ] First-run Ovanite owner and approved program configuration
 
-- Before participant intake is opened, configure the authorized Ovanite owner identity or provision the verified owner through the existing authorized operator workflow. The current managed database has zero users and `OWNER_OPEN_ID` is unset; do not auto-promote the first login.
+- Before participant intake is opened, provision the exact verified owner `openId` in protected runtime settings as `OWNER_OPEN_ID`. A database role assignment alone is not owner proof, and a missing setting must not auto-elect a fallback owner. Verify production database state/connectivity through readiness before launch; do not rely on an old preview database count or auto-promote the first login.
 - The authorized owner must publish Ovanite-approved program terms and a rubric. Until approved terms are published, final submissions must remain fail-closed; placeholder language must not be treated as approved.
