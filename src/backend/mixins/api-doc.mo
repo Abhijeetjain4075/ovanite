@@ -70,7 +70,7 @@ mixin () {
     "## Input and state bounds\n" #
     "\n" #
     "- At most 100 products and 100 FAQs may be stored through the content API.\n" #
-    "- Product name: 120 characters; description: 5000; product link and image URL: 2048 each. Image URLs must use HTTPS and must not contain embedded credentials.\n" #
+    "- Product name: 120 characters; description: 5000; product link and image URL: 2048 each. Product links and image URLs must use HTTPS, include a host, and must not contain embedded credentials or whitespace.\n" #
     "- FAQ question: 300 characters; answer: 10000. Each editable site-copy field is capped at 10000 characters.\n" #
     "- Public FAQ queries return at most 20 records even if a caller supplies an extremely large `Nat` limit.\n" #
     "\n" #
