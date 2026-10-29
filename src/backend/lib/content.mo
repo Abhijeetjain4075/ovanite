@@ -21,21 +21,6 @@ module {
     normalized;
   };
 
-  /// Validates optional text; an explicit empty string clears the value.
-  func normalizeOptionalText(value : ?Text, maximum : Nat, label : Text) : ?Text {
-    switch (value) {
-      case null { null };
-      case (?raw) {
-        let normalized = raw.trim(#predicate(Char.isWhitespace));
-        if (normalized == "") { return null };
-        if (Text.size(normalized) > maximum) {
-          Runtime.trap(label # " exceeds the maximum allowed length");
-        };
-        ?normalized;
-      };
-    };
-  };
-
   /// Returns the patch value when present, otherwise the stored value.
   /// Site-copy fields are bounded independently from the frontend validation.
   func mergeText(patch : ?Text, current : ?Text) : ?Text {
@@ -47,14 +32,6 @@ module {
         ?value;
       };
       case null { current };
-    };
-  };
-
-  /// A more restrictive merge helper for optional fields such as product links.
-  func mergeOptionalText(patch : ?Text, current : ?Text, maximum : Nat, label : Text) : ?Text {
-    switch (patch) {
-      case null { current };
-      case (?value) { normalizeOptionalText(?value, maximum, label) };
     };
   };
 
