@@ -50,14 +50,14 @@ export function resolveSiteCopy(content: SiteContent | undefined): SiteCopy {
     contactTitle: stored(content?.contactTitle) ?? "Start a conversation.",
     contactBody:
       stored(content?.contactBody) ??
-      "Tell us what you are working on and what a good outcome looks like. We read every message and reply to the ones where we can genuinely help.",
-    waitlistTitle: stored(content?.waitlistTitle) ?? "Join the waitlist.",
+      "Contact submissions are currently closed while production persistence and operational controls are being verified. No information is collected through this page.",
+    waitlistTitle: stored(content?.waitlistTitle) ?? "Waitlist registration is currently closed.",
     waitlistBody:
       stored(content?.waitlistBody) ??
-      "Be the first to know when our products launch. We will only email you when there is something real to share.",
+      "We are preparing the systems for a responsible launch. No registration is active and no details are collected. This page will be updated before registration opens.",
     privacyBody:
       stored(content?.privacyBody) ??
-      'Ovanite collects only the information you choose to share through our contact and waitlist forms — your name, email address, and any message or note you provide. We use it solely to respond to you and to share product updates you asked for. We do not sell your data, and we do not share it with third parties for marketing. You can ask us to delete your information at any time by contacting us.\n\nWe also count page views so we can understand which parts of the site are useful. This counting happens in our own backend, and it is aggregate only: we store a route path and a running view count for that path. We do not use cookies for this, and we do not store personal identifiers, IP addresses, or user agents. No third-party analytics service is involved, and no individual visitor can be identified from what we keep.\n\nPage-view counting only happens after you accept the consent banner shown on your first visit. If you decline, nothing is counted. Your choice is remembered locally in your browser, so we do not ask again on every visit.\n\nYou can change or withdraw your consent at any time using the "Cookie preferences" link in the footer. Withdrawing consent stops any further counting; it does not delete the aggregate counts already recorded, which contain no information about you.',
+      "Ovanite's contact and waitlist forms are currently disabled; information entered on those pages is not submitted. Page-view analytics is also disabled, and no consent choice is used to record page views. If any of these features are enabled later, this notice will be updated before collection begins to explain the information collected, its purpose, retention, and available choices. The infrastructure delivering and protecting this website may process technical request data under the relevant provider terms.",
     termsBody:
       stored(content?.termsBody) ??
       "This website is provided for general information about Ovanite and its products. Content is offered as-is and may change without notice. Product descriptions do not constitute a binding offer. By using this site you agree to use it lawfully and not to interfere with its operation. These terms are governed by the laws applicable at Ovanite's place of establishment.",
