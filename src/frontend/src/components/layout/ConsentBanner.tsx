@@ -51,8 +51,8 @@ export function ConsentBanner() {
           <div className="max-w-2xl">
             <p className="eyebrow text-muted-foreground">Privacy</p>
             <p className="mt-2 text-sm leading-relaxed text-foreground">
-              Page-view analytics is currently disabled. No page views are
-              being recorded by Ovanite. This notice will be updated before any
+              Page-view analytics is currently disabled. No page views are being
+              recorded by Ovanite. This notice will be updated before any
               analytics collection is enabled.
             </p>
           </div>
