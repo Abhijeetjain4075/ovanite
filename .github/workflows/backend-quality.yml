@@ -135,6 +135,32 @@ jobs:
             exit 1
           fi
 
+          # Create an ephemeral, non-anonymous test identity only for this
+          # disposable CI network. Plaintext is limited to the ephemeral runner.
+          icp identity new --storage plaintext ci-unregistered
+
+          signed_in_admin="$(icp canister call backend isCallerAdmin '()' --identity ci-unregistered)"
+          printf '%s\n' "$signed_in_admin"
+          grep -Fq '(false)' <<<"$signed_in_admin"
+
+          signed_in_owner_claimed="$(icp canister call backend isOwnerClaimed '()' --identity ci-unregistered)"
+          printf '%s\n' "$signed_in_owner_claimed"
+          grep -Fq '(true)' <<<"$signed_in_owner_claimed"
+
+          if signed_in_claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-unregistered 2>&1)"; then
+            echo "SECURITY FAILURE: a signed-in unconfigured principal claimed ownership." >&2
+            exit 1
+          fi
+          printf '%s\n' "$signed_in_claim_output"
+          grep -Fq "owner principal is not configured" <<<"$signed_in_claim_output"
+
+          if signed_in_admins_output="$(icp canister call backend listAdmins '()' --identity ci-unregistered 2>&1)"; then
+            echo "SECURITY FAILURE: a signed-in unregistered principal read the admin list." >&2
+            exit 1
+          fi
+          printf '%s\n' "$signed_in_admins_output"
+          grep -Fq "Unauthorized: admin access required" <<<"$signed_in_admins_output"
+
           # The backend release policy must reject direct canister calls even
           # though the frontend has a separate UI-only release flag.
           if contact_output="$(icp canister call backend submitContact '(record { name = "Direct Caller"; email = "direct@example.com"; message = "This direct canister call must remain blocked."; })' 2>&1)"; then
