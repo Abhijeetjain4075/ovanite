@@ -22,6 +22,13 @@ mixin (
     };
   };
 
+  /// Only owners and editors may mutate submissions; viewers can only read.
+  func requireSubmissionEditor(caller : Principal) {
+    if (not AdminLib.canEditContent(admins, caller)) {
+      Runtime.trap("Unauthorized: editor or owner access required");
+    };
+  };
+
   // Public writes remain disabled at the canister boundary by default.
   // The browser release flag is not a security boundary: callers can invoke
   // these methods directly without loading the Vercel frontend.
@@ -65,13 +72,13 @@ mixin (
 
   /// Sets a submission's review status. Admin only.
   public shared ({ caller }) func setSubmissionStatus(id : Nat, status : Types.SubmissionStatus) : async ?Types.Submission {
-    requireSubmissionAdmin(caller);
+    requireSubmissionEditor(caller);
     SubmissionLib.setSubmissionStatus(submissions, id, status, Time.now().toNat());
   };
 
   /// Deletes a submission. Admin only.
   public shared ({ caller }) func deleteSubmission(id : Nat) : async Bool {
-    requireSubmissionAdmin(caller);
+    requireSubmissionEditor(caller);
     SubmissionLib.deleteSubmission(submissions, id);
   };
 };

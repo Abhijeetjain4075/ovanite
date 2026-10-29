@@ -110,6 +110,32 @@ jobs:
           grep -Fq "How does the waitlist work?" <<<"$faq_output"
           grep -Fq "Where does Ovanite operate?" <<<"$faq_output"
 
+          # Public queries clamp arbitrarily large Nat limits before conversion.
+          huge_faq_output="$(icp canister call backend listPublishedFaqs '(999999999999999999999999999999999999 : nat)')"
+          for expected in \
+            "What does Ovanite build?" \
+            "How does Ovanite work?" \
+            "How can I get in touch with Ovanite?" \
+            "How does the waitlist work?" \
+            "Where does Ovanite operate?"; do
+            grep -Fq "$expected" <<<"$huge_faq_output"
+          done
+
+          # The publicly returned API contract must describe the actual guardrails.
+          api_doc="$(icp canister call backend getApiDoc '()')"
+          for expected in \
+            'ownerPrincipal' \
+            'Email alone' \
+            'Public submissions are disabled by backend release policy' \
+            'Public analytics writes are disabled by backend release policy' \
+            'Unauthorized: editor or owner access required'; do
+            grep -Fq "$expected" <<<"$api_doc"
+          done
+          if grep -Fq 'first non-anonymous caller to initialize becomes' <<<"$api_doc"; then
+            echo "CONTRACT FAILURE: stale email/bootstrap instructions remain in getApiDoc()." >&2
+            exit 1
+          fi
+
           icp canister call backend listPublishedProducts '()'
           icp canister call backend getSiteContent '()'
           owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
@@ -175,3 +201,133 @@ jobs:
             exit 1
           fi
           grep -Fiq "Public submissions are disabled by backend release policy" <<<"$waitlist_output"
+
+      - name: Verify owner, editor, viewer, and owner-role uniqueness on local ICP
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_file="src/backend/lib/admin.mo"
+          backup="$(mktemp)"
+          cp "$source_file" "$backup"
+          restore_source() {
+            cp "$backup" "$source_file"
+            rm -f "$backup"
+          }
+          cleanup() {
+            icp network stop || true
+            restore_source
+          }
+          trap cleanup EXIT
+
+          # Create disposable test identities without logging their key material.
+          icp identity new --storage plaintext ci-configured-owner >/dev/null 2>&1
+          icp identity new --storage plaintext ci-viewer >/dev/null 2>&1
+          icp identity new --storage plaintext ci-editor >/dev/null 2>&1
+          owner_principal="$(icp identity principal --identity ci-configured-owner)"
+          viewer_principal="$(icp identity principal --identity ci-viewer)"
+          editor_principal="$(icp identity principal --identity ci-editor)"
+          test -n "$owner_principal"
+          test -n "$viewer_principal"
+          test -n "$editor_principal"
+
+          python3 - "$source_file" "$owner_principal" <<'PY'
+          from pathlib import Path
+          import sys
+
+          path = Path(sys.argv[1])
+          principal = sys.argv[2]
+          source = path.read_text()
+          old = "public let ownerPrincipalText : ?Text = null;"
+          new = f'public let ownerPrincipalText : ?Text = ?"{principal}";'
+          if source.count(old) != 1:
+              raise SystemExit("Expected exactly one safe-default ownerPrincipal declaration")
+          path.write_text(source.replace(old, new))
+          PY
+
+          # This fixture exists only for this isolated test step. The cleanup
+          # trap restores the safe-default production source even after failure.
+          mops check backend
+          mops build backend
+          icp build backend
+          icp network start -d
+          icp deploy backend
+
+          claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-configured-owner)"
+          printf '%s\n' "$claim_output"
+          grep -Fq 'true' <<<"$claim_output"
+
+          # The real owner cannot be claimed twice, and a different principal
+          # cannot claim using the public owner's email.
+          repeated_claim="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-configured-owner)"
+          grep -Fq 'false' <<<"$repeated_claim"
+          if wrong_principal_claim="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a different principal claimed ownership." >&2
+            exit 1
+          fi
+          grep -Fq 'not the configured owner principal' <<<"$wrong_principal_claim"
+
+          viewer_add="$(icp canister call backend addAdmin "(principal \"$viewer_principal\", variant { viewer })" --identity ci-configured-owner)"
+          editor_add="$(icp canister call backend addAdmin "(principal \"$editor_principal\", variant { editor })" --identity ci-configured-owner)"
+          grep -Fq 'true' <<<"$viewer_add"
+          grep -Fq 'true' <<<"$editor_add"
+
+          # Viewers can read protected content, but all mutation APIs reject them.
+          viewer_read="$(icp canister call backend listAllFaqs '()' --identity ci-viewer)"
+          test -n "$viewer_read"
+          if viewer_write="$(icp canister call backend createFaq '(record { question = "Viewer must not write"; answer = "This must be rejected"; sortOrder = 99 : nat })' --identity ci-viewer 2>&1)"; then
+            echo "SECURITY FAILURE: viewer created an FAQ." >&2
+            exit 1
+          fi
+          printf '%s\n' "$viewer_write"
+          grep -Fq 'editor or owner access required' <<<"$viewer_write"
+
+          # Submission mutations use the same editor/owner boundary, even when
+          # the target record does not exist or public intake is closed.
+          if viewer_submission_write="$(icp canister call backend setSubmissionStatus '(0 : nat, variant { read })' --identity ci-viewer 2>&1)"; then
+            echo "SECURITY FAILURE: viewer changed a submission." >&2
+            exit 1
+          fi
+          grep -Fq 'editor or owner access required' <<<"$viewer_submission_write"
+
+          # Editors can manage content, but cannot manage the admin team.
+          editor_write="$(icp canister call backend createFaq '(record { question = "Editor write test"; answer = "Editor permission works"; sortOrder = 99 : nat })' --identity ci-editor)"
+          printf '%s\n' "$editor_write"
+          grep -Fq 'Editor write test' <<<"$editor_write"
+
+          # Product links are external navigation targets: reject script schemes
+          # at the canister boundary, even when called directly by an editor.
+          if unsafe_product="$(icp canister call backend createProduct '(record { name = "Unsafe link test"; description = "Must reject script schemes"; link = opt "javascript:alert(1)"; imageKey = null; imageUrl = null; sortOrder = 99 : nat })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a script-scheme product link was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$unsafe_product"
+          grep -Fq 'Product link must use HTTPS' <<<"$unsafe_product"
+
+          safe_product="$(icp canister call backend createProduct '(record { name = "Safe link test"; description = "HTTPS links are permitted"; link = opt "https://example.com/docs"; imageKey = null; imageUrl = null; sortOrder = 100 : nat })' --identity ci-editor)"
+          printf '%s\n' "$safe_product"
+          grep -Fq 'https://example.com/docs' <<<"$safe_product"
+
+          # Required content text is bounded in the canister, not just the UI.
+          long_question="$(python3 -c 'print("Q" * 301)')"
+          if oversized_faq="$(icp canister call backend createFaq "(record { question = \"$long_question\"; answer = \"Bounded answer\"; sortOrder = 101 : nat })" --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: an oversized FAQ question was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$oversized_faq"
+          grep -Fq 'FAQ question has an invalid length' <<<"$oversized_faq"
+
+          if editor_team_change="$(icp canister call backend addAdmin "(principal \"$viewer_principal\", variant { viewer })" --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: editor changed the admin roster." >&2
+            exit 1
+          fi
+          grep -Fq 'owner access required' <<<"$editor_team_change"
+
+          # A second #owner role is never assignable through ordinary admin APIs.
+          second_owner="$(icp canister call backend addAdmin "(principal \"$editor_principal\", variant { owner })" --identity ci-configured-owner)"
+          printf '%s\n' "$second_owner"
+          grep -Fq 'false' <<<"$second_owner"
+          owner_role_change="$(icp canister call backend setAdminRole "(principal \"$editor_principal\", variant { owner })" --identity ci-configured-owner)"
+          printf '%s\n' "$owner_role_change"
+          grep -Fq 'null' <<<"$owner_role_change"
+          editor_owner_status="$(icp canister call backend isCallerOwner '()' --identity ci-editor)"
+          grep -Fq 'false' <<<"$editor_owner_status"
