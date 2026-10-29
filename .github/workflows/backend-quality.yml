@@ -110,6 +110,32 @@ jobs:
           grep -Fq "How does the waitlist work?" <<<"$faq_output"
           grep -Fq "Where does Ovanite operate?" <<<"$faq_output"
 
+          # Public queries clamp arbitrarily large Nat limits before conversion.
+          huge_faq_output="$(icp canister call backend listPublishedFaqs '(999999999999999999999999999999999999 : nat)')"
+          for expected in \
+            "What does Ovanite build?" \
+            "How does Ovanite work?" \
+            "How can I get in touch with Ovanite?" \
+            "How does the waitlist work?" \
+            "Where does Ovanite operate?"; do
+            grep -Fq "$expected" <<<"$huge_faq_output"
+          done
+
+          # The publicly returned API contract must describe the actual guardrails.
+          api_doc="$(icp canister call backend getApiDoc '()')"
+          for expected in \
+            'ownerPrincipal' \
+            'Email alone' \
+            'Public submissions are disabled by backend release policy' \
+            'Public analytics writes are disabled by backend release policy' \
+            'Unauthorized: editor or owner access required'; do
+            grep -Fq "$expected" <<<"$api_doc"
+          done
+          if grep -Fq 'first non-anonymous caller to initialize becomes' <<<"$api_doc"; then
+            echo "CONTRACT FAILURE: stale email/bootstrap instructions remain in getApiDoc()." >&2
+            exit 1
+          fi
+
           icp canister call backend listPublishedProducts '()'
           icp canister call backend getSiteContent '()'
           owner_claimed="$(icp canister call backend isOwnerClaimed '()')"
