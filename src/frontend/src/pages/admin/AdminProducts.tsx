@@ -170,7 +170,10 @@ export default function AdminProducts() {
             {sorted.map((product, i) => {
               const isPublished = product.state === "published";
               const rawImageUrl = product.imageUrl?.trim() ?? "";
-              const imageUrl = rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
+              const imageUrl =
+                rawImageUrl && !productImageUrlError(rawImageUrl)
+                  ? rawImageUrl
+                  : null;
               return (
                 <li
                   key={String(product.id)}
@@ -186,10 +189,13 @@ export default function AdminProducts() {
                           loading="lazy"
                           decoding="async"
                           referrerPolicy="no-referrer"
-                          onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
+                          onError={(event) => {
+                            event.currentTarget.style.visibility = "hidden";
+                          }}
                           className="h-12 w-12 shrink-0 rounded-sm border border-border object-cover"
                         />
-                      ) : hasProductImage(product.imageKey) && product.imageKey ? (
+                      ) : hasProductImage(product.imageKey) &&
+                        product.imageKey ? (
                         <img
                           src={product.imageKey.getDirectURL()}
                           alt={`${product.name} logo`}
