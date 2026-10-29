@@ -48,7 +48,7 @@ describe("Privacy Policy", () => {
       screen.getByText(/page-view analytics is also disabled/i),
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/page-view analytics is also disabled/i),
+      screen.queryByText(/we store a route path and a running view count/i),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: /Cookie preferences/i }),
