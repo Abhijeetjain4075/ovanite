@@ -230,6 +230,16 @@ jobs:
           printf '%s\n' "$claim_output"
           grep -Fq 'true' <<<"$claim_output"
 
+          # The real owner cannot be claimed twice, and a different principal
+          # cannot claim using the public owner's email.
+          repeated_claim="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-configured-owner)"
+          grep -Fq 'false' <<<"$repeated_claim"
+          if wrong_principal_claim="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a different principal claimed ownership." >&2
+            exit 1
+          fi
+          grep -Fq 'not the configured owner principal' <<<"$wrong_principal_claim"
+
           viewer_add="$(icp canister call backend addAdmin "(principal \"$viewer_principal\", variant { viewer })" --identity ci-configured-owner)"
           editor_add="$(icp canister call backend addAdmin "(principal \"$editor_principal\", variant { editor })" --identity ci-configured-owner)"
           grep -Fq 'true' <<<"$viewer_add"
@@ -244,6 +254,14 @@ jobs:
           fi
           printf '%s\n' "$viewer_write"
           grep -Fq 'editor or owner access required' <<<"$viewer_write"
+
+          # Submission mutations use the same editor/owner boundary, even when
+          # the target record does not exist or public intake is closed.
+          if viewer_submission_write="$(icp canister call backend setSubmissionStatus '(0 : nat, variant { read })' --identity ci-viewer 2>&1)"; then
+            echo "SECURITY FAILURE: viewer changed a submission." >&2
+            exit 1
+          fi
+          grep -Fq 'editor or owner access required' <<<"$viewer_submission_write"
 
           # Editors can manage content, but cannot manage the admin team.
           editor_write="$(icp canister call backend createFaq '(record { question = "Editor write test"; answer = "Editor permission works"; sortOrder = 99 : nat })' --identity ci-editor)"
