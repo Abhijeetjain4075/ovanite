@@ -38,7 +38,10 @@ export default function IdentityCheck({
   );
 
   const onCanonicalOrigin = isCanonicalOvaniteOrigin(currentOrigin);
-  const principal = identity?.getPrincipal().toText();
+  const principalObject = identity?.getPrincipal();
+  const isAnonymousIdentity = principalObject?.isAnonymous() ?? false;
+  // Never present the anonymous principal as a valid owner candidate.
+  const principal = isAnonymousIdentity ? undefined : principalObject?.toText();
 
   async function copyPrincipal() {
     if (!principal || !navigator.clipboard?.writeText) {
