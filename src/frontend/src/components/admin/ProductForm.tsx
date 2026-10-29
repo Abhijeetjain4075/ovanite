@@ -164,8 +164,7 @@ export function ProductForm({
 
       <div>
         <Label htmlFor="product-image-url" className="mb-2">
-          Image URL{" "}
-          <span className="text-muted-foreground">(optional)</span>
+          Image URL <span className="text-muted-foreground">(optional)</span>
         </Label>
         <div className="flex items-start gap-4">
           {showUrlPreview ? (
