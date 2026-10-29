@@ -30,6 +30,7 @@ export function WaitlistForm() {
   const navigate = useNavigate();
   const { actor, isFetching } = useActor(createActor);
   const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
+  const publicFormsEnabled = import.meta.env.VITE_PUBLIC_FORMS_ENABLED === "true";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -75,6 +76,20 @@ export function WaitlistForm() {
       email: email.trim(),
       ...(trimmedNote ? { note: trimmedNote } : {}),
     });
+  }
+
+  if (!publicFormsEnabled) {
+    return (
+      <output
+        aria-live="polite"
+        data-ocid="waitlist.disabled_state"
+        className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      >
+        Waitlist submissions are disabled until production persistence, abuse
+        controls, and operational checks have been verified. No information is
+        being collected.
+      </output>
+    );
   }
 
   if (!actor || !isHealthy) {
