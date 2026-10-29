@@ -47,7 +47,7 @@ export function resolveSiteCopy(content: SiteContent | undefined): SiteCopy {
     aboutBody:
       stored(content?.aboutBody) ??
       "Ovanite designs and builds its own software products. We are deliberately small, international in outlook, and focused on work that compounds over time rather than chasing short-lived trends.",
-    contactTitle: stored(content?.contactTitle) ?? "Start a conversation.",
+    contactTitle: stored(content?.contactTitle) ?? "Contact intake is currently closed.",
     contactBody:
       stored(content?.contactBody) ??
       "Contact submissions are currently closed while production persistence and operational controls are being verified. No information is collected through this page.",
