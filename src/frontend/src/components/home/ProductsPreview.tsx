@@ -69,14 +69,9 @@ export function ProductsPreview() {
         >
           <p className="eyebrow">In development</p>
           <p className="mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            We are building our first products now. Join the waitlist to hear
-            when they launch.
+            Our first products are in development. Product information will
+            appear here as individual products are ready to share.
           </p>
-          <SecondaryButton asChild className="mt-6">
-            <Link to="/waitlist" data-ocid="home.products_waitlist_link">
-              Join the waitlist
-            </Link>
-          </SecondaryButton>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
