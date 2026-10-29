@@ -83,10 +83,18 @@ describe("Footer", () => {
     expect(
       screen.getByText(/Contact and waitlist submissions are currently closed/),
     ).toBeInTheDocument();
-    expect(screen.getByText("Page-view analytics is currently disabled.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Cookie preferences" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Join the waitlist" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Start a conversation" })).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Page-view analytics is currently disabled."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cookie preferences" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Join the waitlist" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Start a conversation" }),
+    ).not.toBeInTheDocument();
   });
 
   it("states the current intake and analytics status without disabled actions", () => {
