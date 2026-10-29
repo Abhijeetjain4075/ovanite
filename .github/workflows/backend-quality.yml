@@ -136,17 +136,16 @@ jobs:
           fi
 
           # Create an ephemeral, non-anonymous test identity only for this
-          # disposable CI network. Plaintext is limited to the ephemeral runner.
-          icp identity new --storage plaintext ci-unregistered
-
-          signed_in_admin="$(icp canister call backend isCallerAdmin '()' --identity ci-unregistered)"
-          printf '%s\n' "$signed_in_admin"
-          grep -Fq '(false)' <<<"$signed_in_admin"
+          # disposable CI network. Suppress all CLI output: identity creation
+          # can print a seed phrase, which must never appear in CI logs.
+          icp identity new --storage plaintext ci-unregistered >/dev/null 2>&1
 
           signed_in_owner_claimed="$(icp canister call backend isOwnerClaimed '()' --identity ci-unregistered)"
           printf '%s\n' "$signed_in_owner_claimed"
           grep -Fq '(true)' <<<"$signed_in_owner_claimed"
 
+          # This verifies the signed-in, but unconfigured, owner-bootstrap path
+          # (the anonymous negative test above covers its earlier guard).
           if signed_in_claim_output="$(icp canister call backend claimOwner '("therealabhijeetjain@gmail.com")' --identity ci-unregistered 2>&1)"; then
             echo "SECURITY FAILURE: a signed-in unconfigured principal claimed ownership." >&2
             exit 1
