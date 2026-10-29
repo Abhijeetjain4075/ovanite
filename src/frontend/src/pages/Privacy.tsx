@@ -25,7 +25,7 @@ export default function Privacy() {
     <>
       <PageMeta
         title="Privacy"
-        description="How Ovanite handles the information you share through our contact and waitlist forms, and how our consent-gated, aggregate-only page-view counter works."
+        description="Current Ovanite contact, waitlist, and analytics collection status and the conditions before these features are enabled."
       />
       <Breadcrumbs items={[{ label: "Home", to: "/" }, { label: "Privacy" }]} />
 

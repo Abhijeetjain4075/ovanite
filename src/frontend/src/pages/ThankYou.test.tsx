@@ -45,14 +45,27 @@ describe("ThankYou page", () => {
     expect(
       screen.getByRole("link", { name: /Explore products/ }),
     ).toHaveAttribute("href", "/products");
+    expect(
+      screen.getAllByRole("link", { name: /Explore products/ }),
+    ).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
-  it("falls back to contact confirmation messaging when no state is present", () => {
+  it("does not claim a submission was received when no state is present", () => {
     renderThankYou(null);
 
     expect(
-      screen.getByRole("heading", { name: "Thank you for reaching out." }),
+      screen.getByRole("heading", { name: "No submission was sent." }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Contact and waitlist intake are currently closed/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Thank you for reaching out." }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "You're on the list." }),
     ).not.toBeInTheDocument();

@@ -3,11 +3,15 @@ import { useEffect } from "react";
 type PageMetaProps = {
   title: string;
   description: string;
-  /** Absolute URL for og:image; defaults to the platform share image. */
+  /** Optional absolute URL for an Ovanite-controlled social preview image. */
   image?: string;
 };
 
-const DEFAULT_IMAGE = "https://caffeine.ai/imgs/share-logo.jpeg";
+function removeMeta(selector: string) {
+  for (const element of document.head.querySelectorAll(selector)) {
+    element.remove();
+  }
+}
 
 function setMeta(
   selector: string,
@@ -42,23 +46,27 @@ export function PageMeta({ title, description, image }: PageMetaProps) {
       description,
     );
     setMeta('meta[property="og:type"]', "property", "og:type", "website");
-    setMeta(
-      'meta[property="og:image"]',
-      "property",
-      "og:image",
-      image ?? DEFAULT_IMAGE,
-    );
-    setMeta(
-      'meta[property="og:image:alt"]',
-      "property",
-      "og:image:alt",
-      `${fullTitle} — ${description}`,
-    );
+    if (image) {
+      setMeta('meta[property="og:image"]', "property", "og:image", image);
+      setMeta(
+        'meta[property="og:image:alt"]',
+        "property",
+        "og:image:alt",
+        `${fullTitle} — ${description}`,
+      );
+      setMeta('meta[name="twitter:image"]', "name", "twitter:image", image);
+    } else {
+      // Do not leak the template platform brand into Ovanite social previews.
+      // A first-party share card can be added explicitly once one exists.
+      removeMeta('meta[property="og:image"]');
+      removeMeta('meta[property="og:image:alt"]');
+      removeMeta('meta[name="twitter:image"]');
+    }
     setMeta(
       'meta[name="twitter:card"]',
       "name",
       "twitter:card",
-      "summary_large_image",
+      image ? "summary_large_image" : "summary",
     );
     setMeta('meta[name="twitter:title"]', "name", "twitter:title", fullTitle);
     setMeta(
@@ -66,12 +74,6 @@ export function PageMeta({ title, description, image }: PageMetaProps) {
       "name",
       "twitter:description",
       description,
-    );
-    setMeta(
-      'meta[name="twitter:image"]',
-      "name",
-      "twitter:image",
-      image ?? DEFAULT_IMAGE,
     );
   }, [title, description, image]);
 

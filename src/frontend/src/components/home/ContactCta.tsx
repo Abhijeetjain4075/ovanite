@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Container } from "@/components/layout/Container";
 import { PrimaryButton, SecondaryButton } from "@/components/shared/primitives";
 
-/** Closing call to action on the navy ink band, linking to Contact and Waitlist. */
+/** Closing call to action with links to available informational pages. */
 export function ContactCta() {
   return (
     <section
@@ -29,13 +29,14 @@ export function ContactCta() {
 
           <div className="flex flex-col justify-end md:col-span-5">
             <p className="max-w-md text-pretty text-lg leading-relaxed text-ink-foreground/70">
-              Tell us what you are working on, or join the waitlist to follow
-              what we ship next.
+              Contact and waitlist intake are currently closed while production
+              systems are being verified. Explore our approach and products in
+              development in the meantime.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <PrimaryButton asChild size="lg">
-                <Link to="/contact" data-ocid="home.contact_cta_button">
-                  Start a conversation
+                <Link to="/products" data-ocid="home.products_cta_button">
+                  View products
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </Link>
               </PrimaryButton>
@@ -44,8 +45,8 @@ export function ContactCta() {
                 size="lg"
                 className="border-ink-foreground/25 bg-transparent text-ink-foreground hover:bg-ink-foreground/10 hover:text-ink-foreground"
               >
-                <Link to="/waitlist" data-ocid="home.waitlist_cta_button">
-                  Join the waitlist
+                <Link to="/about" data-ocid="home.about_cta_button">
+                  Learn about Ovanite
                 </Link>
               </SecondaryButton>
             </div>

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ANALYTICS_COLLECTION_ENABLED,
   CONSENT_CHANGE_EVENT,
   CONSENT_STORAGE_KEY,
   clearConsent,
@@ -10,9 +11,8 @@ import {
 } from "@/lib/consent";
 
 /**
- * The consent store is the single source of truth for whether analytics may
- * run. These are pure unit tests over `localStorage`; the banner and the
- * page-view reporter are covered separately.
+ * The consent preference is stored separately from the analytics release gate.
+ * A saved preference must never enable analytics while collection is disabled.
  */
 describe("consent storage", () => {
   beforeEach(() => {
@@ -28,12 +28,13 @@ describe("consent storage", () => {
     expect(hasAnalyticsConsent()).toBe(false);
   });
 
-  it("persists an accepted choice and reports consent", () => {
+  it("persists an accepted choice without enabling disabled analytics", () => {
     writeConsent("accepted");
 
     expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBe("accepted");
     expect(readConsent()).toBe("accepted");
-    expect(hasAnalyticsConsent()).toBe(true);
+    expect(ANALYTICS_COLLECTION_ENABLED).toBe(false);
+    expect(hasAnalyticsConsent()).toBe(false);
   });
 
   it("persists a declined choice without granting consent", () => {

@@ -1,102 +1,31 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { CONSENT_STORAGE_KEY } from "@/lib/consent";
-
-import {
-  actorResult,
-  createMockActor,
-  renderWithProviders,
-} from "@/test/utils";
-
-const { useActorMock } = vi.hoisted(() => ({ useActorMock: vi.fn() }));
-
-vi.mock("@caffeineai/core-infrastructure", () => ({
-  useActor: useActorMock,
-  useInternetIdentity: () => ({
-    isAuthenticated: false,
-    login: vi.fn(),
-    isLoggingIn: false,
-  }),
-}));
-
-vi.mock("@/backend", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/backend")>();
-  return { ...actual, createActor: vi.fn() };
-});
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { ConsentBanner } from "@/components/layout/ConsentBanner";
-import { Footer } from "@/components/layout/Footer";
-
-function renderBanner() {
-  return render(<ConsentBanner />);
-}
+import { CONSENT_STORAGE_KEY } from "@/lib/consent";
 
 describe("ConsentBanner", () => {
   beforeEach(() => {
     window.localStorage.clear();
-    useActorMock.mockReset();
   });
 
-  it("appears on a first visit when no choice is stored", () => {
-    renderBanner();
+  it("does not request consent for a feature that is disabled", () => {
+    render(<ConsentBanner />);
 
-    expect(screen.getByTestId("consent.banner")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Decline" })).toBeInTheDocument();
+    expect(screen.queryByTestId("consent.banner")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Accept" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Decline" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("does not appear when a choice is already stored", () => {
+  it("does not display or reuse a legacy consent choice while analytics are disabled", () => {
     window.localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
 
-    renderBanner();
+    render(<ConsentBanner />);
 
     expect(screen.queryByTestId("consent.banner")).not.toBeInTheDocument();
-  });
-
-  it("persists acceptance and dismisses the banner", async () => {
-    const user = userEvent.setup();
-    renderBanner();
-
-    await user.click(screen.getByRole("button", { name: "Accept" }));
-
-    expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBe("accepted");
-    expect(screen.queryByTestId("consent.banner")).not.toBeInTheDocument();
-  });
-
-  it("persists a decline and dismisses the banner", async () => {
-    const user = userEvent.setup();
-    renderBanner();
-
-    await user.click(screen.getByRole("button", { name: "Decline" }));
-
-    expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBe("declined");
-    expect(screen.queryByTestId("consent.banner")).not.toBeInTheDocument();
-  });
-
-  it("reopens from the footer Cookie preferences link after a choice was made", async () => {
-    const user = userEvent.setup();
-    const actor = createMockActor();
-    actor.getSiteContent.mockResolvedValue({ updatedAt: 0n });
-    useActorMock.mockReturnValue(actorResult(actor));
-
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, "accepted");
-
-    renderWithProviders(
-      <>
-        <Footer />
-        <ConsentBanner />
-      </>,
-    );
-
-    expect(screen.queryByTestId("consent.banner")).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: "Cookie preferences" }),
-    );
-
-    expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBeNull();
-    expect(screen.getByTestId("consent.banner")).toBeInTheDocument();
   });
 });
