@@ -10,6 +10,12 @@ A committed Motoko source file, generated WASM/Candid, and a READY Vercel deploy
 
 The standalone ICP CLI manifest is defined in the repository root as `icp.yaml` and declares only the Motoko `backend` canister. The backend-quality workflow now checks Mops dependency lock integrity, Motoko type/lint/stable-state compatibility, Mops and ICP CLI builds, generated artifacts, and deploys to a disposable local ICP network. The local smoke test verifies all five published FAQs are present after a fresh install, checks public backend reads, and confirms anonymous owner-claim attempts are rejected. This local test does not create a mainnet canister and does not prove the Vercel frontend integration is working.
 
+
+
+### Public submission writes remain disabled
+
+The Motoko entry points `submitContact` and `submitWaitlist` check `src/backend/lib/submission-policy.mo` before storing anything. The default `publicSubmissionWritesEnabled = false` causes direct calls—including callers that bypass the website UI—to trap. The Vercel variable `OVANITE_PUBLIC_FORMS_ENABLED` is an independent frontend switch and cannot override the backend gate. Keep both disabled until server-side rate/abuse protection, privacy-safe duplicate handling, retention policy, and production persistence tests are complete. Public payloads are trimmed and bounded at the library boundary, and duplicate receipts are redacted so the API does not echo an existing person's name, email or message.
+
 ## Security status
 
 - src/backend/lib/admin.mo intentionally keeps ownerPrincipal null. Owner bootstrap is closed; do not substitute an email or project ID for a principal.

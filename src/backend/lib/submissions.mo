@@ -1,8 +1,60 @@
 import Char "mo:core/Char";
+import Runtime "mo:core/Runtime";
+import Text "mo:core/Text";
 import Map "mo:core/Map";
 import Types "../types/submissions";
 
 module {
+  // Bound user-controlled payloads before storage. Frontend validation is for
+  // usability only; a direct canister caller must not be able to bypass limits.
+  func trimmed(value : Text) : Text {
+    value.trim(#predicate(Char.isWhitespace));
+  };
+
+  func requireLength(value : Text, minimum : Nat, maximum : Nat, message : Text) {
+    let count = Text.size(value);
+    if (count < minimum or count > maximum) {
+      Runtime.trap(message);
+    };
+  };
+
+  func normalizePublicEmail(value : Text) : Text {
+    let email = trimmed(value);
+    requireLength(email, 3, 254, "Email length is invalid");
+    if (not Text.contains(email, #char '@')) {
+      Runtime.trap("Email must contain an @ sign");
+    };
+    email;
+  };
+
+  func normalizePublicName(value : Text) : Text {
+    let name = trimmed(value);
+    requireLength(name, 2, 100, "Name must be between 2 and 100 characters");
+    name;
+  };
+
+  func normalizeContactMessage(value : Text) : Text {
+    let message = trimmed(value);
+    requireLength(
+      message,
+      10,
+      5000,
+      "Contact message must be between 10 and 5000 characters",
+    );
+    message;
+  };
+
+  func normalizeWaitlistNote(value : ?Text) : ?Text {
+    switch (value) {
+      case null { null };
+      case (?note) {
+        let cleaned = trimmed(note);
+        requireLength(cleaned, 0, 500, "Waitlist note must not exceed 500 characters");
+        if (cleaned == "") { null } else { ?cleaned };
+      };
+    };
+  };
+
   /// Conservative, deterministic normalization: trim surrounding whitespace and
   /// case-fold. Used for the email only, so genuinely different submissions are
   /// never blocked.
@@ -21,6 +73,22 @@ module {
         let trimmed = text.trim(#predicate(Char.isWhitespace));
         if (trimmed == "") { null } else { ?trimmed };
       };
+    };
+  };
+
+  /// Duplicate receipts deliberately omit stored contact data so a public
+  /// caller cannot recover another person's name/email by replaying a known
+  /// email/message pair.
+  func duplicateReceipt(existing : Types.Submission) : Types.Submission {
+    {
+      id = 0;
+      kind = existing.kind;
+      name = "";
+      email = "";
+      message = null;
+      status = #new;
+      createdAt = 0;
+      updatedAt = 0;
     };
   };
 
@@ -49,17 +117,20 @@ module {
     input : Types.ContactInput,
     now : Nat,
   ) : Types.SubmitResult {
-    switch (findDuplicate(submissions, #contact, input.email, ?input.message)) {
-      case (?existing) { #duplicate(existing) };
+    let name = normalizePublicName(input.name);
+    let email = normalizePublicEmail(input.email);
+    let message = normalizeContactMessage(input.message);
+    switch (findDuplicate(submissions, #contact, email, ?message)) {
+      case (?existing) { #duplicate(duplicateReceipt(existing)) };
       case null {
         let id = nextId.value;
         nextId.value := id + 1;
         let submission : Types.Submission = {
           id;
           kind = #contact;
-          name = input.name;
-          email = input.email;
-          message = ?input.message;
+          name;
+          email;
+          message = ?message;
           status = #new;
           createdAt = now;
           updatedAt = now;
@@ -79,17 +150,20 @@ module {
     input : Types.WaitlistInput,
     now : Nat,
   ) : Types.SubmitResult {
-    switch (findDuplicate(submissions, #waitlist, input.email, input.note)) {
-      case (?existing) { #duplicate(existing) };
+    let name = normalizePublicName(input.name);
+    let email = normalizePublicEmail(input.email);
+    let note = normalizeWaitlistNote(input.note);
+    switch (findDuplicate(submissions, #waitlist, email, note)) {
+      case (?existing) { #duplicate(duplicateReceipt(existing)) };
       case null {
         let id = nextId.value;
         nextId.value := id + 1;
         let submission : Types.Submission = {
           id;
           kind = #waitlist;
-          name = input.name;
-          email = input.email;
-          message = input.note;
+          name;
+          email;
+          message = note;
           status = #new;
           createdAt = now;
           updatedAt = now;

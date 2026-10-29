@@ -26,6 +26,7 @@ The build resolves `OVANITE_BACKEND_CANISTER_ID` and `CANISTER_ID_BACKEND` to a 
 - Owner principal remains intentionally `null`; do not claim ownership from an email address or Caffeine project ID.
 - The exported object-storage package still expects Caffeine-specific storage integration. Never guess its gateway URL.
 - Contact/Waitlist forms stay closed until `OVANITE_PUBLIC_FORMS_ENABLED=true` is deliberately set after auth, storage, data persistence, abuse controls, privacy handling, and end-to-end checks pass.
+- The Vercel flag controls only the UI. The Motoko canister separately uses `src/backend/lib/submission-policy.mo`, defaulting `publicSubmissionWritesEnabled` to `false`; direct canister calls are rejected until a reviewed backend release changes that policy after server-side abuse/rate controls and privacy protections pass.
 - Participant intake stays closed until its separate identity, persistence, permissions, migrations, lifecycle, and security gates pass.
 
 For the independent Motoko build and disposable local deployment test, see [PR #11: independent ICP backend build and deployment audit](https://github.com/Abhijeetjain4075/ovanite/pull/11).

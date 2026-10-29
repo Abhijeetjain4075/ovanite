@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "src/backend/**"
+      - "test/pocketic/backend.test.ts"
       - "mops.toml"
       - "mops.lock"
       - "icp.yaml"
@@ -119,3 +120,19 @@ jobs:
             echo "SECURITY FAILURE: anonymous owner claim unexpectedly succeeded" >&2
             exit 1
           fi
+
+          # The backend release policy must reject direct canister calls even
+          # though the frontend has a separate UI-only release flag.
+          if contact_output="$(icp canister call backend submitContact '(record { name = "Direct Caller"; email = "direct@example.com"; message = "This direct canister call must remain blocked."; })' 2>&1)"; then
+            echo "SECURITY FAILURE: public Contact submission unexpectedly succeeded" >&2
+            printf '%s\n' "$contact_output"
+            exit 1
+          fi
+          grep -Fiq "Public submissions are disabled by backend release policy" <<<"$contact_output"
+
+          if waitlist_output="$(icp canister call backend submitWaitlist '(record { name = "Direct Caller"; email = "direct@example.com"; note = opt "Interested in early access."; })' 2>&1)"; then
+            echo "SECURITY FAILURE: public Waitlist submission unexpectedly succeeded" >&2
+            printf '%s\n' "$waitlist_output"
+            exit 1
+          fi
+          grep -Fiq "Public submissions are disabled by backend release policy" <<<"$waitlist_output"

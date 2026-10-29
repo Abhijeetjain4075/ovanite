@@ -7,6 +7,7 @@ import Types "../types/submissions";
 import AdminTypes "../types/admin";
 import SubmissionLib "../lib/submissions";
 import AdminLib "../lib/admin";
+import SubmissionPolicy "../lib/submission-policy";
 
 mixin (
   accessControlState : AccessControl.AccessControlState,
@@ -21,19 +22,28 @@ mixin (
     };
   };
 
+  // Public writes remain disabled at the canister boundary by default.
+  // The browser release flag is not a security boundary: callers can invoke
+  // these methods directly without loading the Vercel frontend.
+  func requirePublicSubmissionWritesEnabled() {
+    if (not SubmissionPolicy.publicSubmissionWritesEnabled) {
+      Runtime.trap("Public submissions are disabled by backend release policy");
+    };
+  };
+
   // ---- Public writes ------------------------------------------------------
 
-  /// Stores a Contact submission. Callable by anyone, including anonymous.
-  /// Returns `#created` with the new record, or `#duplicate` with the existing
-  /// record when the same normalized email and message were already received.
+  /// Contact writes remain unavailable until the backend release policy is
+  /// deliberately enabled after production anti-abuse and privacy controls pass.
   public shared func submitContact(input : Types.ContactInput) : async Types.SubmitResult {
+    requirePublicSubmissionWritesEnabled();
     SubmissionLib.createContact(submissions, nextSubmissionId, input, Time.now().toNat());
   };
 
-  /// Stores a Waitlist submission. Callable by anyone, including anonymous.
-  /// Returns `#created` with the new record, or `#duplicate` with the existing
-  /// record when the same normalized email and note were already received.
+  /// Waitlist writes remain unavailable until the backend release policy is
+  /// deliberately enabled after production anti-abuse and privacy controls pass.
   public shared func submitWaitlist(input : Types.WaitlistInput) : async Types.SubmitResult {
+    requirePublicSubmissionWritesEnabled();
     SubmissionLib.createWaitlist(submissions, nextSubmissionId, input, Time.now().toNat());
   };
 
