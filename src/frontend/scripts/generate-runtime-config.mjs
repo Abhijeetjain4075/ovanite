@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Principal } from "@icp-sdk/core/principal";
+import { resolveBackendCanisterId } from "./backend-canister-env.mjs";
 
 const PLACEHOLDER = "undefined";
 const DEFAULT_ICP_HOST = "https://icp-api.io";
@@ -55,7 +56,7 @@ export function buildRuntimeConfig(env = process.env) {
       ? DEFAULT_ICP_HOST
       : PLACEHOLDER;
 
-  let backendCanisterId = clean(env.OVANITE_BACKEND_CANISTER_ID);
+  const backendCanisterId = resolveBackendCanisterId(env);
   if (backendCanisterId) {
     try {
       const parsed = Principal.fromText(backendCanisterId);
@@ -64,7 +65,7 @@ export function buildRuntimeConfig(env = process.env) {
       }
     } catch (error) {
       throw new Error(
-        "OVANITE_BACKEND_CANISTER_ID must be a valid canonical Internet Computer principal.",
+        "The backend canister ID must be a valid canonical Internet Computer principal.",
         { cause: error },
       );
     }
@@ -110,7 +111,7 @@ async function main() {
   console.info(`Wrote public runtime config to ${outputPath}`);
   console.info(
     config.backend_canister_id === PLACEHOLDER
-      ? "Backend remains disabled: OVANITE_BACKEND_CANISTER_ID is not configured."
+      ? "Backend remains disabled: set OVANITE_BACKEND_CANISTER_ID to a verified deployed canister ID."
       : "Backend canister ID syntax is valid; this does not verify that the canister is deployed or reachable.",
   );
 }

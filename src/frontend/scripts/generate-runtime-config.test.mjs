@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { buildRuntimeConfig } from "./generate-runtime-config.mjs";
+import { configureBackendCanisterId, resolveBackendCanisterId } from "./backend-canister-env.mjs";
 
 test("development stays fail-closed when no backend deployment is configured", () => {
   assert.deepEqual(buildRuntimeConfig({ NODE_ENV: "development" }), {
@@ -43,7 +44,7 @@ test("invalid backend principal is rejected instead of emitted into production c
       NODE_ENV: "production",
       OVANITE_BACKEND_CANISTER_ID: "not-a-canister",
     }),
-    /OVANITE_BACKEND_CANISTER_ID must be a valid canonical Internet Computer principal/,
+    /backend canister ID must be a valid canonical Internet Computer principal/,
   );
 });
 
@@ -92,4 +93,39 @@ test("blank and literal undefined values remain disabled placeholders", () => {
   });
   assert.equal(config.backend_canister_id, "undefined");
   assert.equal(config.project_id, "undefined");
+});
+
+test("OVANITE_BACKEND_CANISTER_ID is also mapped to the Caffeine actor's CANISTER_ID_BACKEND", () => {
+  const env = {
+    OVANITE_BACKEND_CANISTER_ID: "ryjl3-tyaaa-aaaaa-aaaba-cai",
+  };
+  assert.equal(
+    configureBackendCanisterId(env),
+    "ryjl3-tyaaa-aaaaa-aaaba-cai",
+  );
+  assert.equal(env.CANISTER_ID_BACKEND, "ryjl3-tyaaa-aaaaa-aaaba-cai");
+  const config = buildRuntimeConfig({
+    ...env,
+    NODE_ENV: "production",
+    OVANITE_BACKEND_HOST: "https://icp-api.io",
+  });
+  assert.equal(config.backend_canister_id, env.CANISTER_ID_BACKEND);
+});
+
+test("the runtime config and Caffeine actor reject conflicting backend IDs", () => {
+  assert.throws(
+    () =>
+      resolveBackendCanisterId({
+        OVANITE_BACKEND_CANISTER_ID: "ryjl3-tyaaa-aaaaa-aaaba-cai",
+        CANISTER_ID_BACKEND: "aaaaa-aa",
+      }),
+    /must match exactly/,
+  );
+});
+
+test("a literal undefined SDK placeholder is treated as unconfigured", () => {
+  const env = { CANISTER_ID_BACKEND: "undefined" };
+  assert.equal(resolveBackendCanisterId(env), undefined);
+  configureBackendCanisterId(env);
+  assert.equal("CANISTER_ID_BACKEND" in env, false);
 });
