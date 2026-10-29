@@ -3,13 +3,17 @@ import Principal "mo:core/Principal";
 import Types "../types/admin";
 
 module {
-  /// The exact Internet Identity principal authorized to bootstrap ownership.
+  /// Canonical textual form of the exact Internet Identity principal allowed
+  /// to bootstrap ownership. A text value keeps this a static module constant;
+  /// Principal.fromText is a runtime conversion and is not valid in a static
+  /// library/module initializer. Compare against Principal.toText(caller)
+  /// instead of parsing untrusted or misconfigured configuration at call time.
   ///
   /// IMPORTANT: null is the secure default and deliberately disables owner
-  /// bootstrap. Set this to the verified operator principal before deploying
-  /// the backend. Never authorize ownership using a caller-supplied email:
-  /// Internet Identity does not cryptographically bind that text to the caller.
-  public let ownerPrincipal : ?Principal = null;
+  /// bootstrap. Set this to the verified operator principal's canonical text
+  /// before deploying the backend. Never authorize ownership using a
+  /// caller-supplied email: Internet Identity does not bind that text to identity.
+  public let ownerPrincipalText : ?Text = null;
 
   /// Email is retained only as a secondary operator-facing consistency check.
   /// It is NOT an authentication factor and must never authorize ownership.
@@ -17,17 +21,19 @@ module {
 
   /// True only when an operator principal has been explicitly configured.
   public func isOwnerBootstrapConfigured() : Bool {
-    switch (ownerPrincipal) {
+    switch (ownerPrincipalText) {
       case null { false };
-      case (?_) { true };
+      case (?expected) { expected != "" };
     };
   };
 
   /// True only when principal matches the explicitly configured owner.
   public func isConfiguredOwner(principal : Principal) : Bool {
-    switch (ownerPrincipal) {
+    switch (ownerPrincipalText) {
       case null { false };
-      case (?expected) { Principal.equal(expected, principal) };
+      case (?expected) {
+        expected != "" and Principal.toText(principal) == expected;
+      };
     };
   };
 
