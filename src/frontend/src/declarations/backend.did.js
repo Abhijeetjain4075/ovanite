@@ -78,6 +78,7 @@ export const ProductInput = IDL.Record({
   'name' : IDL.Text,
   'description' : IDL.Text,
   'imageKey' : IDL.Opt(ExternalBlob),
+  'imageUrl' : IDL.Opt(IDL.Text),
 });
 export const Product = IDL.Record({
   'id' : Id,
@@ -89,6 +90,7 @@ export const Product = IDL.Record({
   'updatedAt' : Timestamp,
   'state' : PublishState,
   'imageKey' : IDL.Opt(ExternalBlob),
+  'imageUrl' : IDL.Opt(IDL.Text),
 });
 export const Value = IDL.Variant({
   'int' : IDL.Int,
@@ -191,6 +193,7 @@ export const ProductPatch = IDL.Record({
   'name' : IDL.Opt(IDL.Text),
   'description' : IDL.Opt(IDL.Text),
   'imageKey' : IDL.Opt(ExternalBlob),
+  'imageUrl' : IDL.Opt(IDL.Text),
 });
 export const SiteContentPatch = IDL.Record({
   'contactBody' : IDL.Opt(IDL.Text),
@@ -366,6 +369,7 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Text,
     'description' : IDL.Text,
     'imageKey' : IDL.Opt(ExternalBlob),
+    'imageUrl' : IDL.Opt(IDL.Text),
   });
   const Product = IDL.Record({
     'id' : Id,
@@ -377,6 +381,7 @@ export const idlFactory = ({ IDL }) => {
     'updatedAt' : Timestamp,
     'state' : PublishState,
     'imageKey' : IDL.Opt(ExternalBlob),
+    'imageUrl' : IDL.Opt(IDL.Text),
   });
   const Value = IDL.Variant({
     'int' : IDL.Int,
@@ -479,6 +484,7 @@ export const idlFactory = ({ IDL }) => {
     'name' : IDL.Opt(IDL.Text),
     'description' : IDL.Opt(IDL.Text),
     'imageKey' : IDL.Opt(ExternalBlob),
+    'imageUrl' : IDL.Opt(IDL.Text),
   });
   const SiteContentPatch = IDL.Record({
     'contactBody' : IDL.Opt(IDL.Text),
