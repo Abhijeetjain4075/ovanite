@@ -13,9 +13,11 @@ function metaContent(selector: string): string | null {
 
 afterEach(() => {
   cleanup();
-  document.head.querySelectorAll(
+  for (const element of document.head.querySelectorAll(
     'meta[property="og:image"], meta[property="og:image:alt"], meta[name="twitter:image"]',
-  ).forEach((element) => element.remove());
+  )) {
+    element.remove();
+  }
 });
 
 describe("PageMeta", () => {
@@ -23,14 +25,18 @@ describe("PageMeta", () => {
     render(<PageMeta title="Products" description="Explore our products." />);
 
     expect(document.title).toBe("Products — Ovanite");
-    expect(metaContent('meta[name="description"]')).toBe("Explore our products.");
+    expect(metaContent('meta[name="description"]')).toBe(
+      "Explore our products.",
+    );
   });
 
   it("does not use a third-party template image when none is supplied", () => {
     render(<PageMeta title="About" description="About Ovanite." />);
 
     expect(metaContent('meta[property="og:title"]')).toBe("About — Ovanite");
-    expect(metaContent('meta[property="og:description"]')).toBe("About Ovanite.");
+    expect(metaContent('meta[property="og:description"]')).toBe(
+      "About Ovanite.",
+    );
     expect(metaContent('meta[property="og:image"]')).toBeNull();
     expect(metaContent('meta[property="og:image:alt"]')).toBeNull();
     expect(metaContent('meta[name="twitter:image"]')).toBeNull();
@@ -55,7 +61,9 @@ describe("PageMeta", () => {
     expect(metaContent('meta[name="twitter:image"]')).toBe(
       "https://ovanite.vercel.app/assets/ovanite-social.png",
     );
-    expect(metaContent('meta[name="twitter:card"]')).toBe("summary_large_image");
+    expect(metaContent('meta[name="twitter:card"]')).toBe(
+      "summary_large_image",
+    );
   });
 
   it("removes a previously set social image when the next route has none", () => {
@@ -67,7 +75,9 @@ describe("PageMeta", () => {
       />,
     );
 
-    rerender(<PageMeta title="Contact" description="Contact intake is closed." />);
+    rerender(
+      <PageMeta title="Contact" description="Contact intake is closed." />,
+    );
 
     expect(metaContent('meta[property="og:image"]')).toBeNull();
     expect(metaContent('meta[name="twitter:image"]')).toBeNull();
