@@ -143,6 +143,7 @@ export interface Product {
     updatedAt: Timestamp;
     state: PublishState;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }
 export interface ProductInput {
     sortOrder: bigint;
@@ -150,6 +151,7 @@ export interface ProductInput {
     name: string;
     description: string;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }
 export interface ProductPatch {
     sortOrder?: bigint;
@@ -157,6 +159,7 @@ export interface ProductPatch {
     name?: string;
     description?: string;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }
 export type RecordViewResult = {
     __kind__: "recorded";
@@ -1271,6 +1274,7 @@ async function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promi
     updatedAt: _Timestamp;
     state: _PublishState;
     imageKey: [] | [_ExternalBlob];
+    imageUrl: [] | [string];
 }): Promise<{
     id: Id;
     sortOrder: bigint;
@@ -1281,6 +1285,7 @@ async function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promi
     updatedAt: Timestamp;
     state: PublishState;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }> {
     return {
         id: value.id,
@@ -1291,7 +1296,8 @@ async function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promi
         description: value.description,
         updatedAt: value.updatedAt,
         state: from_candid_PublishState_n18(_uploadFile, _downloadFile, value.state),
-        imageKey: record_opt_to_undefined(await from_candid_opt_n26(_uploadFile, _downloadFile, value.imageKey))
+        imageKey: record_opt_to_undefined(await from_candid_opt_n26(_uploadFile, _downloadFile, value.imageKey)),
+        imageUrl: record_opt_to_undefined(from_candid_opt_n25(_uploadFile, _downloadFile, value.imageUrl))
     };
 }
 function from_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1771,19 +1777,22 @@ async function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise
     name: string;
     description: string;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }): Promise<{
     sortOrder: bigint;
     link: [] | [string];
     name: string;
     description: string;
     imageKey: [] | [_ExternalBlob];
+    imageUrl: [] | [string];
 }> {
     return {
         sortOrder: value.sortOrder,
         link: value.link ? candid_some(value.link) : candid_none(),
         name: value.name,
         description: value.description,
-        imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none()
+        imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none(),
+        imageUrl: value.imageUrl ? candid_some(value.imageUrl) : candid_none()
     };
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1843,19 +1852,22 @@ async function to_candid_record_n76(_uploadFile: (file: ExternalBlob) => Promise
     name?: string;
     description?: string;
     imageKey?: ExternalBlob;
+    imageUrl?: string;
 }): Promise<{
     sortOrder: [] | [bigint];
     link: [] | [string];
     name: [] | [string];
     description: [] | [string];
     imageKey: [] | [_ExternalBlob];
+    imageUrl: [] | [string];
 }> {
     return {
         sortOrder: value.sortOrder ? candid_some(value.sortOrder) : candid_none(),
         link: value.link ? candid_some(value.link) : candid_none(),
         name: value.name ? candid_some(value.name) : candid_none(),
         description: value.description ? candid_some(value.description) : candid_none(),
-        imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none()
+        imageKey: value.imageKey ? candid_some(await to_candid_ExternalBlob_n22(_uploadFile, _downloadFile, value.imageKey)) : candid_none(),
+        imageUrl: value.imageUrl !== undefined ? candid_some(value.imageUrl) : candid_none()
     };
 }
 function to_candid_record_n78(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
