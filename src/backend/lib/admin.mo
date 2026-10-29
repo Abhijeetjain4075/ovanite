@@ -56,8 +56,9 @@ module {
     admins.size() == 0;
   };
 
-  /// Records `principal` as an admin with `role`. Returns `false` when the
-  /// principal is already an admin.
+  /// Records a non-owner admin with `role`. The special `#owner` role is
+  /// reserved for the one-time owner bootstrap and can never be delegated.
+  /// Returns `false` when the principal already exists or `role == #owner`.
   public func addAdmin(
     admins : Map.Map<Principal, Types.Admin>,
     principal : Principal,
@@ -65,6 +66,7 @@ module {
     role : Types.AdminRole,
     now : Nat,
   ) : Bool {
+    if (role == #owner) { return false };
     switch (admins.get(principal)) {
       case (?_) { false };
       case null {
@@ -134,7 +136,10 @@ module {
     switch (admins.get(principal)) {
       case null { null };
       case (?existing) {
-        if (existing.isOwner) { null } else {
+        // Owner is a unique authority, not a role that can be assigned to
+        // another admin. Reject both demoting the owner and promoting anyone
+        // else to the special owner role.
+        if (existing.isOwner or role == #owner) { null } else {
           let updated : Types.Admin = {
             principal = existing.principal;
             email = existing.email;
@@ -149,13 +154,27 @@ module {
     };
   };
 
-  /// Returns whether `principal` is an admin.
+  /// Returns whether `principal` is a registered admin.
+  /// Registration permits protected reads; write permission is checked
+  /// separately so `#viewer` remains read-only.
   public func isAdmin(
     admins : Map.Map<Principal, Types.Admin>,
     principal : Principal,
   ) : Bool {
     switch (admins.get(principal)) {
       case (?_) { true };
+      case null { false };
+    };
+  };
+
+  /// Returns whether a principal may mutate site content or submissions.
+  /// The unique owner can write; among delegated admins, only `#editor` can.
+  public func canEditContent(
+    admins : Map.Map<Principal, Types.Admin>,
+    principal : Principal,
+  ) : Bool {
+    switch (admins.get(principal)) {
+      case (?existing) { existing.isOwner or existing.role == #editor };
       case null { false };
     };
   };
