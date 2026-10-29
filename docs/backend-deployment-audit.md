@@ -50,9 +50,14 @@ All values written to `env.json` are public and must never contain passwords, pr
 
 - `src/backend/lib/admin.mo` deliberately keeps `ownerPrincipal = null`. Owner bootstrap is disabled until the exact operator principal for Ovanite's final identity origin has been verified and configured in a reviewed backend change. Never use an email address or Caffeine project ID as identity proof.
 - `src/backend/lib/submission-policy.mo` separately disables direct Contact/Waitlist writes. The frontend form flag cannot override this backend authorization gate. Both public forms currently render no personal-data fields.
+- `src/backend/lib/analytics-policy.mo` now disables public page-view updates at the Motoko boundary. The frontend consent banner cannot stop direct canister calls; before this gate, arbitrary distinct paths could grow persistent analytics state and repeated calls could consume cycles. Do not enable analytics writes until route cardinality and ingress abuse/cost controls are implemented and tested.
 - `/participants/submit` remains an overview-only route; participant intake must stay closed.
 - Backend and frontend source still reference Caffeine-specific object-storage packages. An independently compatible gateway has not been proven. Image upload/download remains blocked until upload, read, and delete tests pass against a verified storage implementation or the adapter is replaced.
 - No mainnet canister was deployed and no mainnet cycles were spent during this audit.
+
+## Additional abuse-control release gate
+
+- Public analytics writes are now disabled by a server-side Motoko release policy, independent of browser consent. Re-enable only after choosing a finite canonical route vocabulary and verifying ingress-level rate/cost protections; anonymous client-side consent alone is not a security boundary. The current behavior deliberately favors bounded operational risk over live page-view counting.
 
 ## Required release gates
 
