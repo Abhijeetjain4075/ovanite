@@ -266,10 +266,12 @@ class SDKServer {
       if (identity?.openId.startsWith(CRON_OPEN_ID_PREFIX)) sessionToken = ticket;
     }
 
-    // 2. Fallback to the Authorization header (Preview auto-login via
+    // 2. Optional fallback to the Authorization header (Preview auto-login via
     //    sessionStorage), used when the browser blocks iframe cookies such as
-    //    Safari ITP, private browsing, or iOS/Android WebView.
-    if (!sessionToken) {
+    //    Safari ITP, private browsing, or iOS/Android WebView. A JS-readable
+    //    bearer token is strictly weaker than an HttpOnly cookie, so it is
+    //    enabled only outside production or by explicit opt-in.
+    if (!sessionToken && ENV.allowBearerSessionFallback) {
       const authHeader = req.headers.authorization;
       if (typeof authHeader === "string" && authHeader.startsWith("Bearer ")) {
         sessionToken = authHeader.slice(7);

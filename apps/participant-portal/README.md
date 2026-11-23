@@ -114,3 +114,20 @@ The current preview/dev database and published application share the managed dat
 ## Integration seam
 
 No existing Ovanite repository or brand assets were available in the sandbox. This portal keeps the provided Ovanite tagline, restrained wordmark treatment, light technical visual system, and route conventions. When the existing site/admin repository is available, integrate this feature by mounting the participant routes under the agreed portal path, reuse the official identity assets and shared admin shell, and map the portal role/session policy to its existing staff membership model. Do not copy participant data to a public analytics surface.
+
+## Security controls and operations
+
+These controls are enforced in code and covered by the test suite:
+
+| Control | Location | Configuration |
+|---|---|---|
+| Global API rate limiting (sliding window) | `server/_core/rateLimit.ts`, mounted in `server/_core/index.ts` | Keyed per client IP and per surface: `callback` 60/min, `auth` 30/min, `read` 300/min, `write` 120/min. Health probes and static assets are exempt. Responses use `429` + `Retry-After`. |
+| Trusted proxy handling | `server/_core/index.ts` | `TRUST_PROXY_HOPS` (default `0`). Set only behind a known reverse proxy; a spoofable `X-Forwarded-For` would defeat per-IP limits. |
+| Bearer session fallback | `server/_core/sdk.ts` via `ENV.allowBearerSessionFallback` | Disabled in production unless `OVANITE_ENABLE_BEARER_FALLBACK=true`. HttpOnly session cookies remain the default. |
+| Owner-only staff provisioning | `portal.staff.list` / `portal.staff.assignRole`, policy in `server/portal/staff.ts` | Only the configured owner may assign `editor`, `viewer` or `participant`. The owner identity cannot be rewritten through the database, and self-changes are refused. Every change writes a `staff_role_assigned` audit event. |
+| Redacted database logging | `server/_core/redact.ts` | Logs carry only error name, whitelisted code and category — never SQL, hosts, credentials or bound values. |
+
+The rate limiter is process-local and bounded (50k tracked buckets). A multi-instance
+deployment must additionally enforce limits at the edge/gateway; the in-process layer
+is not a substitute for that. Automated assessment retains its separate durable
+five-requests-per-staff-account-per-rolling-hour quota.

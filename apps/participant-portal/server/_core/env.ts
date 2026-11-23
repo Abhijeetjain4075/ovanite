@@ -7,6 +7,17 @@ export const ENV = {
   // Preserve the legacy hint when supplied; otherwise roles remain application data.
   get ownerOpenId() { return process.env.OWNER_OPEN_ID ?? ""; },
   get isProduction() { return process.env.NODE_ENV === "production"; },
+  /**
+   * JavaScript-readable bearer sessions exist only as a preview/WebView
+   * fallback. They are enabled in non-production and must be turned on
+   * explicitly in production, if ever. Session cookies are the default.
+   */
+  get allowBearerSessionFallback() {
+    const explicit = process.env.OVANITE_ENABLE_BEARER_FALLBACK;
+    if (explicit === "true") return true;
+    if (explicit === "false") return false;
+    return !this.isProduction;
+  },
   get forgeApiUrl() { return process.env.MANUS_API_URL ?? ""; },
   get forgeApiKey() { return process.env.MANUS_API_KEY ?? ""; },
   // Fine-grained token restricted to Actions: write on this repository; never expose to clients.

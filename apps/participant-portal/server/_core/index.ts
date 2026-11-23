@@ -22,6 +22,7 @@ import {
   withdrawals,
 } from "../../drizzle/schema";
 import { checkPortalReadiness } from "./readiness";
+import { createRateLimitMiddleware } from "./rateLimit";
 
 async function startServer() {
   const app = express();
@@ -41,6 +42,17 @@ async function startServer() {
     res.setHeader("Cache-Control", "no-store");
     next();
   });
+  // Trust only a bounded number of proxy hops. With the default of zero,
+  // req.ip is the socket address and X-Forwarded-For cannot be spoofed to
+  // evade per-client rate limits. Set TRUST_PROXY_HOPS only behind a known proxy.
+  const proxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? "0", 10);
+  if (Number.isInteger(proxyHops) && proxyHops > 0) app.set("trust proxy", proxyHops);
+
+  // Anonymous abuse protection for every /api surface: sign-in and OAuth
+  // callbacks, worker callbacks, anonymous reads and mutations. Health probes
+  // are exempt, and static assets are never limited.
+  app.use(createRateLimitMiddleware());
+
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ limit: "32kb", extended: false, parameterLimit: 100 }));
 

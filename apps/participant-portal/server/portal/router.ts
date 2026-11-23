@@ -21,6 +21,7 @@ import { ACTIVE_PARTICIPANT_WITHDRAWAL_STATES, canTransition, type SubmissionSta
 import { DEFAULT_RUBRIC } from "./defaults";
 import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
 import { AssessmentDispatchError, ASSESSMENT_PIPELINE_VERSION, assessmentWorkflowUrl, dispatchStaticAssessment, resolvePublicGitHubRevision } from "./assessment";
+import { ASSIGNABLE_STAFF_ROLES, describeRoleAssignmentRefusal, evaluateRoleAssignment } from "./staff";
 
 const submissionIdSchema = z.string().uuid();
 const versionSchema = z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/);
@@ -85,6 +86,78 @@ async function latestPublishedRubric() {
 }
 
 export const portalRouter = router({
+  /**
+   * Owner-only staff provisioning. Before this procedure existed, roles could
+   * only be changed by editing the database directly, which left no attributable
+   * approval trail. Every change here is validated by policy and audited.
+   */
+  staff: router({
+    list: ownerProcedure.query(async () => {
+      const db = await requireDatabase();
+      return db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        openId: users.openId,
+        legacyRole: users.role,
+        portalRole: users.portalRole,
+        lastSignedIn: users.lastSignedIn,
+      }).from(users).orderBy(desc(users.lastSignedIn)).limit(200);
+    }),
+
+    assignRole: ownerProcedure.input(z.object({
+      openId: z.string().trim().min(1).max(64),
+      role: z.enum(ASSIGNABLE_STAFF_ROLES),
+    })).mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const decision = evaluateRoleAssignment({
+        actorRole: ctx.portalRole,
+        actorOpenId: ctx.user.openId,
+        targetOpenId: input.openId,
+        ownerOpenId: ENV.ownerOpenId,
+        nextRole: input.role,
+      });
+      if (!decision.allowed) {
+        throw new TRPCError({
+          code: decision.reason === "not_owner" ? "FORBIDDEN" : "PRECONDITION_FAILED",
+          message: describeRoleAssignmentRefusal(decision.reason),
+        });
+      }
+
+      return db.transaction(async tx => {
+        const [target] = await tx.select({ id: users.id, portalRole: users.portalRole })
+          .from(users)
+          .where(eq(users.openId, input.openId))
+          .limit(1)
+          .for("update");
+        if (!target) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No portal user matches that identity. The person must sign in once before a role can be assigned.",
+          });
+        }
+        if (target.portalRole === input.role) {
+          return { changed: false as const, role: input.role, userId: target.id };
+        }
+        await tx.update(users)
+          .set({ portalRole: input.role, updatedAt: new Date() })
+          .where(eq(users.id, target.id));
+        await tx.insert(portalAuditEvents).values(auditValues({
+          actorId: ctx.user.id,
+          actorRole: ctx.portalRole,
+          eventType: "staff_role_assigned",
+          details: {
+            targetUserId: target.id,
+            targetOpenId: input.openId,
+            fromRole: target.portalRole,
+            toRole: input.role,
+          },
+        }));
+        return { changed: true as const, role: input.role, userId: target.id };
+      });
+    }),
+  }),
+
   currentTerms: router({
     get: protectedProcedure.query(async () => latestPublishedTerms()),
   }),
