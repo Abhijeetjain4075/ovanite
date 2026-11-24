@@ -100,9 +100,88 @@ export function buildRuntimeConfig(env = process.env) {
   };
 }
 
+/**
+ * Build-time deployability gate.
+ *
+ * `buildRuntimeConfig` deliberately tolerates unset values so a local build can
+ * run without a deployed backend. A release build must not: placeholders in the
+ * published contract mean every visitor loads an application that cannot reach
+ * the canister. This returns the blocking problems, never throws, so both the
+ * generator and the repository preflight can report every problem at once.
+ */
+export function findDeployabilityProblems(config) {
+  const problems = [];
+
+  if (config.backend_host === PLACEHOLDER) {
+    problems.push(
+      "backend_host is still the placeholder; set OVANITE_BACKEND_HOST (for example https://icp-api.io).",
+    );
+  } else {
+    try {
+      const parsed = new URL(config.backend_host);
+      if (parsed.protocol !== "https:" || parsed.origin !== config.backend_host) {
+        problems.push("backend_host must be an HTTPS origin only.");
+      }
+    } catch {
+      problems.push("backend_host must be a valid absolute URL.");
+    }
+  }
+
+  if (config.backend_canister_id === PLACEHOLDER) {
+    problems.push(
+      "backend_canister_id is still the placeholder; set OVANITE_BACKEND_CANISTER_ID to the verified deployed canister principal.",
+    );
+  } else {
+    try {
+      if (Principal.fromText(config.backend_canister_id).toText() !== config.backend_canister_id) {
+        problems.push("backend_canister_id must use its canonical lowercase textual form.");
+      }
+    } catch {
+      problems.push("backend_canister_id must be a valid Internet Computer principal.");
+    }
+  }
+
+  return problems;
+}
+
+/**
+ * Settings that are optional for launch but change runtime behaviour when
+ * absent. Reported so an operator sees the degradation instead of discovering it
+ * from a failing feature.
+ */
+export function describeDeployabilityWarnings(config) {
+  const warnings = [];
+  if (config.ii_derivation_origin === PLACEHOLDER) {
+    warnings.push(
+      "ii_derivation_origin is unset; Internet Identity sign-in uses the default derivation origin.",
+    );
+  }
+  if (config.storage_gateway_url === PLACEHOLDER) {
+    warnings.push(
+      "storage_gateway_url is unset; object-storage uploads remain disabled.",
+    );
+  }
+  if (config.project_id === PLACEHOLDER) {
+    warnings.push("project_id is unset; Caffeine-specific infrastructure stays inactive.");
+  }
+  return warnings;
+}
+
 async function main() {
   const outputPath = resolve(dirname(fileURLToPath(import.meta.url)), "../dist/env.json");
   const config = buildRuntimeConfig();
+  const requireDeployable = process.argv.includes("--require-deployable");
+  if (requireDeployable) {
+    const problems = findDeployabilityProblems(config);
+    if (problems.length > 0) {
+      throw new Error(
+        `Refusing to write a non-deployable runtime config:\n- ${problems.join("\n- ")}`,
+      );
+    }
+    for (const warning of describeDeployabilityWarnings(config)) {
+      console.warn(`Runtime config warning: ${warning}`);
+    }
+  }
   await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(config, null, 2)}\n`, {
     encoding: "utf8",
