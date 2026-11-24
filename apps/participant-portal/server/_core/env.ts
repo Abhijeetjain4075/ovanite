@@ -16,7 +16,7 @@ export const ENV = {
     const explicit = process.env.OVANITE_ENABLE_BEARER_FALLBACK;
     if (explicit === "true") return true;
     if (explicit === "false") return false;
-    return !this.isProduction;
+    return process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
   },
   get forgeApiUrl() { return process.env.MANUS_API_URL ?? ""; },
   get forgeApiKey() { return process.env.MANUS_API_KEY ?? ""; },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateRoleAssignment } from "./staff";
+import { evaluateRoleAssignment, planRoleAssignment } from "./staff";
 
 const base = {
   actorRole: "owner" as const,
@@ -18,7 +18,7 @@ describe("evaluateRoleAssignment", () => {
     expect(evaluateRoleAssignment({ ...base, nextRole: "participant" })).toEqual({ allowed: true, nextRole: "participant" });
   });
 
-  it("refuses editors and viewers", () => {
+  it("refuses editors, viewers and participants", () => {
     for (const actorRole of ["editor", "viewer", "participant"] as const) {
       expect(evaluateRoleAssignment({ ...base, actorRole, nextRole: "editor" })).toEqual({
         allowed: false,
@@ -35,19 +35,41 @@ describe("evaluateRoleAssignment", () => {
   });
 
   it("refuses self-changes even for the owner identity", () => {
-    const decision = evaluateRoleAssignment({
+    expect(evaluateRoleAssignment({
       ...base,
       ownerOpenId: "",
       targetOpenId: base.actorOpenId,
       nextRole: "viewer",
-    });
-    expect(decision).toEqual({ allowed: false, reason: "self_change" });
+    })).toEqual({ allowed: false, reason: "self_change" });
   });
 
   it("refuses blank targets", () => {
     expect(evaluateRoleAssignment({ ...base, targetOpenId: "   ", nextRole: "viewer" })).toEqual({
       allowed: false,
       reason: "owner_identity_immutable",
+    });
+  });
+});
+
+describe("planRoleAssignment", () => {
+  it("demotes the legacy admin bit for editor assignments", () => {
+    expect(planRoleAssignment({ portalRole: "participant", legacyRole: "admin" }, "editor")).toEqual({
+      changed: true,
+      values: { portalRole: "editor", role: "user" },
+    });
+  });
+
+  it("revokes legacy admin access even when the requested portal role is already participant", () => {
+    expect(planRoleAssignment({ portalRole: "participant", legacyRole: "admin" }, "participant")).toEqual({
+      changed: true,
+      values: { portalRole: "participant", role: "user" },
+    });
+  });
+
+  it("detects a true no-op only after both role planes are non-privileged and aligned", () => {
+    expect(planRoleAssignment({ portalRole: "viewer", legacyRole: "user" }, "viewer")).toEqual({
+      changed: false,
+      values: { portalRole: "viewer", role: "user" },
     });
   });
 });

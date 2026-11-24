@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createRateLimiter, rateLimitClass } from "./rateLimit";
+import {
+  createRateLimiter,
+  parseTrustedProxyHops,
+  rateLimitClass,
+} from "./rateLimit";
 
 describe("createRateLimiter", () => {
   it("allows requests up to the rule maximum inside one window", () => {
@@ -16,7 +20,6 @@ describe("createRateLimiter", () => {
     expect(limiter.check("ip-b", "auth", 1_000).allowed).toBe(true);
     const blocked = limiter.check("ip-b", "auth", 2_000);
     expect(blocked.allowed).toBe(false);
-    // Oldest hit expires at 11_000; at 2_000 that is 9 seconds away.
     expect(blocked.retryAfterSeconds).toBe(9);
   });
 
@@ -36,15 +39,20 @@ describe("createRateLimiter", () => {
     expect(limiter.check("ip-b", "read", 0).allowed).toBe(true);
     expect(limiter.check("ip-a", "write", 0).allowed).toBe(true);
     expect(limiter.check("ip-a", "read", 1).allowed).toBe(false);
-    // A second key's first write is independent of the read bucket above.
     expect(limiter.check("ip-b", "write", 1).allowed).toBe(true);
-    // The first key's write bucket is exhausted on its second attempt.
     expect(limiter.check("ip-a", "write", 2).allowed).toBe(false);
   });
 
-  it("rejects an unconfigured rule instead of silently allowing traffic", () => {
+  it("rejects an unconfigured rule and malformed limits", () => {
     const limiter = createRateLimiter({ read: { windowMs: 1_000, max: 1 } });
     expect(() => limiter.check("ip-a", "nope", 0)).toThrow(/Unknown rate-limit rule/);
+    expect(() => createRateLimiter({ bad: { windowMs: 0, max: 1 } }).check("ip", "bad", 0))
+      .toThrow(/Invalid rate-limit rule/);
+  });
+
+  it("rejects non-finite clock values", () => {
+    const limiter = createRateLimiter({ read: { windowMs: 1_000, max: 1 } });
+    expect(() => limiter.check("ip-a", "read", Number.NaN)).toThrow(/clock value/);
   });
 
   it("clears all state on reset", () => {
@@ -56,12 +64,21 @@ describe("createRateLimiter", () => {
 });
 
 describe("rateLimitClass", () => {
-  it("excludes health probes so readiness cannot be masked by a 429", () => {
-    expect(rateLimitClass("GET", "/api/health")).toBeNull();
-    expect(rateLimitClass("GET", "/api/health/ready")).toBeNull();
+  it("normalizes case and encoded paths before classification", () => {
+    expect(rateLimitClass("POST", "/API/TRPC/portal.saveDraft")).toBe("write");
+    expect(rateLimitClass("POST", "/api%2Ftrpc/portal.saveDraft")).toBe("write");
+    expect(rateLimitClass("POST", "/api/trpc/portal.saveDraft")).toBe("write");
   });
 
-  it("never limits static assets or the SPA shell", () => {
+  it("exempts only exact health probes", () => {
+    expect(rateLimitClass("GET", "/api/health")).toBeNull();
+    expect(rateLimitClass("GET", "/API/HEALTH/READY")).toBeNull();
+    expect(rateLimitClass("GET", "/api/health/live")).toBeNull();
+    expect(rateLimitClass("GET", "/api/health/anything-else")).toBe("read");
+    expect(rateLimitClass("POST", "/api/health-malicious")).toBe("write");
+  });
+
+  it("never limits the SPA shell or static assets outside the API", () => {
     expect(rateLimitClass("GET", "/")).toBeNull();
     expect(rateLimitClass("GET", "/assets/index-abc123.js")).toBeNull();
     expect(rateLimitClass("GET", "/approvals")).toBeNull();
@@ -72,5 +89,23 @@ describe("rateLimitClass", () => {
     expect(rateLimitClass("POST", "/api/oauth/callback")).toBe("auth");
     expect(rateLimitClass("GET", "/api/trpc/portal.mySubmissions")).toBe("read");
     expect(rateLimitClass("POST", "/api/trpc/portal.saveDraft")).toBe("write");
+  });
+});
+
+describe("parseTrustedProxyHops", () => {
+  it("defaults to no trusted proxies", () => {
+    expect(parseTrustedProxyHops(undefined)).toBe(0);
+    expect(parseTrustedProxyHops("")).toBe(0);
+    expect(parseTrustedProxyHops("0")).toBe(0);
+  });
+
+  it("accepts only canonical bounded integers", () => {
+    expect(parseTrustedProxyHops("1")).toBe(1);
+    expect(parseTrustedProxyHops(" 2 ")).toBe(2);
+    expect(parseTrustedProxyHops("5")).toBe(5);
+    expect(() => parseTrustedProxyHops("1garbage")).toThrow(/TRUST_PROXY_HOPS/);
+    expect(() => parseTrustedProxyHops("6")).toThrow(/TRUST_PROXY_HOPS/);
+    expect(() => parseTrustedProxyHops("-1")).toThrow(/TRUST_PROXY_HOPS/);
+    expect(() => parseTrustedProxyHops("1.0")).toThrow(/TRUST_PROXY_HOPS/);
   });
 });

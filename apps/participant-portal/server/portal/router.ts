@@ -21,7 +21,7 @@ import { ACTIVE_PARTICIPANT_WITHDRAWAL_STATES, canTransition, type SubmissionSta
 import { DEFAULT_RUBRIC } from "./defaults";
 import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
 import { AssessmentDispatchError, ASSESSMENT_PIPELINE_VERSION, assessmentWorkflowUrl, dispatchStaticAssessment, resolvePublicGitHubRevision } from "./assessment";
-import { ASSIGNABLE_STAFF_ROLES, describeRoleAssignmentRefusal, evaluateRoleAssignment } from "./staff";
+import { ASSIGNABLE_STAFF_ROLES, describeRoleAssignmentRefusal, evaluateRoleAssignment, planRoleAssignment } from "./staff";
 
 const submissionIdSchema = z.string().uuid();
 const versionSchema = z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/);
@@ -125,7 +125,11 @@ export const portalRouter = router({
       }
 
       return db.transaction(async tx => {
-        const [target] = await tx.select({ id: users.id, portalRole: users.portalRole })
+        const [target] = await tx.select({
+          id: users.id,
+          portalRole: users.portalRole,
+          legacyRole: users.role,
+        })
           .from(users)
           .where(eq(users.openId, input.openId))
           .limit(1)
@@ -136,11 +140,15 @@ export const portalRouter = router({
             message: "No portal user matches that identity. The person must sign in once before a role can be assigned.",
           });
         }
-        if (target.portalRole === input.role) {
+        const plan = planRoleAssignment({
+          portalRole: target.portalRole,
+          legacyRole: target.legacyRole,
+        }, input.role);
+        if (!plan.changed) {
           return { changed: false as const, role: input.role, userId: target.id };
         }
         await tx.update(users)
-          .set({ portalRole: input.role, updatedAt: new Date() })
+          .set({ ...plan.values, updatedAt: new Date() })
           .where(eq(users.id, target.id));
         await tx.insert(portalAuditEvents).values(auditValues({
           actorId: ctx.user.id,
@@ -149,8 +157,10 @@ export const portalRouter = router({
           details: {
             targetUserId: target.id,
             targetOpenId: input.openId,
-            fromRole: target.portalRole,
-            toRole: input.role,
+            fromPortalRole: target.portalRole,
+            toPortalRole: input.role,
+            fromLegacyRole: target.legacyRole,
+            toLegacyRole: "user",
           },
         }));
         return { changed: true as const, role: input.role, userId: target.id };

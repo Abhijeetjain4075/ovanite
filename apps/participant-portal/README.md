@@ -24,7 +24,7 @@ The project evidence fields are repository, live/demo, documentation, and demo-v
 | `/admin/evaluations` | Evaluation queue plus configurable rubric version workspace. |
 | `/admin/terms` | Draft/published/retired terms management and immutable accepted-version history. |
 
-The owner can create and publish rubric and terms versions; editors can review and evaluate but cannot perform owner-only administration; viewers can read staff records but cannot change them. Ordinary participants cannot call staff procedures. **Only the identity whose provider `openId` exactly matches the configured `OWNER_OPEN_ID` receives owner privileges.** A missing or blank `OWNER_OPEN_ID` never elects a fallback owner: legacy project admins receive editor-only access, and stale persisted `portalRole: "owner"` values are downgraded to editor for legacy admins or participant for other users. Owner authority is derived at request time from the verified configured identity, not from a database role alone. Other staff assignments live in `users.portalRole` and must be provisioned through an authorized operator workflow. Explicit viewer/editor roles remain least-privilege assignments. No client-only role toggle exists.
+Only the identity whose provider `openId` exactly matches the configured `OWNER_OPEN_ID` receives owner privileges. A missing or blank `OWNER_OPEN_ID` never elects a fallback owner. Legacy project-admin flags do not grant portal staff access; a user must receive an explicit `editor` or `viewer` assignment from the configured owner. A stale persisted `portalRole: "owner"` value is treated as `participant` unless the identity exactly matches the configured owner. Staff role changes are owner-only, update both `users.portalRole` and the legacy `users.role` flag in the same transaction, and append an audit event. No client-only role toggle exists.
 
 ### First-run access prerequisite
 
@@ -105,7 +105,7 @@ The current preview/dev database and published application share the managed dat
 3. Final submission requires all five declarations and the current published terms version; the exact version, acceptance time, and declaration set are stored with a stable submission ID.
 4. Participant list/detail screens show status, timestamps, next action, evidence, acceptance history, validation/evaluation progress, and only permitted edits/withdrawal; a foreign ID is indistinguishable from a missing ID.
 5. Admin queue filters on status/category/date/participant/project and excludes drafts. Review detail provides all requested materials/declarations/terms/validation/evaluation/decision/audit records.
-6. Owners can configure/publish terms and rubrics; accepted terms text and published rubric versions cannot be overwritten. Editors can review/evaluate but cannot use owner-only operations; viewers are read-only; participants receive `FORBIDDEN` from staff-only procedures.
+6. Only the configured owner can provision staff or configure/publish terms and rubrics; accepted terms text and published rubric versions cannot be overwritten. Editors can review/evaluate but cannot use owner-only operations; viewers are read-only; participants receive `FORBIDDEN` from staff-only procedures. Demoting/revoking a legacy project administrator must clear both the portal role and legacy admin flag.
 7. The state transition table rejects skipped/reversed/terminal changes; evaluation requires a passing validation and decisions require a submitted evaluation; status/decision/withdrawal actions append actor/time audit records.
 8. Empty/loading/error/success states are present; labels, keyboard focus, contrast, reduced-motion behavior, and mobile navigation/form/table reflow are usable.
 9. `GET /manus-routes.json` returns valid JSON with every current participant/admin page and its dynamic ID patterns.
@@ -123,11 +123,10 @@ These controls are enforced in code and covered by the test suite:
 |---|---|---|
 | Global API rate limiting (sliding window) | `server/_core/rateLimit.ts`, mounted in `server/_core/index.ts` | Keyed per client IP and per surface: `callback` 60/min, `auth` 30/min, `read` 300/min, `write` 120/min. Health probes and static assets are exempt. Responses use `429` + `Retry-After`. |
 | Trusted proxy handling | `server/_core/index.ts` | `TRUST_PROXY_HOPS` (default `0`). Set only behind a known reverse proxy; a spoofable `X-Forwarded-For` would defeat per-IP limits. |
-| Bearer session fallback | `server/_core/sdk.ts` via `ENV.allowBearerSessionFallback` | Disabled in production unless `OVANITE_ENABLE_BEARER_FALLBACK=true`. HttpOnly session cookies remain the default. |
+| Bearer session fallback | `server/_core/sdk.ts` via `ENV.allowBearerSessionFallback` | Disabled by default. Enabled automatically only for explicit `development` or `test` modes; any other environment requires `OVANITE_ENABLE_BEARER_FALLBACK=true`. HttpOnly session cookies remain the default. |
 | Owner-only staff provisioning | `portal.staff.list` / `portal.staff.assignRole`, policy in `server/portal/staff.ts` | Only the configured owner may assign `editor`, `viewer` or `participant`. The owner identity cannot be rewritten through the database, and self-changes are refused. Every change writes a `staff_role_assigned` audit event. |
-| Redacted database logging | `server/_core/redact.ts` | Logs carry only error name, whitelisted code and category — never SQL, hosts, credentials or bound values. |
+| Redacted operational logging | `server/_core/redact.ts` | Database/OAuth/notification/storage operational logs use fixed operation names plus allowlisted error name/code/category. Exception messages, SQL, hosts, response bodies, credentials and bound values are omitted. |
 
-The rate limiter is process-local and bounded (50k tracked buckets). A multi-instance
-deployment must additionally enforce limits at the edge/gateway; the in-process layer
-is not a substitute for that. Automated assessment retains its separate durable
-five-requests-per-staff-account-per-rolling-hour quota.
+The rate limiter is process-local and bounded (50k least-recently-used buckets). Its sliding-window clock is monotonic within a process, and API path matching is normalized to match Express case-insensitive routing. It is not a distributed quota: multi-instance deployments must enforce equivalent limits at a shared edge/gateway. `TRUST_PROXY_HOPS` is strictly parsed and defaults to zero; configure it only when the origin is reachable exclusively through the stated trusted proxy chain. Automated assessment retains its separate durable five-requests-per-staff-account-per-rolling-hour quota.
+
+Newly issued portal session JWTs expire after 12 hours. This bounds exposure but does not provide immediate per-token revocation: a stolen token remains usable until expiry unless the signing secret is rotated. A server-side session registry/revocation design remains a separate release-hardening item.

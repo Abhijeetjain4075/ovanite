@@ -21,7 +21,7 @@ vi.mock("../_core/env", () => ({
   },
 }));
 
-const { assessmentCallbackHandler } = await import("./assessmentCallback");
+const { registerAssessmentCallbackRoute } = await import("./assessmentCallbackRoute");
 
 const SECRET = "test-callback-secret";
 let server: Server;
@@ -30,11 +30,7 @@ let baseUrl = "";
 function buildApp() {
   const app = express();
   app.disable("x-powered-by");
-  app.use(express.json({ limit: "1mb" }));
-  app.use(express.urlencoded({ limit: "32kb", extended: false, parameterLimit: 100 }));
-  app.post("/api/assessment/callback", (req, res, next) => {
-    void assessmentCallbackHandler(req, res).catch(next);
-  });
+  registerAssessmentCallbackRoute(app);
   return app;
 }
 
