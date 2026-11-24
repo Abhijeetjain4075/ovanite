@@ -3,6 +3,7 @@
 // Downloads return /manus-storage/{key} paths served via 307 redirect.
 
 import { ENV } from "./_core/env";
+import { requireStorageKey } from "./_core/storageKeys";
 
 function getForgeConfig() {
   const forgeUrl = ENV.forgeApiUrl;
@@ -18,7 +19,9 @@ function getForgeConfig() {
 }
 
 function normalizeKey(relKey: string): string {
-  return relKey.replace(/^\/+/, "");
+  // Rejects traversal, absolute paths, separators the backend may normalize and
+  // over-long keys before they reach the presign endpoint.
+  return requireStorageKey(relKey);
 }
 
 function appendHashSuffix(relKey: string): string {

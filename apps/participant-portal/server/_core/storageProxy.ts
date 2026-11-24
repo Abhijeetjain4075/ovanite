@@ -1,12 +1,21 @@
 import type { Express } from "express";
 import { ENV } from "./env";
 import { describeOperationalFailure } from "./redact";
+import { normalizeStorageKey } from "./storageKeys";
 
 export function registerStorageProxy(app: Express) {
   app.get("/manus-storage/*", async (req, res) => {
-    const key = (req.params as Record<string, string>)[0];
-    if (!key) {
+    const rawKey = (req.params as Record<string, string>)[0];
+    if (!rawKey) {
       res.status(400).send("Missing storage key");
+      return;
+    }
+
+    // This route forwards the key to the presign endpoint. Validate it here so a
+    // crafted `..`-style or absolute key is refused before any upstream call.
+    const key = normalizeStorageKey(rawKey);
+    if (!key) {
+      res.status(400).send("Invalid storage key");
       return;
     }
 

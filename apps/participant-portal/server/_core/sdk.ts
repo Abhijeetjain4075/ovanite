@@ -211,6 +211,12 @@ class SDKServer {
       const secretKey = this.getSessionSecret();
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
+        // A session is only meaningful with both timestamps present: an `exp`
+        // makes it expire, and an `iat` lets a forged long-lived token be told
+        // apart from one this server actually issued. `clockTolerance` absorbs
+        // small skew instead of flapping sessions at the boundary.
+        requiredClaims: ["exp", "iat"],
+        clockTolerance: 5,
       });
       const { openId, appId, name } = payload as Record<string, unknown>;
 

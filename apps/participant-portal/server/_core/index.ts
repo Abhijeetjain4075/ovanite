@@ -37,6 +37,13 @@ async function startServer() {
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    // Only in production: local and test traffic is plain HTTP, and HSTS there
+    // would pin a scheme the developer cannot serve. Subdomains are excluded
+    // deliberately—sibling hosts may still be HTTP-only—so this header cannot
+    // lock a domain the portal does not own the TLS story for.
+    if (process.env.NODE_ENV === "production") {
+      res.setHeader("Strict-Transport-Security", "max-age=15552000");
+    }
     next();
   });
   app.use("/api", (_req, res, next) => {
