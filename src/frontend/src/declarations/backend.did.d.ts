@@ -222,9 +222,9 @@ export interface _SERVICE {
   'addAdmin' : ActorMethod<[Principal, AdminRole], boolean>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   /**
-   * / One-time ownership bootstrap. Succeeds only when no owner exists yet and
-   * / `email` matches the configured owner email. After the owner exists this
-   * / always returns `false`, so no caller can self-grant admin access.
+   * / One-time ownership bootstrap. The caller must match the owner principal
+   * / configured in backend source before deployment. The email is only a
+   * / secondary consistency check; it is never sufficient to authorize access.
    */
   'claimOwner' : ActorMethod<[string], boolean>,
   /**
@@ -248,9 +248,6 @@ export interface _SERVICE {
    */
   'deleteSubmission' : ActorMethod<[bigint], boolean>,
   'execute' : ActorMethod<[string], Result>,
-  /**
-   * / Returns the backend's public API documentation as Markdown.
-   */
   'getApiDoc' : ActorMethod<[], string>,
   /**
    * / Returns the caller's admin record, or `null` when not an admin.
@@ -263,7 +260,7 @@ export interface _SERVICE {
   'getFaq' : ActorMethod<[bigint], [] | [Faq]>,
   /**
    * / Returns the aggregate view total for a single route, or `null` when the
-   * / route has never been recorded.
+   * / route has never been recorded. Admin only.
    */
   'getPageViews' : ActorMethod<[string], [] | [RouteViews]>,
   /**
@@ -284,8 +281,9 @@ export interface _SERVICE {
    */
   'isCallerOwner' : ActorMethod<[], boolean>,
   /**
-   * / Returns whether the owner has been claimed yet. While this is `false`,
-   * / `claimOwner` is open to the configured owner email.
+   * / Returns whether owner setup is closed. This is true when an owner already
+   * / exists OR when no owner principal has been configured. It is false only
+   * / while a configured owner principal is eligible to claim an empty deployment.
    */
   'isOwnerClaimed' : ActorMethod<[], boolean>,
   /**
@@ -302,6 +300,7 @@ export interface _SERVICE {
   'listAllProducts' : ActorMethod<[], Array<Product>>,
   /**
    * / Returns every recorded route with its aggregate total, ordered by path.
+   * / Admin only.
    */
   'listPageViews' : ActorMethod<[], Array<RouteViews>>,
   /**
@@ -317,14 +316,9 @@ export interface _SERVICE {
    */
   'listSubmissions' : ActorMethod<[SubmissionFilter], Array<Submission>>,
   /**
-   * / Records one view of a public route. Callable by anyone, including
-   * / anonymous callers, because the frontend only calls it after the visitor
-   * / has consented to analytics.
-   * /
-   * / The path is normalized and validated by the backend; an invalid path or an
-   * / admin route is ignored and stores nothing. The counter is additive and
-   * / stores only an aggregate total — no IP, user agent, principal, or session
-   * / identifier is ever read or stored.
+   * / Records one aggregate view only after a deliberate server-side release.
+   * / Currently closed: callers can bypass frontend consent and invoke canisters
+   * / directly, so consent alone cannot protect state size or cycle consumption.
    */
   'recordPageView' : ActorMethod<[string], RecordViewResult>,
   /**
@@ -353,15 +347,13 @@ export interface _SERVICE {
     [] | [Submission]
   >,
   /**
-   * / Stores a Contact submission. Callable by anyone, including anonymous.
-   * / Returns `#created` with the new record, or `#duplicate` with the existing
-   * / record when the same normalized email and message were already received.
+   * / Contact writes remain unavailable until the backend release policy is
+   * / deliberately enabled after production anti-abuse and privacy controls pass.
    */
   'submitContact' : ActorMethod<[ContactInput], SubmitResult>,
   /**
-   * / Stores a Waitlist submission. Callable by anyone, including anonymous.
-   * / Returns `#created` with the new record, or `#duplicate` with the existing
-   * / record when the same normalized email and note were already received.
+   * / Waitlist writes remain unavailable until the backend release policy is
+   * / deliberately enabled after production anti-abuse and privacy controls pass.
    */
   'submitWaitlist' : ActorMethod<[WaitlistInput], SubmitResult>,
   /**

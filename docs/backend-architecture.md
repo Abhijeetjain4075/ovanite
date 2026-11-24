@@ -37,6 +37,12 @@ The backend has a dedicated `admins` map. It is authoritative for Ovanite conten
 
 The policy is enforced inside Motoko methods. The UI is not a security boundary. The owner role is unique and reserved for the one-time bootstrap; normal `addAdmin` and `setAdminRole` operations must never assign `#owner` to a second principal. Owners cannot be demoted or removed.
 
+### Bundled access-control map (not authoritative)
+
+`MixinAuthorization` from `caffeineai-authorization` also contributes `_initialize_access_control`, `_internet_identity_sign_in_start/finish`, `assignCallerUserRole`, `getCallerUserRole` and `isCallerAdmin`. In that dependency, the **first** non-anonymous caller of either initializer becomes `#admin` in its own `userRoles` map, and an `#admin` there may assign roles to anyone. Its state is created by `AccessControl.initState()` in migration `20260918_120000`, so the window exists on a fresh install.
+
+That map grants no Ovanite privilege: every privileged method resolves authority from the `admins` map via `lib/admin.mo`, and no application code calls `isCallerAdmin`, `getCallerUserRole`, `hasPermission` or `AccessControl.isAdmin` — the UI gates on the backend's own `getCallerAdmin`. The practical exposure is therefore a misleading signal plus unused stable state, not an authorization bypass. Do not build on those endpoints. Removing the mixin (and its five methods) is the intended end state; it is deferred because it changes the Candid surface and must be validated by the PocketIC lane, which cannot run in an offline sandbox.
+
 ### Safe owner bootstrap
 
 `src/backend/lib/admin.mo` deliberately defaults `ownerPrincipalText` to `null`. In that state, owner bootstrap fails closed and `isOwnerClaimed()` returns `true`. A reviewed release may configure the exact operator principal only after the final Internet Identity origin is established and the operator obtains the principal on that origin.
@@ -48,7 +54,7 @@ The configured principal is the primary identity check; the configured email is 
 - **Products and FAQs:** records receive backend-generated IDs and timestamps. New items start as drafts; only published items are exposed by public list methods. Counts are bounded at 100 products and 100 FAQs. Field lengths are validated by the canister, not only by the frontend.
 - **Site content:** a single typed record provides optional editable copy. Patches preserve absent fields and reject overlong text.
 - **Contact/Waitlist submissions:** stored records have kind, status, timestamps, and bounded input fields. Duplicate detection is scoped by kind and compares normalized email plus normalized message/note. Duplicate receipts are redacted. The API exists but direct public writes are blocked by a server-side policy until operational and privacy controls pass.
-- **Analytics:** stores aggregate route totals rather than visitor-level rows. Public write calls are blocked until a finite canonical route set and effective ingress abuse/cost controls are verified. Public query methods expose aggregate counts only.
+- **Analytics:** stores aggregate route totals rather than visitor-level rows. Public write calls are blocked until a finite canonical route set and effective ingress abuse/cost controls are verified. Aggregate reads (`getPageViews`, `listPageViews`) require a registered admin: per-route totals reveal which internal paths exist and how much attention each receives, so they are operational data rather than public content.
 - **Object storage:** the existing Caffeine storage adapter and legacy blob type remain in the schema. Independent gateway compatibility, upload/read/delete, file-size/type validation, and access isolation have not been proven; image blob operations must remain disabled until those experiments pass. Optional external HTTPS image URLs do not establish a storage backend.
 
 ## 5. API and resource controls

@@ -95,7 +95,7 @@ actor {
   // redeclare it.
   include ContentApi(accessControlState, admins, products, faqs, siteContent, nextProductId, nextFaqId);
   include SubmissionsApi(accessControlState, admins, submissions, nextSubmissionId);
-  include AnalyticsApi(pageViews);
+  include AnalyticsApi(pageViews, admins);
   include ApiDocMixin();
 
   include Expose({

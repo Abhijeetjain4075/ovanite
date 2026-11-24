@@ -7,6 +7,7 @@ type AccessControlState__201339279 =
 type AdminRole__1048149468 = {#editor; #owner; #viewer};
 type AdminRole__188511608 = {#editor; #owner; #viewer};
 type AdminRole__282361506 = {#editor; #owner; #viewer};
+type AdminRole__304174470 = {#editor; #owner; #viewer};
 type AdminRole__370406347 = {#editor; #owner; #viewer};
 type Admin__1066016972 =
   {
@@ -39,6 +40,14 @@ type Admin__536392161 =
     isOwner : Bool;
     principal : Principal;
     role : AdminRole__370406347
+  };
+type Admin__571748492 =
+  {
+    addedAt : Nat;
+    email : ?Text;
+    isOwner : Bool;
+    principal : Principal;
+    role : AdminRole__304174470
   };
 type Data__44217153<K, V> = {var count : Nat__227979830; kvs : [var ?(K, V)]};
 type ExternalBlob__671167343 = Blob;
@@ -80,6 +89,16 @@ type Faq__919548330 =
     question : Text;
     sortOrder : Nat;
     state : PublishState__923480042;
+    updatedAt : Nat
+  };
+type Faq__971244227 =
+  {
+    answer : Text;
+    createdAt : Nat;
+    id : Nat;
+    question : Text;
+    sortOrder : Nat;
+    state : PublishState__245899616;
     updatedAt : Nat
   };
 type Id__389469852 = Nat;
@@ -131,6 +150,19 @@ type NewActor__203844680 =
     siteContent : {var value : SiteContent__239459790};
     submissions : Map__230067015<Nat, Submission__164109516>
   };
+type NewActor__749699352 =
+  {
+    accessControlState : AccessControlState__201339279;
+    admins : Map__230067015<Principal, Admin__571748492>;
+    faqs : Map__230067015<Nat, Faq__971244227>;
+    nextFaqId : {var value : Nat};
+    nextProductId : {var value : Nat};
+    nextSubmissionId : {var value : Nat};
+    pageViews : Map__230067015<Text, RouteViews__1026399664>;
+    products : Map__230067015<Nat, Product__719796312>;
+    siteContent : {var value : SiteContent__92260471};
+    submissions : Map__230067015<Nat, Submission__716705058>
+  };
 type Node__204828119<K, V> =
   {#internal : Internal__283199666<K, V>; #leaf : Leaf__598469445<K, V>};
 type OldActor__1057821239 = {};
@@ -146,6 +178,19 @@ type OldActor__123798521 =
     siteContent : {var value : SiteContent__879479076};
     submissions : Map__230067015<Nat, Submission__475883190>
   };
+type OldActor__295449593 =
+  {
+    accessControlState : AccessControlState__201339279;
+    admins : Map__230067015<Principal, Admin__571748492>;
+    faqs : Map__230067015<Nat, Faq__971244227>;
+    nextFaqId : {var value : Nat};
+    nextProductId : {var value : Nat};
+    nextSubmissionId : {var value : Nat};
+    pageViews : Map__230067015<Text, RouteViews__1026399664>;
+    products : Map__230067015<Nat, OldProduct__737541276>;
+    siteContent : {var value : SiteContent__92260471};
+    submissions : Map__230067015<Nat, Submission__716705058>
+  };
 type OldActor__312849499 =
   {
     accessControlState : AccessControlState__201339279;
@@ -157,6 +202,18 @@ type OldActor__312849499 =
     products : Map__230067015<Nat, Product__903118678>;
     siteContent : {var value : SiteContent__661860637};
     submissions : Map__230067015<Nat, Submission__989587704>
+  };
+type OldProduct__737541276 =
+  {
+    createdAt : Nat;
+    description : Text;
+    id : Nat;
+    imageKey : ?Blob;
+    link : ?Text;
+    name : Text;
+    sortOrder : Nat;
+    state : PublishState__245899616;
+    updatedAt : Nat
   };
 type Product__265470414 =
   {
@@ -188,11 +245,25 @@ type Product__532689755 =
     description : Text;
     id : Id__614397628;
     imageKey : ?ExternalBlob__671167343;
+    imageUrl : ?Text;
     link : ?Text;
     name : Text;
     sortOrder : Nat;
     state : PublishState__335868144;
     updatedAt : Timestamp__622751799
+  };
+type Product__719796312 =
+  {
+    createdAt : Nat;
+    description : Text;
+    id : Nat;
+    imageKey : ?Blob;
+    imageUrl : ?Text;
+    link : ?Text;
+    name : Text;
+    sortOrder : Nat;
+    state : PublishState__245899616;
+    updatedAt : Nat
   };
 type Product__903118678 =
   {
@@ -206,12 +277,15 @@ type Product__903118678 =
     state : PublishState__97546103;
     updatedAt : Nat
   };
+type PublishState__245899616 = {#draft; #published};
 type PublishState__299957858 = {#draft; #published};
 type PublishState__335868144 = PublishState__376178435;
 type PublishState__376178435 = {#draft; #published};
 type PublishState__923480042 = {#draft; #published};
 type PublishState__97546103 = {#draft; #published};
 type RoutePath__807356477 = Text;
+type RouteViews__1026399664 =
+  {firstSeenAt : Nat; lastSeenAt : Nat; path : Text; views : Nat};
 type RouteViews__187164267 =
   {
     firstSeenAt : Timestamp__532962028;
@@ -313,14 +387,39 @@ type SiteContent__881732346 =
     waitlistBody : ?Text;
     waitlistTitle : ?Text
   };
+type SiteContent__92260471 =
+  {
+    aboutBody : ?Text;
+    aboutTitle : ?Text;
+    approachBody : ?Text;
+    approachTitle : ?Text;
+    contactBody : ?Text;
+    contactTitle : ?Text;
+    footerText : ?Text;
+    heroDescription : ?Text;
+    heroHeadline : ?Text;
+    philosophyBody : ?Text;
+    philosophyTitle : ?Text;
+    primaryCtaHref : ?Text;
+    primaryCtaLabel : ?Text;
+    privacyBody : ?Text;
+    secondaryCtaHref : ?Text;
+    secondaryCtaLabel : ?Text;
+    termsBody : ?Text;
+    updatedAt : Nat;
+    waitlistBody : ?Text;
+    waitlistTitle : ?Text
+  };
 type SubmissionKind__247731955 = {#contact; #waitlist};
 type SubmissionKind__651138402 = {#contact; #waitlist};
 type SubmissionKind__765154560 = {#contact; #waitlist};
 type SubmissionKind__81070844 = SubmissionKind__651138402;
 type SubmissionKind__84594115 = {#contact; #waitlist};
+type SubmissionKind__917684044 = {#contact; #waitlist};
 type SubmissionStatus__373353961 = {#handled; #new; #read};
 type SubmissionStatus__403064977 = SubmissionStatus__373353961;
 type SubmissionStatus__546261358 = {#handled; #new; #read};
+type SubmissionStatus__823484822 = {#handled; #new; #read};
 type SubmissionStatus__857238658 = {#handled; #new; #read};
 type SubmissionStatus__929060904 = {#handled; #new; #read};
 type Submission__164109516 =
@@ -356,6 +455,17 @@ type Submission__475883190 =
     status : SubmissionStatus__546261358;
     updatedAt : Nat
   };
+type Submission__716705058 =
+  {
+    createdAt : Nat;
+    email : Text;
+    id : Nat;
+    kind : SubmissionKind__917684044;
+    message : ?Text;
+    name : Text;
+    status : SubmissionStatus__823484822;
+    updatedAt : Nat
+  };
 type Submission__989587704 =
   {
     createdAt : Nat;
@@ -376,7 +486,8 @@ type UserRole__91647283 = {#admin; #guest; #user};
 {
   "20260918_120000" : (old : OldActor__1057821239) -> NewActor__203844680;
   "20260918_130000" : (old : OldActor__312849499) -> NewActor__1050493409;
-  "20260918_140000" : (old : OldActor__123798521) -> NewActor__144220675
+  "20260918_140000" : (old : OldActor__123798521) -> NewActor__144220675;
+  "20261029_150000" : (old : OldActor__295449593) -> NewActor__749699352
 }
 actor  {
   stable accessControlState :

@@ -256,9 +256,9 @@ service : {
   /// Grants admin access to `principal` with `role`. Owner only.
   addAdmin: ("principal": principal, role: AdminRole) -> (bool);
   assignCallerUserRole: (user: principal, role: UserRole) -> ();
-  /// One-time ownership bootstrap. Succeeds only when no owner exists yet and
-  /// `email` matches the configured owner email. After the owner exists this
-  /// always returns `false`, so no caller can self-grant admin access.
+  /// One-time ownership bootstrap. The caller must match the owner principal
+  /// configured in backend source before deployment. The email is only a
+  /// secondary consistency check; it is never sufficient to authorize access.
   claimOwner: (email: text) -> (bool);
   /// Creates an FAQ. Admin only.
   createFaq: (input: FaqInput) -> (Faq);
@@ -271,7 +271,6 @@ service : {
   /// Deletes a submission. Admin only.
   deleteSubmission: (id: nat) -> (bool);
   execute: (qJson: text) -> (Result) query;
-  /// Returns the backend's public API documentation as Markdown.
   getApiDoc: () -> (text) query;
   /// Returns the caller's admin record, or `null` when not an admin.
   getCallerAdmin: () -> (opt Admin) query;
@@ -279,7 +278,7 @@ service : {
   /// A single FAQ by id. Admin only.
   getFaq: (id: nat) -> (opt Faq) query;
   /// Returns the aggregate view total for a single route, or `null` when the
-  /// route has never been recorded.
+  /// route has never been recorded. Admin only.
   getPageViews: (path: text) -> (opt RouteViews) query;
   /// A single product by id. Admin only.
   getProduct: (id: nat) -> (opt Product) query;
@@ -290,8 +289,9 @@ service : {
   isCallerAdmin: () -> (bool) query;
   /// Returns whether the caller is the owner.
   isCallerOwner: () -> (bool) query;
-  /// Returns whether the owner has been claimed yet. While this is `false`,
-  /// `claimOwner` is open to the configured owner email.
+  /// Returns whether owner setup is closed. This is true when an owner already
+  /// exists OR when no owner principal has been configured. It is false only
+  /// while a configured owner principal is eligible to claim an empty deployment.
   isOwnerClaimed: () -> (bool) query;
   /// Every admin. Admin only.
   listAdmins: () -> (vec Admin) query;
@@ -300,6 +300,7 @@ service : {
   /// Every product, published or not. Admin only.
   listAllProducts: () -> (vec Product) query;
   /// Returns every recorded route with its aggregate total, ordered by path.
+  /// Admin only.
   listPageViews: () -> (vec RouteViews) query;
   /// Up to `limit` published FAQs in admin-defined order.
   listPublishedFaqs: (limit: nat) -> (vec Faq) query;
@@ -307,14 +308,9 @@ service : {
   listPublishedProducts: () -> (vec Product) query;
   /// Submissions matching `filter`, newest first. Admin only.
   listSubmissions: (filter: SubmissionFilter) -> (vec Submission) query;
-  /// Records one view of a public route. Callable by anyone, including
-  /// anonymous callers, because the frontend only calls it after the visitor
-  /// has consented to analytics.
-  /// 
-  /// The path is normalized and validated by the backend; an invalid path or an
-  /// admin route is ignored and stores nothing. The counter is additive and
-  /// stores only an aggregate total — no IP, user agent, principal, or session
-  /// identifier is ever read or stored.
+  /// Records one aggregate view only after a deliberate server-side release.
+  /// Currently closed: callers can bypass frontend consent and invoke canisters
+  /// directly, so consent alone cannot protect state size or cycle consumption.
   recordPageView: (path: text) -> (RecordViewResult);
   /// Revokes admin access from `principal`. Owner only; the owner cannot be
   /// removed.
@@ -329,13 +325,11 @@ service : {
   /// Sets a submission's review status. Admin only.
   setSubmissionStatus: (id: nat, status: SubmissionStatus) ->
    (opt Submission);
-  /// Stores a Contact submission. Callable by anyone, including anonymous.
-  /// Returns `#created` with the new record, or `#duplicate` with the existing
-  /// record when the same normalized email and message were already received.
+  /// Contact writes remain unavailable until the backend release policy is
+  /// deliberately enabled after production anti-abuse and privacy controls pass.
   submitContact: (input: ContactInput) -> (SubmitResult);
-  /// Stores a Waitlist submission. Callable by anyone, including anonymous.
-  /// Returns `#created` with the new record, or `#duplicate` with the existing
-  /// record when the same normalized email and note were already received.
+  /// Waitlist writes remain unavailable until the backend release policy is
+  /// deliberately enabled after production anti-abuse and privacy controls pass.
   submitWaitlist: (input: WaitlistInput) -> (SubmitResult);
   /// Applies a partial update to an FAQ. Admin only.
   updateFaq: (id: nat, patch: FaqPatch) -> (opt Faq);

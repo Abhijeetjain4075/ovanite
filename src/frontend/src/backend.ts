@@ -325,9 +325,9 @@ export interface backendInterface {
     addAdmin(principal: Principal, role: AdminRole): Promise<boolean>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     /**
-     * / One-time ownership bootstrap. Succeeds only when no owner exists yet and
-     * / `email` matches the configured owner email. After the owner exists this
-     * / always returns `false`, so no caller can self-grant admin access.
+     * / One-time ownership bootstrap. The caller must match the owner principal
+     * / configured in backend source before deployment. The email is only a
+     * / secondary consistency check; it is never sufficient to authorize access.
      */
     claimOwner(email: string): Promise<boolean>;
     /**
@@ -351,9 +351,6 @@ export interface backendInterface {
      */
     deleteSubmission(id: bigint): Promise<boolean>;
     execute(qJson: string): Promise<Result>;
-    /**
-     * / Returns the backend's public API documentation as Markdown.
-     */
     getApiDoc(): Promise<string>;
     /**
      * / Returns the caller's admin record, or `null` when not an admin.
@@ -366,7 +363,7 @@ export interface backendInterface {
     getFaq(id: bigint): Promise<Faq | null>;
     /**
      * / Returns the aggregate view total for a single route, or `null` when the
-     * / route has never been recorded.
+     * / route has never been recorded. Admin only.
      */
     getPageViews(path: string): Promise<RouteViews | null>;
     /**
@@ -387,8 +384,9 @@ export interface backendInterface {
      */
     isCallerOwner(): Promise<boolean>;
     /**
-     * / Returns whether the owner has been claimed yet. While this is `false`,
-     * / `claimOwner` is open to the configured owner email.
+     * / Returns whether owner setup is closed. This is true when an owner already
+     * / exists OR when no owner principal has been configured. It is false only
+     * / while a configured owner principal is eligible to claim an empty deployment.
      */
     isOwnerClaimed(): Promise<boolean>;
     /**
@@ -405,6 +403,7 @@ export interface backendInterface {
     listAllProducts(): Promise<Array<Product>>;
     /**
      * / Returns every recorded route with its aggregate total, ordered by path.
+     * / Admin only.
      */
     listPageViews(): Promise<Array<RouteViews>>;
     /**
@@ -420,14 +419,9 @@ export interface backendInterface {
      */
     listSubmissions(filter: SubmissionFilter): Promise<Array<Submission>>;
     /**
-     * / Records one view of a public route. Callable by anyone, including
-     * / anonymous callers, because the frontend only calls it after the visitor
-     * / has consented to analytics.
-     * /
-     * / The path is normalized and validated by the backend; an invalid path or an
-     * / admin route is ignored and stores nothing. The counter is additive and
-     * / stores only an aggregate total — no IP, user agent, principal, or session
-     * / identifier is ever read or stored.
+     * / Records one aggregate view only after a deliberate server-side release.
+     * / Currently closed: callers can bypass frontend consent and invoke canisters
+     * / directly, so consent alone cannot protect state size or cycle consumption.
      */
     recordPageView(path: string): Promise<RecordViewResult>;
     /**
@@ -453,15 +447,13 @@ export interface backendInterface {
      */
     setSubmissionStatus(id: bigint, status: SubmissionStatus): Promise<Submission | null>;
     /**
-     * / Stores a Contact submission. Callable by anyone, including anonymous.
-     * / Returns `#created` with the new record, or `#duplicate` with the existing
-     * / record when the same normalized email and message were already received.
+     * / Contact writes remain unavailable until the backend release policy is
+     * / deliberately enabled after production anti-abuse and privacy controls pass.
      */
     submitContact(input: ContactInput): Promise<SubmitResult>;
     /**
-     * / Stores a Waitlist submission. Callable by anyone, including anonymous.
-     * / Returns `#created` with the new record, or `#duplicate` with the existing
-     * / record when the same normalized email and note were already received.
+     * / Waitlist writes remain unavailable until the backend release policy is
+     * / deliberately enabled after production anti-abuse and privacy controls pass.
      */
     submitWaitlist(input: WaitlistInput): Promise<SubmitResult>;
     /**
