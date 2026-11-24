@@ -8,6 +8,9 @@ on:
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
       - ".github/workflows/frontend-quality.yml"
+      - ".github/workflows/backend-quality.yml"
+      - ".github/workflows/security.yml"
+      - ".github/workflows/release-gates.yml"
   push:
     branches: [main, mavis]
     paths:
@@ -16,6 +19,9 @@ on:
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
       - ".github/workflows/frontend-quality.yml"
+      - ".github/workflows/backend-quality.yml"
+      - ".github/workflows/security.yml"
+      - ".github/workflows/release-gates.yml"
   workflow_dispatch:
 
 permissions:
@@ -86,6 +92,6 @@ jobs:
           cache: false
       - name: Install pinned actionlint release
         run: "go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12"
-      - name: Lint portal, candidate-assessment, and frontend workflows
+      - name: Lint every workflow
         run: |
-          "$(go env GOPATH)/bin/actionlint" .github/workflows/participant-portal-quality.yml .github/workflows/candidate-static-assessment.yml .github/workflows/frontend-quality.yml
+          "$(go env GOPATH)/bin/actionlint" .github/workflows/participant-portal-quality.yml .github/workflows/candidate-static-assessment.yml .github/workflows/frontend-quality.yml .github/workflows/backend-quality.yml .github/workflows/security.yml .github/workflows/release-gates.yml

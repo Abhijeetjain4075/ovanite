@@ -26,3 +26,11 @@ service-account*.json
 # Local deployment metadata
 .vercel/
 .wrangler/
+
+# Playwright artifacts from the E2E smoke lane
+playwright-report/
+test-results/
+blob-report/
+
+# Generated SBOM output (CI uploads these as artifacts instead)
+sbom/

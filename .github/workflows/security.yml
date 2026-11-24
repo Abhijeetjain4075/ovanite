@@ -1,0 +1,93 @@
+name: Dependency, secret, configuration, and SBOM scanning
+
+on:
+  pull_request:
+    paths:
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "mops.lock"
+      - "mops.toml"
+      - "src/**"
+      - "apps/**"
+      - "scripts/generate-backend-sbom.mjs"
+      - ".github/workflows/security.yml"
+  push:
+    branches: [main, mavis]
+  schedule:
+    # A weekly scan catches advisories published after the code was merged.
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    name: Scan and SBOM for ${{ matrix.tree }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tree: frontend
+            path: src/frontend
+          - tree: backend
+            path: src/backend
+          - tree: participant-portal
+            path: apps/participant-portal
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      # Every tree is scanned for vulnerable dependencies, committed secrets, and
+      # insecure configuration. `ignore-unfixed` keeps the gate about actionable
+      # findings; an unfixed advisory cannot be resolved by changing this repo.
+      - name: Scan ${{ matrix.tree }} sources
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: ${{ matrix.path }}
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Generate CycloneDX SBOM for ${{ matrix.tree }}
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: ${{ matrix.path }}
+          scanners: vuln
+          format: cyclonedx
+          output: sbom/${{ matrix.tree }}-trivy.cdx.json
+          exit-code: "0"
+
+      # Trivy has no Motoko or Mops ecosystem support, so the backend's resolved
+      # dependency graph is documented by this repository's own generator.
+      - name: Generate Mops SBOM for the backend
+        if: matrix.tree == 'backend'
+        run: |
+          set -euo pipefail
+          node scripts/generate-backend-sbom.mjs --check
+          node scripts/generate-backend-sbom.mjs --output sbom/backend-mops.cdx.json
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ matrix.tree }}
+          path: sbom/*.json
+          retention-days: 90
+          if-no-files-found: error

@@ -10,10 +10,14 @@
     "typecheck": "tsc --noEmit",
     "check": "biome check src",
     "fix": "biome check --write src",
-    "test": "vitest run --environment jsdom && node --test scripts/generate-runtime-config.test.mjs"
+    "verify:runtime-config": "node scripts/verify-runtime-config.mjs",
+    "test": "vitest run --environment jsdom && node --test scripts/generate-runtime-config.test.mjs scripts/deployability.test.mjs",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/typography": "0.5.10",
     "@testing-library/jest-dom": "^6.9.1",

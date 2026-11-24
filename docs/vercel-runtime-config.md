@@ -19,6 +19,25 @@ All values written to `env.json` are sent to browsers and must be treated as pub
 
 The build resolves `OVANITE_BACKEND_CANISTER_ID` and `CANISTER_ID_BACKEND` to a single value for both the generated public `env.json` and Caffeine's `useActor(createActor)` integration. If both are set manually, the build fails when they differ. Public Contact/Waitlist forms additionally require `OVANITE_PUBLIC_FORMS_ENABLED=true`; a successful backend health check alone will not activate forms. The flag defaults to false for production builds and must only be enabled after backend persistence, abuse controls, privacy handling, and end-to-end checks pass. The generator validates URL syntax, requires HTTPS for deployed builds, requires an origin-only Internet Identity derivation value, and validates the backend ID as a canonical IC principal. This is syntax validation only; it does not prove that a canister exists, has been deployed, has enough cycles, exposes the expected Candid interface, or is reachable.
 
+## Fail-loud behaviour
+
+A placeholder contract is no longer a silent degradation:
+
+- `node src/frontend/scripts/verify-runtime-config.mjs` refuses the configuration
+  and exits `1` unless `OVANITE_BACKEND_HOST` and `OVANITE_BACKEND_CANISTER_ID`
+  resolve to a deployable value. CI proves both the refusal and the acceptance.
+- `pnpm build` accepts `--require-deployable` so a release pipeline cannot write a
+  non-deployable `dist/env.json` at all.
+- At runtime `src/frontend/src/main.tsx` fetches `/env.json` before mounting. On a
+  non-local origin with a placeholder, malformed or missing contract it logs every
+  problem and renders a visible `role="alert"` panel (and sets
+  `document.documentElement.dataset.runtimeConfigError = "invalid"`) instead of
+  loading an application whose data calls would all fail. Local development only
+  warns, because it intentionally runs without a deployed backend.
+- `node scripts/preflight-production.mjs` refuses a production deployment while the
+  owner principal, canister id, backend host, or any required portal secret is
+  missing. `--self-test` is what CI runs, and it must fail on this repository.
+
 ## Current release blockers
 
 - No independently deployed mainnet backend canister ID has been verified/configured for this Vercel deployment.

@@ -12,10 +12,15 @@
     "fix": "pnpm -r --if-present run fix",
     "bindgen": "caffeine-bindgen --did-file ./src/backend/dist/backend.did --out-dir ./src/frontend/src --actor-interface-file --force && node scripts/normalize-generated-candid-options.mjs",
     "test": "pnpm --dir src/frontend test && pnpm run test:backend",
-    "test:backend": "node test/pocketic/run-backend-lane.mjs"
+    "test:backend": "node test/pocketic/run-backend-lane.mjs",
+    "preflight:production": "node scripts/preflight-production.mjs",
+    "preflight:selftest": "node scripts/preflight-production.mjs --self-test",
+    "sbom:backend": "node scripts/generate-backend-sbom.mjs",
+    "loadtest": "node scripts/load-test.mjs"
   },
   "devDependencies": {
     "@dfinity/pic": "^0.23.0",
+    "@icp-sdk/core": "^5.4.0",
     "sharp": "^0.34.4"
   }
 }

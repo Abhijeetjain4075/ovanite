@@ -1,0 +1,96 @@
+name: Production release gates
+
+# Proves that the release gates are armed, not merely present: the preflight must
+# refuse this unconfigured repository, and the runtime-config verifier must reject
+# placeholder values while accepting a complete environment.
+
+on:
+  pull_request:
+    paths:
+      - "scripts/preflight-production.mjs"
+      - "scripts/load-test.mjs"
+      - "scripts/generate-backend-sbom.mjs"
+      - "src/frontend/scripts/**"
+      - "src/frontend/src/lib/runtimeConfig*"
+      - "src/backend/lib/admin.mo"
+      - "src/backend/main.mo"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/release-gates.yml"
+  push:
+    branches: [main, mavis]
+    paths:
+      - "scripts/preflight-production.mjs"
+      - "scripts/load-test.mjs"
+      - "scripts/generate-backend-sbom.mjs"
+      - "src/frontend/scripts/**"
+      - "src/frontend/src/lib/runtimeConfig*"
+      - "src/backend/lib/admin.mo"
+      - "src/backend/main.mo"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/release-gates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-gates-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Preflight, runtime config, SBOM, and load-test harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Enable Corepack and activate the pinned pnpm version
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Preflight must refuse this unconfigured repository
+        run: node scripts/preflight-production.mjs --self-test
+
+      - name: Runtime config verifier must refuse placeholder values
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node src/frontend/scripts/verify-runtime-config.mjs; then
+            echo "GATE FAILURE: placeholder runtime config was accepted as deployable." >&2
+            exit 1
+          fi
+          echo "Verified: placeholder configuration is refused."
+
+      - name: Runtime config verifier must accept a complete environment
+        env:
+          OVANITE_BACKEND_HOST: https://icp-api.io
+          OVANITE_BACKEND_CANISTER_ID: ryjl3-tyaaa-aaaaa-aaaba-cai
+          OVANITE_II_DERIVATION_ORIGIN: https://ovanite.vercel.app
+          OVANITE_STORAGE_GATEWAY_URL: https://storage.example.test
+          OVANITE_CAFFEINE_PROJECT_ID: public-project-id
+        run: node src/frontend/scripts/verify-runtime-config.mjs
+
+      - name: Release-gate and SBOM unit tests
+        run: >-
+          node --test scripts/generate-backend-sbom.test.mjs
+          scripts/load-test.test.mjs
+          src/frontend/scripts/generate-runtime-config.test.mjs
+          src/frontend/scripts/deployability.test.mjs
+
+      - name: Backend SBOM covers the locked dependency graph
+        run: node scripts/generate-backend-sbom.mjs --check
