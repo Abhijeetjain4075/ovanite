@@ -9,6 +9,7 @@ on:
       - "scripts/normalize-generated-candid-options.mjs"
       - "scripts/normalize-generated-candid-options.test.mjs"
       - "scripts/check-backend-migrations.mjs"
+      - "scripts/verify-backend-contract-parity.mjs"
       - "package.json"
       - "test/pocketic/backend.test.ts"
       - "mops.toml"
@@ -24,6 +25,7 @@ on:
       - "scripts/normalize-generated-candid-options.mjs"
       - "scripts/normalize-generated-candid-options.test.mjs"
       - "scripts/check-backend-migrations.mjs"
+      - "scripts/verify-backend-contract-parity.mjs"
       - "package.json"
       - "test/pocketic/backend.test.ts"
       - "mops.toml"
@@ -134,6 +136,15 @@ jobs:
             -- src/frontend/src/backend.ts \
                src/frontend/src/backend.d.ts \
                src/frontend/src/declarations
+
+      - name: Verify Candid, generated IDL and wrapper agree on names and modes
+        # Regeneration proves the files are current; this proves they agree with
+        # each other on every method name and on query/update mode, so a
+        # hand-edited DID or a partially regenerated binding cannot ship.
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-backend-contract-parity.mjs
 
       - name: Deploy to disposable local ICP network and smoke-test public reads
         shell: bash
