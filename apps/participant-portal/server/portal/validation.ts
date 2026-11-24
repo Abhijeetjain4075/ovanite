@@ -16,6 +16,14 @@ export const VALIDATION_CHECK_IDS = [
   "terms_version_current",
 ] as const;
 
+/**
+ * A validation record passes only when every required check is explicitly
+ * `true`. Missing or non-boolean entries fail closed.
+ */
+export function validationOutcome(checks: Record<string, boolean>): "pass" | "fail" {
+  return VALIDATION_CHECK_IDS.every(id => checks[id] === true) ? "pass" : "fail";
+}
+
 export type SubmissionCategory =
   | "Developer tools"
   | "Education"
@@ -83,7 +91,8 @@ export function parsePublicGitHubRepository(value: string): { owner: string; nam
     if (parts.length !== 2) return null;
     const [ownerRaw, repoRaw] = parts;
     const name = repoRaw.replace(/\.git$/i, "");
-    if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/.test(ownerRaw)) return null;
+    // GitHub owner rules: starts and ends alphanumeric, hyphens only inside.
+    if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(ownerRaw)) return null;
     if (!/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/.test(name) || name === "." || name === "..") return null;
     return { owner: ownerRaw, name, fullName: `${ownerRaw}/${name}` };
   } catch {

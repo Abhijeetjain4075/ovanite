@@ -136,4 +136,15 @@ describe("assessment revision resolution", () => {
     await expect(resolvePublicGitHubRevision("https://127.0.0.1/private")).rejects.toBeInstanceOf(AssessmentDispatchError);
     expect(mockFetch).not.toHaveBeenCalled();
   });
+
+  it("rejects dot-segment identifiers the URL parser would collapse", async () => {
+    const mockFetch = vi.fn();
+    vi.stubGlobal("fetch", mockFetch);
+    for (const identifier of ["../repo", "owner/..", "owner/repo.", ".hidden/repo", "owner//repo"]) {
+      await expect(resolvePublicGitHubRevision(identifier)).rejects.toMatchObject({
+        code: "repository_unavailable",
+      });
+    }
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });

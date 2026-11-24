@@ -19,7 +19,7 @@ import { ENV } from "../_core/env";
 import { ownerProcedure, protectedProcedure, reviewerProcedure, router, staffProcedure } from "../_core/trpc";
 import { ACTIVE_PARTICIPANT_WITHDRAWAL_STATES, canTransition, type SubmissionStatus } from "./lifecycle";
 import { DEFAULT_RUBRIC } from "./defaults";
-import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
+import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS, validationOutcome } from "./validation";
 import { AssessmentDispatchError, ASSESSMENT_PIPELINE_VERSION, assessmentWorkflowUrl, dispatchStaticAssessment, resolvePublicGitHubRevision } from "./assessment";
 import { ASSIGNABLE_STAFF_ROLES, describeRoleAssignmentRefusal, evaluateRoleAssignment, planRoleAssignment } from "./staff";
 import { appendAuditEvent, verifyAuditChain } from "./auditChain";
@@ -35,6 +35,22 @@ const criteriaSchema = z.array(z.object({
 const staffFilterSchema = urlFilterSchema.safeExtend({
   status: z.enum(["draft", "submitted", "terms_accepted", "validation", "evaluation", "eligible", "not_eligible", "selected", "rejected", "withdrawn", "archived"]).optional(),
 });
+
+/**
+ * Map a duplicate-key race (two writers inserting the same unique version after
+ * both passed the pre-check) onto the same conflict response as the pre-check,
+ * instead of surfacing a driver error as HTTP 500.
+ */
+function rethrowDuplicateAsConflict(error: unknown, message: string): never {
+  if (
+    typeof error === "object" && error !== null &&
+    ((error as { code?: unknown }).code === "ER_DUP_ENTRY" ||
+      (error as { errno?: unknown }).errno === 1062)
+  ) {
+    throw new TRPCError({ code: "CONFLICT", message });
+  }
+  throw error;
+}
 
 function requireDatabase() {
   return getDb().then(db => {
@@ -177,10 +193,20 @@ export const portalRouter = router({
   audit: router({
     verify: ownerProcedure.query(async () => {
       const db = await requireDatabase();
+      // Report coverage explicitly. A verification that silently stopped at a
+      // row limit would read as "the whole log is intact".
+      const verificationLimit = 10000;
+      const [total] = await db.select({ value: count() }).from(portalAuditEvents);
       const rows = await db.select().from(portalAuditEvents)
         .orderBy(portalAuditEvents.id)
-        .limit(10000);
-      return verifyAuditChain(rows);
+        .limit(verificationLimit);
+      const totalEvents = Number(total?.value ?? rows.length);
+      return {
+        ...verifyAuditChain(rows),
+        verifiedEvents: rows.length,
+        totalEvents,
+        truncated: totalEvents > rows.length,
+      };
     }),
   }),
 
@@ -622,20 +648,22 @@ export const portalRouter = router({
       notes: z.string().trim().max(5000).optional(),
     })).mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const outcome = await db.transaction(async tx => {
+      const result = await db.transaction(async tx => {
         const [record] = await tx.select().from(submissions)
           .where(eq(submissions.id, input.id)).limit(1).for("update");
         if (!record) throw new TRPCError({ code: "NOT_FOUND", message: "Submission not found." });
         if (record.status !== "validation") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Validation results can only be recorded during validation." });
-        const result = Object.values(input.checks).every(Boolean) ? "pass" : "fail";
+        // Compute before the write and store that same value: referencing the
+        // enclosing `const` here read an uninitialized binding and threw.
+        const outcome = validationOutcome(input.checks);
         await tx.insert(validationResults).values({ submissionId: input.id, outcome, checks: input.checks, notes: input.notes || null, validatorId: ctx.user.id, validatorRole: ctx.portalRole });
         await appendAuditEvent(tx, auditValues({
-          submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "validation_recorded",
-          details: { outcome: result, checkCount: Object.keys(input.checks).length },
+          submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,           eventType: "validation_recorded",
+          details: { outcome, checkCount: Object.keys(input.checks).length },
         }));
-        return result;
+        return outcome;
       });
-      return { outcome };
+      return { outcome: result };
     }),
 
     advance: reviewerProcedure.input(z.object({
@@ -677,7 +705,12 @@ export const portalRouter = router({
     saveEvaluation: reviewerProcedure.input(z.object({
       id: submissionIdSchema,
       scores: z.record(z.string(), z.number().int().min(0).max(5)),
-      criterionNotes: z.record(z.string(), z.string().trim().max(2000)),
+      // Bound the number of notes: an unbounded record is unbounded JSON growth
+      // in a column that reviewers control.
+      criterionNotes: z.record(z.string().max(64), z.string().trim().max(2000)).refine(
+        value => Object.keys(value).length <= 50,
+        "Attach notes to at most 50 criteria.",
+      ),
       notes: z.string().trim().max(5000).optional(),
     })).mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
@@ -720,13 +753,17 @@ export const portalRouter = router({
       const db = await requireDatabase();
       const [existing] = await db.select({ version: termsVersions.version }).from(termsVersions).where(eq(termsVersions.version, input.version)).limit(1);
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "That terms version already exists. Create a new version identifier." });
-      await db.transaction(async tx => {
-        await tx.insert(termsVersions).values({
-          version: input.version, title: input.title, content: input.content,
-          declarations: REQUIRED_DECLARATIONS.map(declaration => declaration.label), createdBy: ctx.user.id,
+      try {
+        await db.transaction(async tx => {
+          await tx.insert(termsVersions).values({
+            version: input.version, title: input.title, content: input.content,
+            declarations: REQUIRED_DECLARATIONS.map(declaration => declaration.label), createdBy: ctx.user.id,
+          });
+          await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_created", details: { version: input.version } }));
         });
-        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_created", details: { version: input.version } }));
-      });
+      } catch (error) {
+        rethrowDuplicateAsConflict(error, "That terms version already exists. Create a new version identifier.");
+      }
       return { version: input.version, status: "draft" as const };
     }),
 
@@ -768,10 +805,14 @@ export const portalRouter = router({
       const db = await requireDatabase();
       const [existing] = await db.select({ version: rubricVersions.version }).from(rubricVersions).where(eq(rubricVersions.version, input.version)).limit(1);
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "That rubric version already exists." });
-      await db.transaction(async tx => {
-        await tx.insert(rubricVersions).values({ version: input.version, criteria: input.criteria, createdBy: ctx.user.id });
-        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_created", details: { version: input.version } }));
-      });
+      try {
+        await db.transaction(async tx => {
+          await tx.insert(rubricVersions).values({ version: input.version, criteria: input.criteria, createdBy: ctx.user.id });
+          await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_created", details: { version: input.version } }));
+        });
+      } catch (error) {
+        rethrowDuplicateAsConflict(error, "That rubric version already exists.");
+      }
       return { version: input.version, status: "draft" as const };
     }),
 

@@ -135,6 +135,12 @@ async function startServer() {
     });
   });
 
+  // Unknown API paths must not fall through to the SPA fallback below, which
+  // would answer a client with HTML and HTTP 200 instead of a JSON 404.
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ error: "Not found" });
+  });
+
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {

@@ -29,7 +29,11 @@ function objectValue(value: unknown): Record<string, unknown> | null {
  */
 export async function resolvePublicGitHubRevision(fullName: string): Promise<{ branch: string; sha: string }> {
   const parts = fullName.split("/");
-  if (parts.length !== 2 || parts.some(part => !/^[A-Za-z0-9_.-]{1,100}$/.test(part))) {
+  // Reject `.`/`..` and leading-dot identifiers: the WHATWG URL parser collapses
+  // dot segments, so such a part would silently retarget the api.github.com path.
+  const isSafeIdentifier = (part: string) =>
+    /^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/.test(part) && part !== ".." && !part.endsWith(".");
+  if (parts.length !== 2 || !parts.every(isSafeIdentifier)) {
     throw new AssessmentDispatchError("repository_unavailable", "Only public GitHub repositories with a valid owner/name are supported.");
   }
   const [owner, name] = parts;

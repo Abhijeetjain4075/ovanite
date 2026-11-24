@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { declarationsSchema, draftDataSchema, normalizeWebUrl, submissionDataSchema, urlFilterSchema } from "./validation";
+import {
+  declarationsSchema,
+  draftDataSchema,
+  normalizeWebUrl,
+  parsePublicGitHubRepository,
+  submissionDataSchema,
+  urlFilterSchema,
+  VALIDATION_CHECK_IDS,
+  validationOutcome,
+} from "./validation";
 
 const validSubmission = {
   participantName: "Ada Builder",
@@ -45,6 +54,24 @@ describe("portal input validation", () => {
     expect(draft.projectName).toBe("First draft");
     expect(draft.participantEmail).toBe("");
     expect(draft.repositoryUrl).toBe("");
+  });
+
+  it("passes a validation record only when every required check is explicitly true", () => {
+    const complete = Object.fromEntries(VALIDATION_CHECK_IDS.map(id => [id, true]));
+    expect(validationOutcome(complete)).toBe("pass");
+    expect(validationOutcome({ ...complete, evidence_links_reviewed: false })).toBe("fail");
+    // Fail closed on a missing check and on a non-boolean truthy value.
+    const { evidence_links_reviewed: _omitted, ...missing } = complete;
+    expect(validationOutcome(missing)).toBe("fail");
+    expect(validationOutcome({ ...complete, rights_declaration_reviewed: "yes" as unknown as boolean })).toBe("fail");
+    // Extra keys cannot substitute for a required check.
+    expect(validationOutcome({ unreviewed_extra: true })).toBe("fail");
+  });
+
+  it("rejects GitHub owners that break GitHub's identifier rules", () => {
+    expect(parsePublicGitHubRepository("https://github.com/trailing-/repo")).toBeNull();
+    expect(parsePublicGitHubRepository("https://github.com/-leading/repo")).toBeNull();
+    expect(parsePublicGitHubRepository("https://github.com/a/repo")).not.toBeNull();
   });
 
   it("accepts valid inclusive date filters and rejects invalid/reversed ranges", () => {
