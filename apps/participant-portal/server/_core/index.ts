@@ -22,6 +22,7 @@ import {
   withdrawals,
 } from "../../drizzle/schema";
 import { checkPortalReadiness } from "./readiness";
+import { registerStorageProxy } from "./storageProxy";
 import { createRateLimitMiddleware, parseTrustedProxyHops } from "./rateLimit";
 import { describeOperationalFailure } from "./redact";
 
@@ -106,6 +107,9 @@ async function startServer() {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
   registerOAuthRoutes(app);
+  // Storage helpers hand clients `/manus-storage/<key>` links; without this
+  // mount those links fall through to the SPA fallback and return HTML.
+  registerStorageProxy(app);
 
   app.use(
     "/api/trpc",
