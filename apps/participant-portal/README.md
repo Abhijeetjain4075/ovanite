@@ -127,6 +127,27 @@ These controls are enforced in code and covered by the test suite:
 | Owner-only staff provisioning | `portal.staff.list` / `portal.staff.assignRole`, policy in `server/portal/staff.ts` | Only the configured owner may assign `editor`, `viewer` or `participant`. The owner identity cannot be rewritten through the database, and self-changes are refused. Every change writes a `staff_role_assigned` audit event. |
 | Redacted database logging | `server/_core/redact.ts` | Logs carry only error name, whitelisted code and category — never SQL, hosts, credentials or bound values. |
 
+### Audit log integrity
+
+`portal_audit_events` is hash-chained. Every event is appended through
+`server/portal/auditChain.ts`, which reads the current tail with `FOR UPDATE` inside the
+caller's transaction, hashes a canonical serialization of the event with the predecessor's
+hash, and stores both `prevHash` and `hash` (migration `0003_portal_audit_hash_chain`).
+
+- Appending must use the transaction that performs the audited change. All 20 write sites in
+  `router.ts` and `assessmentCallback.ts` do; an append on the bare pool would still work but
+  would not serialize against concurrent writers.
+- `portal.audit.verify` (owner only) recomputes the chain and reports the first event id that
+  no longer matches, distinguishing a broken link (`missing_predecessor`, e.g. a deleted row)
+  from edited content (`hash_mismatch`).
+- Rows created before the chain have a null `hash` and are reported as `legacyEvents`; they
+  cannot be verified retroactively and the chain restarts after them.
+- The chain makes tampering detectable, not impossible: whoever controls the database can
+  rewrite the whole chain. Anchor the latest `hash` somewhere outside the database (release
+  notes, an external log sink) if that matters for your compliance scope.
+
+Apply the schema change with `pnpm db:migrate` before deploying this revision.
+
 The rate limiter is process-local and bounded (50k tracked buckets). A multi-instance
 deployment must additionally enforce limits at the edge/gateway; the in-process layer
 is not a substitute for that. Automated assessment retains its separate durable

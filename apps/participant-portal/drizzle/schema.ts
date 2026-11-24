@@ -240,10 +240,15 @@ export const portalAuditEvents = mysqlTable(
     fromStatus: varchar("fromStatus", { length: 32 }),
     toStatus: varchar("toStatus", { length: 32 }),
     details: json("details").$type<Record<string, unknown> | null>(),
+    // Hash chain: each row commits to every row before it, so editing or
+    // deleting history is detectable. Null on rows written before the chain.
+    prevHash: varchar("prevHash", { length: 64 }),
+    hash: varchar("hash", { length: 64 }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
     index("audit_submission_idx").on(table.submissionId, table.createdAt),
     index("audit_actor_idx").on(table.actorId, table.createdAt),
+    index("audit_hash_idx").on(table.hash),
   ],
 );

@@ -22,6 +22,7 @@ import { DEFAULT_RUBRIC } from "./defaults";
 import { declarationsSchema, draftDataSchema, parsePublicGitHubRepository, REQUIRED_DECLARATIONS, submissionDataSchema, urlFilterSchema, VALIDATION_CHECK_IDS } from "./validation";
 import { AssessmentDispatchError, ASSESSMENT_PIPELINE_VERSION, assessmentWorkflowUrl, dispatchStaticAssessment, resolvePublicGitHubRevision } from "./assessment";
 import { ASSIGNABLE_STAFF_ROLES, describeRoleAssignmentRefusal, evaluateRoleAssignment } from "./staff";
+import { appendAuditEvent, verifyAuditChain } from "./auditChain";
 
 const submissionIdSchema = z.string().uuid();
 const versionSchema = z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/);
@@ -142,7 +143,7 @@ export const portalRouter = router({
         await tx.update(users)
           .set({ portalRole: input.role, updatedAt: new Date() })
           .where(eq(users.id, target.id));
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           actorId: ctx.user.id,
           actorRole: ctx.portalRole,
           eventType: "staff_role_assigned",
@@ -155,6 +156,21 @@ export const portalRouter = router({
         }));
         return { changed: true as const, role: input.role, userId: target.id };
       });
+    }),
+  }),
+
+  /**
+   * Owner-only integrity check over the append-only audit log. Recomputes the
+   * hash chain and reports the first row that no longer matches, so an edited
+   * or deleted record is attributable to a specific event id.
+   */
+  audit: router({
+    verify: ownerProcedure.query(async () => {
+      const db = await requireDatabase();
+      const rows = await db.select().from(portalAuditEvents)
+        .orderBy(portalAuditEvents.id)
+        .limit(10000);
+      return verifyAuditChain(rows);
     }),
   }),
 
@@ -195,15 +211,20 @@ export const portalRouter = router({
       if (!existing || existing.status !== "draft") {
         throw new TRPCError({ code: "NOT_FOUND", message: "Draft not found or no longer editable." });
       }
-      await db.update(submissions).set({ draftData: input.data, updatedAt: new Date() })
-        .where(and(eq(submissions.id, id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, "draft")));
-      await db.insert(portalAuditEvents).values(auditValues({
-        submissionId: id, actorId: ctx.user.id, actorRole: "participant", eventType: "draft_saved",
-      }));
+      // The state change and its audit link share one transaction: the append
+      // locks the current chain tail, so concurrent saves cannot fork history
+      // or leave a draft edit with no matching audit event.
+      await db.transaction(async tx => {
+        await tx.update(submissions).set({ draftData: input.data, updatedAt: new Date() })
+          .where(and(eq(submissions.id, id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, "draft")));
+        await appendAuditEvent(tx, auditValues({
+          submissionId: id, actorId: ctx.user.id, actorRole: "participant", eventType: "draft_saved",
+        }));
+      });
     } else {
       await db.transaction(async tx => {
         await tx.insert(submissions).values({ id, participantId: ctx.user.id, status: "draft", draftData: input.data });
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: id, actorId: ctx.user.id, actorRole: "participant", eventType: "draft_created",
         }));
       });
@@ -251,13 +272,13 @@ export const portalRouter = router({
           status: "submitted",
           updatedAt: acceptedAt,
         }).where(and(eq(submissions.id, input.id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, "draft")));
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: "participant", eventType: "submission_received",
           fromStatus: "draft", toStatus: "submitted", details: { termsVersion: currentTerms.version },
         }));
         await tx.update(submissions).set({ status: "terms_accepted", updatedAt: acceptedAt })
           .where(and(eq(submissions.id, input.id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, "submitted")));
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: "participant", eventType: "terms_accepted",
           fromStatus: "submitted", toStatus: "terms_accepted",
           details: { termsVersion: currentTerms.version, acceptedAt: acceptedAt.toISOString() },
@@ -293,7 +314,7 @@ export const portalRouter = router({
       await tx.update(submissions).set({
         ...input.data, repositoryKey: repositoryKey || null, updatedAt: new Date(),
       }).where(and(eq(submissions.id, input.id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, "terms_accepted")));
-      await tx.insert(portalAuditEvents).values(auditValues({
+      await appendAuditEvent(tx, auditValues({
         submissionId: input.id, actorId: ctx.user.id, actorRole: "participant", eventType: "participant_update",
         details: { scope: "project_details" },
       }));
@@ -338,7 +359,7 @@ export const portalRouter = router({
       await tx.update(submissions).set({ status: "withdrawn", updatedAt: new Date() })
         .where(and(eq(submissions.id, input.id), eq(submissions.participantId, ctx.user.id), eq(submissions.status, record.status)));
       await tx.insert(withdrawals).values({ submissionId: input.id, participantId: ctx.user.id, reason: input.reason || null });
-      await tx.insert(portalAuditEvents).values(auditValues({
+      await appendAuditEvent(tx, auditValues({
         submissionId: input.id, actorId: ctx.user.id, actorRole: "participant", eventType: "participant_withdrawal",
         fromStatus: record.status, toStatus: "withdrawn", details: { reasonProvided: Boolean(input.reason) },
       }));
@@ -511,7 +532,7 @@ export const portalRouter = router({
           status: "queued",
           workflowUrl: assessmentWorkflowUrl(),
         });
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
           eventType: "automated_assessment_requested",
           details: { assessmentRunId: runId, sourceRepository: repository.fullName, sourceSha: revision.sha, pipelineVersion: ASSESSMENT_PIPELINE_VERSION },
@@ -536,7 +557,7 @@ export const portalRouter = router({
           if (current?.status === "queued") {
             await tx.update(automatedAssessmentRuns).set({ status: "dispatched", updatedAt: new Date() })
               .where(and(eq(automatedAssessmentRuns.id, created.id), eq(automatedAssessmentRuns.status, "queued")));
-            await tx.insert(portalAuditEvents).values(auditValues({
+            await appendAuditEvent(tx, auditValues({
               submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
               eventType: "automated_assessment_dispatched",
               details: { assessmentRunId: created.id, sourceSha: revision.sha },
@@ -555,7 +576,7 @@ export const portalRouter = router({
           await tx.update(automatedAssessmentRuns).set({
             status: "failed", errorCode: safeCode, finishedAt: new Date(), updatedAt: new Date(),
           }).where(eq(automatedAssessmentRuns.id, created.id));
-          await tx.insert(portalAuditEvents).values(auditValues({
+          await appendAuditEvent(tx, auditValues({
             submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
             eventType: "automated_assessment_dispatch_failed",
             details: { assessmentRunId: created.id, errorCode: safeCode, sourceSha: revision.sha },
@@ -598,7 +619,7 @@ export const portalRouter = router({
         if (record.status !== "validation") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Validation results can only be recorded during validation." });
         const result = Object.values(input.checks).every(Boolean) ? "pass" : "fail";
         await tx.insert(validationResults).values({ submissionId: input.id, outcome, checks: input.checks, notes: input.notes || null, validatorId: ctx.user.id, validatorRole: ctx.portalRole });
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "validation_recorded",
           details: { outcome: result, checkCount: Object.keys(input.checks).length },
         }));
@@ -635,7 +656,7 @@ export const portalRouter = router({
         if (["eligible", "not_eligible", "selected", "rejected"].includes(input.to)) {
           await tx.insert(decisions).values({ submissionId: input.id, decision: input.to as "eligible" | "not_eligible" | "selected" | "rejected", note: input.note || null, decidedBy: ctx.user.id, decidedByRole: ctx.portalRole });
         }
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: input.to === "archived" ? "submission_archived" : "status_changed",
           fromStatus: record.status, toStatus: input.to, details: input.note ? { note: input.note } : null,
         }));
@@ -667,7 +688,7 @@ export const portalRouter = router({
           submissionId: input.id, evaluatorId: ctx.user.id, evaluatorRole: ctx.portalRole, rubricVersion: rubric.version,
           scores: input.scores, criterionNotes: input.criterionNotes, notes: input.notes || null, overallScore: weightedScore,
         });
-        await tx.insert(portalAuditEvents).values(auditValues({
+        await appendAuditEvent(tx, auditValues({
           submissionId: input.id, actorId: ctx.user.id, actorRole: ctx.portalRole,
           eventType: "evaluation_submitted", details: { rubricVersion: rubric.version, overallScore: weightedScore },
         }));
@@ -694,7 +715,7 @@ export const portalRouter = router({
           version: input.version, title: input.title, content: input.content,
           declarations: REQUIRED_DECLARATIONS.map(declaration => declaration.label), createdBy: ctx.user.id,
         });
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_created", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_created", details: { version: input.version } }));
       });
       return { version: input.version, status: "draft" as const };
     }),
@@ -710,7 +731,7 @@ export const portalRouter = router({
         if (!draft || draft.status !== "draft") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Published or retired terms versions are immutable. Create a new draft." });
         await tx.update(termsVersions).set({ title: input.title, content: input.content, updatedAt: new Date() })
           .where(and(eq(termsVersions.version, input.version), eq(termsVersions.status, "draft")));
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_updated", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_draft_updated", details: { version: input.version } }));
       });
       return { version: input.version, status: "draft" as const };
     }),
@@ -722,7 +743,7 @@ export const portalRouter = router({
         if (!draft || draft.status !== "draft") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Only a draft terms version can be published." });
         await tx.update(termsVersions).set({ status: "retired", updatedAt: new Date() }).where(eq(termsVersions.status, "published"));
         await tx.update(termsVersions).set({ status: "published", publishedBy: ctx.user.id, publishedAt: new Date(), updatedAt: new Date() }).where(eq(termsVersions.version, input.version));
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_version_published", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "terms_version_published", details: { version: input.version } }));
       });
       return { version: input.version, status: "published" as const };
     }),
@@ -739,7 +760,7 @@ export const portalRouter = router({
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "That rubric version already exists." });
       await db.transaction(async tx => {
         await tx.insert(rubricVersions).values({ version: input.version, criteria: input.criteria, createdBy: ctx.user.id });
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_created", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_created", details: { version: input.version } }));
       });
       return { version: input.version, status: "draft" as const };
     }),
@@ -751,7 +772,7 @@ export const portalRouter = router({
         if (!draft || draft.status !== "draft") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Published or retired rubrics are immutable. Create a new draft." });
         await tx.update(rubricVersions).set({ criteria: input.criteria, updatedAt: new Date() })
           .where(and(eq(rubricVersions.version, input.version), eq(rubricVersions.status, "draft")));
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_updated", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_draft_updated", details: { version: input.version } }));
       });
       return { version: input.version, status: "draft" as const };
     }),
@@ -763,7 +784,7 @@ export const portalRouter = router({
         if (!draft || draft.status !== "draft") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Only a draft rubric version can be published." });
         await tx.update(rubricVersions).set({ status: "retired", updatedAt: new Date() }).where(eq(rubricVersions.status, "published"));
         await tx.update(rubricVersions).set({ status: "published", publishedBy: ctx.user.id, publishedAt: new Date(), updatedAt: new Date() }).where(eq(rubricVersions.version, input.version));
-        await tx.insert(portalAuditEvents).values(auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_version_published", details: { version: input.version } }));
+        await appendAuditEvent(tx, auditValues({ actorId: ctx.user.id, actorRole: ctx.portalRole, eventType: "rubric_version_published", details: { version: input.version } }));
       });
       return { version: input.version, status: "published" as const };
     }),

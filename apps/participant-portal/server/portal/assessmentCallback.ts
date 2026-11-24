@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ENV } from "../_core/env";
 import { getDb } from "../db";
 import { automatedAssessmentRuns, portalAuditEvents } from "../../drizzle/schema";
+import { appendAuditEvent } from "./auditChain";
 
 const countSchema = z.number().int().min(0).max(1000000000);
 const findingSchema = z.object({
@@ -225,7 +226,7 @@ export async function assessmentCallbackHandler(req: Request, res: Response): Pr
         eq(automatedAssessmentRuns.sourceSha, run.sourceSha),
       ));
 
-      await tx.insert(portalAuditEvents).values({
+      await appendAuditEvent(tx, {
         submissionId: run.submissionId,
         actorId: null,
         actorRole: "automation",

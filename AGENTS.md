@@ -25,13 +25,21 @@
 
 ## Head Metadata (SEO and Link Previews)
 
-`src/frontend/index.html` ships with social-sharing meta tags (`description`, `og:title`, `og:description`, `og:type`, `og:image`, `og:image:alt`, `twitter:card`, `twitter:image`). Links shared to this app only render a preview card if these tags are present in the deployed `index.html`.
+`src/frontend/index.html` ships static social-sharing tags: `description`, `og:title`,
+`og:description`, `og:type` and `twitter:card`. Per-route values are applied at runtime by
+`src/frontend/src/components/layout/PageMeta.tsx`, which rewrites title/description/og tags
+and, only when a page passes an `image` prop, adds `og:image`, `og:image:alt` and
+`twitter:image`. Pages that pass no image deliberately remove those three tags so a
+third-party template brand never appears in an Ovanite preview.
 
-When editing `index.html` (e.g. changing the title or favicon):
+There is currently **no default share image**, and Markdown/crawler previews that do not
+execute JavaScript see only the static tags. When adding one:
 
-- **Never remove these meta tags.** Update them instead.
-- Keep `og:title` identical to `<title>`, and `og:description` identical to the `description` meta tag.
-- `og:image` and `twitter:image` must always point to an absolute `https://` URL. Keep the pre-configured default image unless the user explicitly provides or requests a custom share image; a custom image should be 1200×630 pixels.
+- **Never remove the static meta tags.** Update them instead.
+- Keep `og:title` identical to `<title>`, and `og:description` identical to the `description`
+  meta tag.
+- Add an Ovanite-owned 1200×630 asset under `src/frontend/public/assets/`, reference it with
+  an absolute `https://` URL, and pass that URL to `PageMeta` on pages that should show a card.
 
 ## Learnings
 
