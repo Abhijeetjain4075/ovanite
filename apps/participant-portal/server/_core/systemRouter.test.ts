@@ -45,7 +45,7 @@ describe("owner-only system notifications", () => {
       role: "user",
       portalRole: "participant",
     });
-    await expect(caller.notifyOwner({ title: "test", content: "test" })).resolves.toBe(true);
+    await expect(caller.notifyOwner({ title: "test", content: "test" })).resolves.toEqual({ success: true });
     expect(notifyOwnerMock).toHaveBeenCalledTimes(1);
   });
 
