@@ -71,7 +71,8 @@ export type MetricsRegistry = {
  * `other`, which is safe even for scanner traffic hitting random paths.
  */
 export function normalizeRouteLabel(rawUrl: string): string {
-  const path = (rawUrl.split("?")[0] || "/").slice(0, 512);
+  const rawPath = rawUrl.split("?")[0] || "/";
+  const path = rawPath.length > 512 ? "" : rawPath;
   switch (path) {
     case "/api/health":
     case "/api/health/live":
@@ -82,13 +83,17 @@ export function normalizeRouteLabel(rawUrl: string): string {
     default:
       break;
   }
+  // An absurdly long path is not a page route; fold it before any further work.
+  if (!path) return "other";
+  if (path.startsWith("/assets/")) return "static";
   if (path.startsWith("/api/trpc/")) return "/api/trpc";
   if (path.startsWith("/api/oauth")) return "/api/oauth";
   if (path.startsWith("/api/assessment")) return "/api/assessment";
   if (path.startsWith("/manus-storage/")) return "/manus-storage";
   if (path.startsWith("/api/")) return "/api/other";
-  if (path.startsWith("/assets/")) return "static";
-  return path === "/" ? "/" : "other";
+  // SPA page routes (no file extension) are served the same document; anything
+  // that looks like a file request and is not a known asset is scanner noise.
+  return path.includes(".") ? "other" : "static";
 }
 
 function normalizeMethod(method: string): string {

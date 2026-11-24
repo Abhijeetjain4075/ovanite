@@ -54,6 +54,9 @@ describe("normalizeRouteLabel", () => {
     expect(normalizeRouteLabel("/api/unknown/thing")).toBe("/api/other");
     expect(normalizeRouteLabel("/wp-admin.php")).toBe("other");
     expect(normalizeRouteLabel("/assets/index-abc.js")).toBe("static");
+    expect(normalizeRouteLabel("/")).toBe("static");
+    expect(normalizeRouteLabel("/products")).toBe("static");
+    expect(normalizeRouteLabel("/admin/submissions?x=1")).toBe("static");
   });
 
   it("never echoes a long or hostile path", () => {
