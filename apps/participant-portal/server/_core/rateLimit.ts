@@ -24,17 +24,50 @@ export type RateLimiter = {
 
 const MAX_TRACKED_KEYS = 50_000;
 
-export function createRateLimiter(rules: Record<string, RateLimitRule>): RateLimiter {
+export function createRateLimiter(
+  rules: Record<string, RateLimitRule>,
+  maxTrackedKeys: number = MAX_TRACKED_KEYS,
+): RateLimiter {
+  const ruleEntries = Object.entries(rules);
+  if (!Number.isSafeInteger(maxTrackedKeys) || maxTrackedKeys < ruleEntries.length + 1) {
+    throw new Error("Rate limiter capacity must reserve one overflow bucket per surface.");
+  }
+
   const buckets = new Map<string, number[]>();
+  const overflowKeys = new Map<string, string>();
+
+  for (const [ruleName, rule] of ruleEntries) {
+    if (!Number.isSafeInteger(rule.windowMs) || rule.windowMs <= 0 ||
+        !Number.isSafeInteger(rule.max) || rule.max <= 0) {
+      throw new Error(`Invalid rate-limit rule: ${ruleName}`);
+    }
+    const overflowKey = `${ruleName}:\u0000overflow`;
+    overflowKeys.set(ruleName, overflowKey);
+    buckets.set(overflowKey, []);
+  }
+
+  function pruneStaleBuckets(at: number) {
+    for (const [bucketKey, hits] of buckets) {
+      const separator = bucketKey.indexOf(":");
+      const ruleName = bucketKey.slice(0, separator);
+      if (overflowKeys.get(ruleName) === bucketKey) continue;
+      const rule = rules[ruleName];
+      if (!rule || hits.every(timestamp => timestamp <= at - rule.windowMs)) {
+        buckets.delete(bucketKey);
+      }
+    }
+  }
 
   function remember(bucketKey: string, hits: number[]) {
-    // Refresh insertion order so eviction is least-recently-used, not merely
-    // least-recently-created. Per-bucket hit arrays remain bounded by rule.max.
-    if (buckets.has(bucketKey)) buckets.delete(bucketKey);
-    buckets.set(bucketKey, hits);
-    if (buckets.size > MAX_TRACKED_KEYS) {
-      const oldestKey = buckets.keys().next().value;
-      if (oldestKey !== undefined) buckets.delete(oldestKey);
+    // Refresh known buckets. New unique keys never evict a known client's
+    // bucket; once capacity is reached they share the reserved surface bucket.
+    if (buckets.has(bucketKey)) {
+      buckets.delete(bucketKey);
+      buckets.set(bucketKey, hits);
+    } else if (buckets.size < maxTrackedKeys) {
+      buckets.set(bucketKey, hits);
+    } else {
+      throw new Error("Rate limiter overflow bucket invariant violated.");
     }
   }
 
@@ -43,12 +76,14 @@ export function createRateLimiter(rules: Record<string, RateLimitRule>): RateLim
       const rule = rules[ruleName];
       if (!rule) throw new Error(`Unknown rate-limit rule: ${ruleName}`);
       if (!Number.isFinite(at)) throw new Error("Rate-limit clock value must be finite.");
-      if (!Number.isSafeInteger(rule.windowMs) || rule.windowMs <= 0 ||
-          !Number.isSafeInteger(rule.max) || rule.max <= 0) {
-        throw new Error(`Invalid rate-limit rule: ${ruleName}`);
-      }
 
-      const bucketKey = `${ruleName}:${key}`;
+      const requestedKey = `${ruleName}:${key}`;
+      if (!buckets.has(requestedKey) && buckets.size >= maxTrackedKeys) {
+        pruneStaleBuckets(at);
+      }
+      const bucketKey = buckets.has(requestedKey) || buckets.size < maxTrackedKeys
+        ? requestedKey
+        : overflowKeys.get(ruleName)!;
       const windowStart = at - rule.windowMs;
       const previous = buckets.get(bucketKey) ?? [];
       const hits = previous.filter(timestamp => timestamp > windowStart);
@@ -75,6 +110,9 @@ export function createRateLimiter(rules: Record<string, RateLimitRule>): RateLim
 
     reset() {
       buckets.clear();
+      for (const [ruleName, overflowKey] of overflowKeys) {
+        buckets.set(overflowKey, []);
+      }
     },
   };
 }
@@ -98,6 +136,9 @@ function normalizeRequestPath(path: string): string {
  */
 export function rateLimitClass(method: string, path: string): RateLimitClass | null {
   const normalizedPath = normalizeRequestPath(path);
+  if (normalizedPath === "/manus-storage" || normalizedPath.startsWith("/manus-storage/")) {
+    return "read";
+  }
   if (!normalizedPath.startsWith("/api/")) return null;
 
   if (normalizedPath === "/api/health" ||

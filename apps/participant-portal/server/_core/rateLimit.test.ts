@@ -43,11 +43,30 @@ describe("createRateLimiter", () => {
     expect(limiter.check("ip-a", "write", 2).allowed).toBe(false);
   });
 
-  it("rejects an unconfigured rule and malformed limits", () => {
+  it("rejects an unconfigured rule, malformed limits and impossible capacities", () => {
     const limiter = createRateLimiter({ read: { windowMs: 1_000, max: 1 } });
     expect(() => limiter.check("ip-a", "nope", 0)).toThrow(/Unknown rate-limit rule/);
-    expect(() => createRateLimiter({ bad: { windowMs: 0, max: 1 } }).check("ip", "bad", 0))
+    expect(() => createRateLimiter({ bad: { windowMs: 0, max: 1 } }))
       .toThrow(/Invalid rate-limit rule/);
+    expect(() => createRateLimiter({ read: { windowMs: 1_000, max: 1 } }, 1))
+      .toThrow(/reserve one overflow/);
+  });
+
+  it("uses a shared overflow bucket without evicting established clients", () => {
+    const limiter = createRateLimiter({ read: { windowMs: 1_000, max: 2 } }, 2);
+    expect(limiter.check("established", "read", 0).allowed).toBe(true);
+    expect(limiter.check("new-ip-1", "read", 0).allowed).toBe(true);
+    expect(limiter.check("new-ip-2", "read", 1).allowed).toBe(true);
+    expect(limiter.check("new-ip-3", "read", 2).allowed).toBe(false);
+    expect(limiter.check("established", "read", 3).allowed).toBe(true);
+  });
+
+  it("reclaims expired buckets before routing new keys into overflow", () => {
+    const limiter = createRateLimiter({ read: { windowMs: 1_000, max: 2 } }, 2);
+    expect(limiter.check("old-client", "read", 0).allowed).toBe(true);
+    expect(limiter.check("overflow-client", "read", 0).allowed).toBe(true);
+    expect(limiter.check("fresh-client", "read", 1_001).allowed).toBe(true);
+    expect(limiter.check("another-client", "read", 1_002).allowed).toBe(true);
   });
 
   it("rejects non-finite clock values", () => {
@@ -82,6 +101,11 @@ describe("rateLimitClass", () => {
     expect(rateLimitClass("GET", "/")).toBeNull();
     expect(rateLimitClass("GET", "/assets/index-abc123.js")).toBeNull();
     expect(rateLimitClass("GET", "/approvals")).toBeNull();
+  });
+
+  it("classifies the signed storage proxy as a limited read surface", () => {
+    expect(rateLimitClass("GET", "/manus-storage/path/to/object")).toBe("read");
+    expect(rateLimitClass("GET", "/MANUS-STORAGE/path/to/object")).toBe("read");
   });
 
   it("separates callback, auth, read and write surfaces", () => {
