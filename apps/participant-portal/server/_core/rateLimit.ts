@@ -1,22 +1,19 @@
+import { performance } from "node:perf_hooks";
 import type { NextFunction, Request, Response } from "express";
 
 /**
- * Dependency-free sliding-window rate limiter.
+ * Dependency-free sliding-window limiter.
  *
- * The portal previously relied only on a per-staff assessment quota, which does
- * not protect sign-in, OAuth callbacks, anonymous reads, draft saves or callback
- * ingress. This module supplies a bounded, process-local limiter for those
- * surfaces. It is deliberately not a distributed limiter: a multi-instance
- * deployment must also enforce limits at the edge/gateway.
+ * The limiter is process-local and bounded. It is defence-in-depth for a
+ * single Node process, not a distributed/global quota. Multi-instance
+ * deployments must also enforce equivalent limits at a shared edge/gateway.
  */
 
 export type RateLimitRule = { windowMs: number; max: number };
 
 export type RateLimitDecision = {
   allowed: boolean;
-  /** Seconds until the caller may retry. Zero when the request is allowed. */
   retryAfterSeconds: number;
-  /** Remaining requests in the current window after this decision. */
   remaining: number;
 };
 
@@ -25,28 +22,76 @@ export type RateLimiter = {
   reset(): void;
 };
 
-/** Hard cap on tracked buckets so hostile unique-IP traffic cannot grow memory without bound. */
 const MAX_TRACKED_KEYS = 50_000;
 
-export function createRateLimiter(rules: Record<string, RateLimitRule>): RateLimiter {
+export function createRateLimiter(
+  rules: Record<string, RateLimitRule>,
+  maxTrackedKeys: number = MAX_TRACKED_KEYS,
+): RateLimiter {
+  const ruleEntries = Object.entries(rules);
+  if (!Number.isSafeInteger(maxTrackedKeys) || maxTrackedKeys < ruleEntries.length + 1) {
+    throw new Error("Rate limiter capacity must reserve one overflow bucket per surface.");
+  }
+
   const buckets = new Map<string, number[]>();
+  const overflowKeys = new Map<string, string>();
+
+  for (const [ruleName, rule] of ruleEntries) {
+    if (!Number.isSafeInteger(rule.windowMs) || rule.windowMs <= 0 ||
+        !Number.isSafeInteger(rule.max) || rule.max <= 0) {
+      throw new Error(`Invalid rate-limit rule: ${ruleName}`);
+    }
+    const overflowKey = `${ruleName}:\u0000overflow`;
+    overflowKeys.set(ruleName, overflowKey);
+    buckets.set(overflowKey, []);
+  }
+
+  function pruneStaleBuckets(at: number) {
+    for (const [bucketKey, hits] of buckets) {
+      const separator = bucketKey.indexOf(":");
+      const ruleName = bucketKey.slice(0, separator);
+      if (overflowKeys.get(ruleName) === bucketKey) continue;
+      const rule = rules[ruleName];
+      if (!rule || hits.every(timestamp => timestamp <= at - rule.windowMs)) {
+        buckets.delete(bucketKey);
+      }
+    }
+  }
+
+  function remember(bucketKey: string, hits: number[]) {
+    // Refresh known buckets. New unique keys never evict a known client's
+    // bucket; once capacity is reached they share the reserved surface bucket.
+    if (buckets.has(bucketKey)) {
+      buckets.delete(bucketKey);
+      buckets.set(bucketKey, hits);
+    } else if (buckets.size < maxTrackedKeys) {
+      buckets.set(bucketKey, hits);
+    } else {
+      throw new Error("Rate limiter overflow bucket invariant violated.");
+    }
+  }
 
   return {
-    check(key: string, ruleName: string, at: number = Date.now()): RateLimitDecision {
+    check(key: string, ruleName: string, at: number = performance.now()): RateLimitDecision {
       const rule = rules[ruleName];
       if (!rule) throw new Error(`Unknown rate-limit rule: ${ruleName}`);
+      if (!Number.isFinite(at)) throw new Error("Rate-limit clock value must be finite.");
 
-      const bucketKey = `${ruleName}:${key}`;
+      const requestedKey = `${ruleName}:${key}`;
+      if (!buckets.has(requestedKey) && buckets.size >= maxTrackedKeys) {
+        pruneStaleBuckets(at);
+      }
+      const bucketKey = buckets.has(requestedKey) || buckets.size < maxTrackedKeys
+        ? requestedKey
+        : overflowKeys.get(ruleName)!;
       const windowStart = at - rule.windowMs;
       const previous = buckets.get(bucketKey) ?? [];
-      // Evict timestamps that have left the window; the array stays sorted by
-      // construction because every caller passes a monotonically sane clock.
       const hits = previous.filter(timestamp => timestamp > windowStart);
 
       if (hits.length >= rule.max) {
         const oldest = hits[0] ?? at;
         const waitMs = oldest + rule.windowMs - at;
-        buckets.set(bucketKey, hits);
+        remember(bucketKey, hits);
         return {
           allowed: false,
           retryAfterSeconds: Math.max(1, Math.ceil(waitMs / 1000)),
@@ -55,53 +100,96 @@ export function createRateLimiter(rules: Record<string, RateLimitRule>): RateLim
       }
 
       hits.push(at);
-      buckets.set(bucketKey, hits);
-
-      if (buckets.size > MAX_TRACKED_KEYS) {
-        // Map iteration is insertion-ordered: drop the least recently created bucket.
-        const oldestKey = buckets.keys().next().value;
-        if (oldestKey !== undefined) buckets.delete(oldestKey);
-      }
-
-      return { allowed: true, retryAfterSeconds: 0, remaining: Math.max(0, rule.max - hits.length) };
+      remember(bucketKey, hits);
+      return {
+        allowed: true,
+        retryAfterSeconds: 0,
+        remaining: Math.max(0, rule.max - hits.length),
+      };
     },
 
     reset() {
       buckets.clear();
+      for (const [ruleName, overflowKey] of overflowKeys) {
+        buckets.set(overflowKey, []);
+      }
     },
   };
 }
 
 export type RateLimitClass = "callback" | "auth" | "read" | "write";
 
+function normalizeRequestPath(path: string): string {
+  const withoutQuery = path.split("?", 1)[0] ?? path;
+  try {
+    return decodeURIComponent(withoutQuery).toLowerCase();
+  } catch {
+    // Malformed encodings still receive API limits; never fail open.
+    return withoutQuery.toLowerCase();
+  }
+}
+
 /**
- * Classify a request into a limited surface. Health probes are deliberately
- * excluded so a degraded dependency cannot be masked by a 429 from a probe.
+ * Classify every API route consistently with Express's default
+ * case-insensitive routing. Only the three exact health endpoints bypass
+ * limits; similarly prefixed paths do not inherit the exemption.
  */
 export function rateLimitClass(method: string, path: string): RateLimitClass | null {
-  // Only application API traffic is limited; static assets and the SPA shell
-  // must never be throttled by this middleware.
-  if (!path.startsWith("/api/")) return null;
-  if (path.startsWith("/api/health")) return null;
-  if (path === "/api/assessment/callback" || path.startsWith("/api/assessment/callback/")) return "callback";
-  if (path.startsWith("/api/oauth") || path.startsWith("/api/auth")) return "auth";
-  const normalized = method.toUpperCase();
-  if (normalized === "GET" || normalized === "HEAD" || normalized === "OPTIONS") return "read";
+  const normalizedPath = normalizeRequestPath(path);
+  if (normalizedPath === "/manus-storage" || normalizedPath.startsWith("/manus-storage/")) {
+    return "read";
+  }
+  if (!normalizedPath.startsWith("/api/")) return null;
+
+  if (normalizedPath === "/api/health" ||
+      normalizedPath === "/api/health/live" ||
+      normalizedPath === "/api/health/ready") {
+    return null;
+  }
+
+  if (normalizedPath === "/api/assessment/callback" ||
+      normalizedPath.startsWith("/api/assessment/callback/")) {
+    return "callback";
+  }
+  if (normalizedPath === "/api/oauth" ||
+      normalizedPath.startsWith("/api/oauth/") ||
+      normalizedPath === "/api/auth" ||
+      normalizedPath.startsWith("/api/auth/")) {
+    return "auth";
+  }
+
+  const normalizedMethod = method.toUpperCase();
+  if (normalizedMethod === "GET" || normalizedMethod === "HEAD" || normalizedMethod === "OPTIONS") {
+    return "read";
+  }
   return "write";
 }
 
+/**
+ * Numeric proxy-hop trust is safe only when the origin is reachable exclusively
+ * through the configured, fixed proxy chain. Keep zero (the default) otherwise.
+ * Restrict the range and reject malformed values instead of parseInt's
+ * permissive "1garbage" behaviour.
+ */
+export function parseTrustedProxyHops(value: string | undefined): number {
+  const normalized = value?.trim() ?? "";
+  if (normalized === "") return 0;
+  if (!/^(?:0|[1-5])$/.test(normalized)) {
+    throw new Error("TRUST_PROXY_HOPS must be an integer from 0 through 5.");
+  }
+  return Number(normalized);
+}
+
 export const DEFAULT_RATE_LIMITS: Record<RateLimitClass, RateLimitRule> = {
-  // Workers post at most a handful of callbacks per run.
   callback: { windowMs: 60_000, max: 60 },
-  // Sign-in starts and OAuth callbacks are the primary anonymous abuse surface.
   auth: { windowMs: 60_000, max: 30 },
   read: { windowMs: 60_000, max: 300 },
   write: { windowMs: 60_000, max: 120 },
 };
 
 export function clientKey(req: Request): string {
-  // `req.ip` honours Express's trust-proxy setting; never trust
-  // X-Forwarded-For directly here.
+  // Express's req.ip observes only proxies selected by the explicit trust
+  // configuration. Never parse X-Forwarded-For directly.
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 

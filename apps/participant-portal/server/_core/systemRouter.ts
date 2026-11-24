@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { notifyOwner } from "./notification";
-import { adminProcedure, publicProcedure, router } from "./trpc";
+import { ownerProcedure, publicProcedure, router } from "./trpc";
 
 export const systemRouter = router({
   health: publicProcedure
@@ -13,7 +13,8 @@ export const systemRouter = router({
       ok: true,
     })),
 
-  notifyOwner: adminProcedure
+  // Notification is an owner action. Legacy DB admin flags never authorize it.
+  notifyOwner: ownerProcedure
     .input(
       z.object({
         title: z.string().min(1, "title is required"),

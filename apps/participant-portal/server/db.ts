@@ -57,9 +57,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+    } else if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) {
+      // Owner authority is resolved only from the configured identity; do not
+      // grant a second, legacy administrator privilege bit.
+      values.role = "user";
+      updateSet.role = "user";
     }
 
     if (!values.lastSignedIn) {

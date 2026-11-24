@@ -3,10 +3,10 @@ import type { PortalRole } from "./access";
 /**
  * Staff provisioning policy.
  *
- * Owner authority is derived from the configured identity, never from a stored
- * role, so `owner` is not assignable and the configured owner identity cannot be
- * retargeted through the database. Every other staff transition is explicit,
- * least-privilege and auditable.
+ * Owner authority is derived only from the configured provider identity.
+ * Assignable roles never include owner. A role change also removes the separate
+ * legacy project-admin bit so older admin-only procedures cannot override the
+ * portal's explicit least-privilege assignment.
  */
 
 export const ASSIGNABLE_STAFF_ROLES = ["editor", "viewer", "participant"] as const;
@@ -33,17 +33,43 @@ export function evaluateRoleAssignment(input: {
   const target = input.targetOpenId.trim();
   if (!target) return { allowed: false, reason: "owner_identity_immutable" };
 
-  // The configured owner identity is authoritative at request time. Writing a
-  // database role for it would be misleading and could mask configuration drift.
   if (input.ownerOpenId && target === input.ownerOpenId) {
     return { allowed: false, reason: "owner_identity_immutable" };
   }
 
-  // An owner may not demote their own identity, and no actor may rewrite their
-  // own role: that would remove the only accountable approver from the audit.
   if (target === input.actorOpenId) return { allowed: false, reason: "self_change" };
-
   return { allowed: true, nextRole: input.nextRole };
+}
+
+export type RoleAssignmentState = {
+  portalRole: PortalRole;
+  legacyRole: "user" | "admin";
+};
+
+export type RoleAssignmentPlan = {
+  changed: boolean;
+  values: {
+    portalRole: AssignableStaffRole;
+    role: "user";
+  };
+};
+
+/**
+ * Produce one canonical DB transition. Even when the portal role is unchanged,
+ * a legacy admin flag must be cleared; otherwise old admin-only procedures
+ * remain reachable after an apparent revocation/demotion.
+ */
+export function planRoleAssignment(
+  current: RoleAssignmentState,
+  nextRole: AssignableStaffRole,
+): RoleAssignmentPlan {
+  return {
+    changed: current.portalRole !== nextRole || current.legacyRole !== "user",
+    values: {
+      portalRole: nextRole,
+      role: "user",
+    },
+  };
 }
 
 export function describeRoleAssignmentRefusal(reason: RoleAssignmentRefusal): string {

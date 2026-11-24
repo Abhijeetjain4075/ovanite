@@ -1,9 +1,7 @@
 export const COOKIE_NAME = "webdev_app_session";
-// Session lifetime for the signed session JWT and its cookie. The token is
-// stateless, so this is the only bound on how long a stolen cookie stays valid:
-// keep it short enough to limit exposure and long enough to avoid constant
-// re-authentication. Reduce further if a server-side revocation list is added.
-export const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+/** @deprecated Do not use for authentication sessions. */
+export const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
+export const SESSION_LIFETIME_MS = 1000 * 60 * 60 * 12;
 export const AXIOS_TIMEOUT_MS = 30_000;
 export const UNAUTHED_ERR_MSG = 'Please login (10001)';
 export const NOT_ADMIN_ERR_MSG = 'You do not have required permission (10002)';
