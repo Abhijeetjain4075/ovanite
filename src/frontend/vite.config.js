@@ -21,7 +21,9 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     sourcemap: false,
-    minify: false,
+    // Production bundles are minified. Source maps stay disabled so deploy
+    // artefacts do not disclose original source.
+    minify: "esbuild",
   },
   css: {
     postcss: "./postcss.config.js",

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { describeDatabaseOperation } from './_core/redact';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -11,7 +12,9 @@ export async function getDb() {
     try {
       _db = drizzle(process.env.DATABASE_URL);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      // Log only a stable shape: driver messages can embed SQL, hosts and
+      // credentials. See _core/redact.ts.
+      console.warn(describeDatabaseOperation("connect", error));
       _db = null;
     }
   }
@@ -54,9 +57,11 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     if (user.role !== undefined) {
       values.role = user.role;
       updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+    } else if (ENV.ownerOpenId && user.openId === ENV.ownerOpenId) {
+      // Owner authority is resolved only from the configured identity; do not
+      // grant a second, legacy administrator privilege bit.
+      values.role = "user";
+      updateSet.role = "user";
     }
 
     if (!values.lastSignedIn) {
@@ -71,7 +76,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       set: updateSet,
     });
   } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
+    console.error(describeDatabaseOperation("upsertUser", error));
     throw error;
   }
 }

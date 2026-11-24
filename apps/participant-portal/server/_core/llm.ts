@@ -304,8 +304,6 @@ const fetchWithBackoff = async (
   url: string,
   init: FetchInit
 ): Promise<Response> => {
-  let lastError: unknown;
-
   for (let attempt = 0; attempt <= RETRY_MAX_RETRIES; attempt++) {
     try {
       const response = await fetch(url, init);
@@ -325,9 +323,8 @@ const fetchWithBackoff = async (
         `LLM request retry ${attempt + 1}/${RETRY_MAX_RETRIES} after status ${response.status}`
       );
       await sleep(computeBackoffDelay(attempt, retryAfterMs));
-    } catch (error) {
-      lastError = error;
-      if (attempt === RETRY_MAX_RETRIES) throw error;
+    } catch {
+      if (attempt === RETRY_MAX_RETRIES) break;
       console.warn(
         `LLM request retry ${attempt + 1}/${RETRY_MAX_RETRIES} after network error`
       );
@@ -335,9 +332,7 @@ const fetchWithBackoff = async (
     }
   }
 
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("LLM request failed after exhausting retries");
+  throw new Error("LLM request failed after exhausting retries.");
 };
 
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
@@ -412,10 +407,9 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+    await response.body?.cancel().catch(() => undefined);
+    // Provider bodies may echo prompts, credentials or infrastructure details.
+    throw new Error(`LLM invoke failed (HTTP ${response.status}).`);
   }
 
   return (await response.json()) as InvokeResult;
@@ -443,10 +437,8 @@ export async function listLLMModels(): Promise<ModelsResponse> {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `List LLM models failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+    await response.body?.cancel().catch(() => undefined);
+    throw new Error(`List LLM models failed (HTTP ${response.status}).`);
   }
 
   return (await response.json()) as ModelsResponse;

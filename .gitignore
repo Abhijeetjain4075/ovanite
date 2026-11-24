@@ -6,3 +6,23 @@ dist/
 .pnpm-store/
 .cache/
 .icp/
+
+# Secrets and credentials must never be committed. Keep .env.example-style
+# templates tracked so configuration contracts stay documented.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials.json
+service-account*.json
+
+# Local deployment metadata
+.vercel/
+.wrangler/

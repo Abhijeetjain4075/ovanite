@@ -7,7 +7,7 @@ import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { assessmentCallbackHandler } from "../portal/assessmentCallback";
+import { registerAssessmentCallbackRoute } from "../portal/assessmentCallbackRoute";
 import { getDb } from "../db";
 import {
   automatedAssessmentRuns,
@@ -22,6 +22,8 @@ import {
   withdrawals,
 } from "../../drizzle/schema";
 import { checkPortalReadiness } from "./readiness";
+import { createRateLimitMiddleware, parseTrustedProxyHops } from "./rateLimit";
+import { describeOperationalFailure } from "./redact";
 
 async function startServer() {
   const app = express();
@@ -41,13 +43,24 @@ async function startServer() {
     res.setHeader("Cache-Control", "no-store");
     next();
   });
+  // Trust only a bounded number of proxy hops. With the default of zero,
+  // req.ip is the socket address and X-Forwarded-For cannot be spoofed to
+  // evade per-client rate limits. Set TRUST_PROXY_HOPS only behind a known proxy.
+  const proxyHops = parseTrustedProxyHops(process.env.TRUST_PROXY_HOPS);
+  if (proxyHops > 0) app.set("trust proxy", proxyHops);
+
+  // Anonymous abuse protection for every /api surface: sign-in and OAuth
+  // callbacks, worker callbacks, anonymous reads and mutations. Health probes
+  // are exempt, and static assets are never limited.
+  app.use(createRateLimitMiddleware());
+
+  // The callback route registers its own bounded JSON parser before its handler.
+  // Production and HTTP tests share this exact route-registration function.
+  registerAssessmentCallbackRoute(app);
+
+  // Remaining application APIs share bounded body parsers.
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ limit: "32kb", extended: false, parameterLimit: 100 }));
-
-  // Isolated workers can post only schema-validated assessment summaries here.
-  app.post("/api/assessment/callback", (req, res, next) => {
-    void assessmentCallbackHandler(req, res).catch(next);
-  });
 
   // Liveness proves only that the process can answer HTTP requests.
   app.get("/api/health/live", (_req, res) => res.json({ status: "ok" }));
@@ -123,8 +136,14 @@ async function startServer() {
 
   const port = Number(process.env.PORT || "3000");
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
-  server.on("error", error => { console.error("Server failed:", error.message); process.exit(1); });
+  server.on("error", error => {
+    console.error(describeOperationalFailure("server_runtime", error));
+    process.exit(1);
+  });
   server.listen(port, "0.0.0.0", () => console.log(`Server listening on port ${port}`));
 }
 
-startServer().catch(error => { console.error(error); process.exit(1); });
+startServer().catch(error => {
+  console.error(describeOperationalFailure("server_start", error));
+  process.exit(1);
+});

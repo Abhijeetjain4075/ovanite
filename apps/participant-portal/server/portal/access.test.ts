@@ -4,29 +4,27 @@ import { resolvePortalRole } from "./access";
 afterEach(() => vi.unstubAllEnvs());
 
 describe("portal role policy", () => {
-  it("gives owner privileges only to the configured project owner", () => {
+  it("grants owner privileges only to the configured provider identity", () => {
     vi.stubEnv("OWNER_OPEN_ID", "owner-open-id");
     expect(resolvePortalRole({ openId: "owner-open-id", role: "user", portalRole: "participant" })).toBe("owner");
     expect(resolvePortalRole({ openId: "other-open-id", role: "user", portalRole: "participant" })).toBe("participant");
-    expect(resolvePortalRole({ openId: "other-open-id", role: "user", portalRole: "owner" })).toBe("participant");
-    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "owner" })).toBe("editor");
   });
 
-  it("maps an existing project admin to editor, not owner", () => {
+  it("does not turn a legacy project-admin flag into portal editor access", () => {
     vi.stubEnv("OWNER_OPEN_ID", "owner-open-id");
-    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "participant" })).toBe("editor");
+    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "participant" })).toBe("participant");
   });
 
-  it("never elects a fallback owner when owner identity is not configured", () => {
+  it("fails closed for stale persisted owner roles when identity is not configured", () => {
     vi.stubEnv("OWNER_OPEN_ID", "");
-    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "participant" })).toBe("editor");
-    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "owner" })).toBe("editor");
+    expect(resolvePortalRole({ openId: "legacy-admin", role: "admin", portalRole: "owner" })).toBe("participant");
     expect(resolvePortalRole({ openId: "stale-owner", role: "user", portalRole: "owner" })).toBe("participant");
   });
 
-  it("preserves explicit least-privilege viewer and editor assignments", () => {
+  it("preserves explicit viewer and editor assignments irrespective of legacy role", () => {
     vi.stubEnv("OWNER_OPEN_ID", "owner-open-id");
     expect(resolvePortalRole({ openId: "reviewer", role: "admin", portalRole: "viewer" })).toBe("viewer");
-    expect(resolvePortalRole({ openId: "editor", role: "user", portalRole: "editor" })).toBe("editor");
+    expect(resolvePortalRole({ openId: "editor", role: "admin", portalRole: "editor" })).toBe("editor");
+    expect(resolvePortalRole({ openId: "user", role: "user", portalRole: "editor" })).toBe("editor");
   });
 });

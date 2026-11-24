@@ -1,0 +1,12 @@
+# Default owners for the whole repository.
+* @Abhijeetjain4075
+
+# High-risk surfaces need an explicit owner review before merge.
+/src/backend/migrations/ @Abhijeetjain4075
+/src/backend/lib/ @Abhijeetjain4075
+/src/backend/mixins/ @Abhijeetjain4075
+/.github/workflows/ @Abhijeetjain4075
+/apps/participant-portal/server/ @Abhijeetjain4075
+/apps/participant-portal/drizzle/ @Abhijeetjain4075
+/docs/backend-deployment-audit.md @Abhijeetjain4075
+/src/frontend/scripts/ @Abhijeetjain4075

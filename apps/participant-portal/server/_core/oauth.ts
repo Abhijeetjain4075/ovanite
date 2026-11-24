@@ -1,4 +1,5 @@
-import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "@shared/const";
+import { COOKIE_NAME, SESSION_LIFETIME_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "@shared/const";
+import { describeOperationalFailure } from "./redact";
 import { parse as parseCookieHeader } from "cookie";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
@@ -50,15 +51,15 @@ export function registerOAuthRoutes(app: Express) {
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
-        expiresInMs: ONE_YEAR_MS,
+        expiresInMs: SESSION_LIFETIME_MS,
       });
 
       const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: SESSION_LIFETIME_MS });
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error instanceof Error ? error.message : "unknown error");
+      console.error(describeOperationalFailure("oauth_callback", error));
       res.status(500).json({ error: "OAuth callback failed" });
     }
   });
