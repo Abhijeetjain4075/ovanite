@@ -413,6 +413,29 @@ jobs:
           printf '%s\n' "$oversized_image_url"
           grep -Fq 'Product image URL must be 2048 characters or fewer' <<<"$oversized_image_url"
 
+          # Site-copy call-to-action links render as real anchors on the public
+          # site. Exercise the canister boundary directly: a script scheme and a
+          # protocol-relative host are rejected, while an internal path and an
+          # HTTPS URL are accepted.
+          if unsafe_cta="$(icp canister call backend updateSiteContent '(record { primaryCtaHref = opt "javascript:alert(1)" })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a script-scheme CTA link was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$unsafe_cta"
+          grep -Fq 'Site content link must be an https URL or an internal path' <<<"$unsafe_cta"
+
+          if relative_cta="$(icp canister call backend updateSiteContent '(record { secondaryCtaHref = opt "//evil.example" })' --identity ci-editor 2>&1)"; then
+            echo "SECURITY FAILURE: a protocol-relative CTA link was accepted." >&2
+            exit 1
+          fi
+          printf '%s\n' "$relative_cta"
+          grep -Fq 'Site content link must be an https URL or an internal path' <<<"$relative_cta"
+
+          safe_cta="$(icp canister call backend updateSiteContent '(record { primaryCtaHref = opt "/waitlist"; secondaryCtaHref = opt "https://example.com/about" })' --identity ci-editor)"
+          printf '%s\n' "$safe_cta"
+          grep -Fq '/waitlist' <<<"$safe_cta"
+          grep -Fq 'https://example.com/about' <<<"$safe_cta"
+
           # Required content text is bounded in the canister, not just the UI.
           long_question="$(python3 -c 'print("Q" * 301)')"
           if oversized_faq="$(icp canister call backend createFaq "(record { question = \"$long_question\"; answer = \"Bounded answer\"; sortOrder = 101 : nat })" --identity ci-editor 2>&1)"; then

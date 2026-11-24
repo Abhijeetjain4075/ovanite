@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isAbsoluteUrl, resolveSiteCopy } from "@/lib/siteCopy";
+import { isAbsoluteUrl, resolveSiteCopy, safeHref } from "@/lib/siteCopy";
 import type { SiteContent } from "@/types/content";
 
 describe("resolveSiteCopy", () => {
@@ -55,6 +55,40 @@ describe("resolveSiteCopy", () => {
 
     expect(copy.heroHeadline).toBe("Software, built to matter.");
     expect(copy.footerText).toContain("Ovanite builds software products");
+  });
+});
+
+describe("safeHref", () => {
+  it("keeps absolute http(s) URLs and same-origin paths", () => {
+    expect(safeHref("https://example.com/pricing", "/products")).toBe(
+      "https://example.com/pricing",
+    );
+    expect(safeHref("http://example.com", "/products")).toBe(
+      "http://example.com",
+    );
+    expect(safeHref("/waitlist", "/products")).toBe("/waitlist");
+  });
+
+  it("falls back for blank, scheme-relative and script URLs", () => {
+    expect(safeHref(undefined, "/products")).toBe("/products");
+    expect(safeHref("   ", "/products")).toBe("/products");
+    expect(safeHref("//evil.example", "/products")).toBe("/products");
+    expect(safeHref("javascript:alert(1)", "/products")).toBe("/products");
+    expect(safeHref("JAVASCRIPT:alert(1)", "/products")).toBe("/products");
+    expect(safeHref("data:text/html,<script>", "/products")).toBe("/products");
+    expect(safeHref("/\\evil.example", "/products")).toBe("/products");
+    expect(safeHref("products", "/products")).toBe("/products");
+  });
+
+  it("sanitises stored site copy that predates backend validation", () => {
+    const copy = resolveSiteCopy({
+      updatedAt: 0n,
+      primaryCtaHref: "javascript:alert(1)",
+      secondaryCtaHref: "//evil.example",
+    });
+
+    expect(copy.primaryCtaHref).toBe("/products");
+    expect(copy.secondaryCtaHref).toBe("/about");
   });
 });
 

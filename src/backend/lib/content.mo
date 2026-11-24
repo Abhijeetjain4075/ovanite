@@ -35,6 +35,51 @@ module {
     };
   };
 
+  /// Validates an administrator-supplied HTTPS URL at the canister boundary:
+  /// bounded length, HTTPS scheme only, a non-empty host, and no embedded
+  /// credentials or whitespace. `field` names the value in trap messages so the
+  /// callers keep their specific error text without duplicating the parser.
+  func normalizeHttpsUrl(raw : Text, field : Text) : Text {
+    let url = raw.trim(#predicate(Char.isWhitespace));
+    if (Text.size(url) > 2048) {
+      Runtime.trap(field # " must be 2048 characters or fewer");
+    };
+    if (not url.startsWith(#text "https://")) {
+      Runtime.trap(field # " must use HTTPS");
+    };
+
+    // Parse the authority after the eight-character "https://" prefix.
+    // Stop at the first path, query, or fragment delimiter. Starting at
+    // character zero here incorrectly collected "https:" as the host and
+    // rejected every valid HTTPS URL.
+    var authority = "";
+    var inAuthority = true;
+    var index : Nat = 0;
+    for (c in url.chars()) {
+      if (index >= 8 and inAuthority) {
+        if (c == '/' or c == '?' or c == '#') {
+          inAuthority := false;
+        } else {
+          authority := authority # c.toText();
+        };
+      };
+      index += 1;
+    };
+
+    if (Text.size(authority) == 0 or authority.contains(#char '@')) {
+      Runtime.trap(field # " must include a host and must not include credentials");
+    };
+
+    // Reject whitespace anywhere, including in the path, query or fragment.
+    // Trimmed outer whitespace is accepted, then normalized away above.
+    for (c in url.chars()) {
+      if (Char.isWhitespace(c)) {
+        Runtime.trap(field # " must not contain whitespace");
+      };
+    };
+    url;
+  };
+
   /// Product hyperlinks are external URLs, not arbitrary browser schemes.
   /// Restrict them to HTTPS and reject credentials and whitespace.
   func normalizeProductLink(value : ?Text) : ?Text {
@@ -43,34 +88,7 @@ module {
       case (?raw) {
         let url = raw.trim(#predicate(Char.isWhitespace));
         if (url == "") { return null };
-        if (Text.size(url) > 2048) {
-          Runtime.trap("Product link must be 2048 characters or fewer");
-        };
-        if (not url.startsWith(#text "https://")) {
-          Runtime.trap("Product link must use HTTPS");
-        };
-        var authority = "";
-        var inAuthority = true;
-        var index : Nat = 0;
-        for (c in url.chars()) {
-          if (index >= 8 and inAuthority) {
-            if (c == '/' or c == '?' or c == '#') {
-              inAuthority := false;
-            } else {
-              authority := authority # c.toText();
-            };
-          };
-          index += 1;
-        };
-        if (Text.size(authority) == 0 or authority.contains(#char '@')) {
-          Runtime.trap("Product link must include a host and must not include credentials");
-        };
-        for (c in url.chars()) {
-          if (Char.isWhitespace(c)) {
-            Runtime.trap("Product link must not contain whitespace");
-          };
-        };
-        ?url;
+        ?normalizeHttpsUrl(url, "Product link");
       };
     };
   };
@@ -92,43 +110,7 @@ module {
       case (?raw) {
         let url = raw.trim(#predicate(Char.isWhitespace));
         if (url == "") { return null };
-        if (Text.size(url) > 2048) {
-          Runtime.trap("Product image URL must be 2048 characters or fewer");
-        };
-        if (not url.startsWith(#text "https://")) {
-          Runtime.trap("Product image URL must use HTTPS");
-        };
-
-        // Parse the authority after the eight-character "https://" prefix.
-        // Stop at the first path, query, or fragment delimiter. Starting at
-        // character zero here incorrectly collected "https:" as the host and
-        // rejected every valid HTTPS URL.
-        var authority = "";
-        var inAuthority = true;
-        var index : Nat = 0;
-        for (c in url.chars()) {
-          if (index >= 8 and inAuthority) {
-            if (c == '/' or c == '?' or c == '#') {
-              inAuthority := false;
-            } else {
-              authority := authority # c.toText();
-            };
-          };
-          index += 1;
-        };
-
-        if (Text.size(authority) == 0 or authority.contains(#char '@')) {
-          Runtime.trap("Product image URL must include a host and must not include credentials");
-        };
-
-        // Reject whitespace anywhere, including in the path, query or fragment.
-        // Trimmed outer whitespace is accepted, then normalized away above.
-        for (c in url.chars()) {
-          if (Char.isWhitespace(c)) {
-            Runtime.trap("Product image URL must not contain whitespace");
-          };
-        };
-        ?url;
+        ?normalizeHttpsUrl(url, "Product image URL");
       };
     };
   };
@@ -139,6 +121,34 @@ module {
     switch (patch) {
       case null { current };
       case (?value) { normalizeImageUrl(?value) };
+    };
+  };
+
+  /// Site-copy call-to-action links are rendered as real anchors on the public
+  /// site, so any scheme other than http(s) would be stored script execution.
+  /// Accept an HTTPS URL or a same-origin path; `null` keeps the current value
+  /// and an empty string is the explicit clear used by the admin form.
+  func normalizeSiteHref(patch : ?Text, current : ?Text) : ?Text {
+    switch (patch) {
+      case null { current };
+      case (?raw) {
+        let value = raw.trim(#predicate(Char.isWhitespace));
+        if (value == "") { return ?value };
+        if (value.startsWith(#text "https://")) {
+          return ?normalizeHttpsUrl(value, "Site content link");
+        };
+        // Same-origin paths only. A protocol-relative "//host" value would send
+        // the visitor to another origin, so it is rejected like any other scheme.
+        if (not value.startsWith(#text "/") or value.startsWith(#text "//")) {
+          Runtime.trap("Site content link must be an https URL or an internal path");
+        };
+        for (c in value.chars()) {
+          if (Char.isWhitespace(c) or c == '\\') {
+            Runtime.trap("Site content link must not contain whitespace or backslashes");
+          };
+        };
+        ?value;
+      };
     };
   };
 
@@ -398,9 +408,9 @@ module {
       heroHeadline = mergeText(patch.heroHeadline, current.heroHeadline);
       heroDescription = mergeText(patch.heroDescription, current.heroDescription);
       primaryCtaLabel = mergeText(patch.primaryCtaLabel, current.primaryCtaLabel);
-      primaryCtaHref = mergeText(patch.primaryCtaHref, current.primaryCtaHref);
+      primaryCtaHref = normalizeSiteHref(patch.primaryCtaHref, current.primaryCtaHref);
       secondaryCtaLabel = mergeText(patch.secondaryCtaLabel, current.secondaryCtaLabel);
-      secondaryCtaHref = mergeText(patch.secondaryCtaHref, current.secondaryCtaHref);
+      secondaryCtaHref = normalizeSiteHref(patch.secondaryCtaHref, current.secondaryCtaHref);
       philosophyTitle = mergeText(patch.philosophyTitle, current.philosophyTitle);
       philosophyBody = mergeText(patch.philosophyBody, current.philosophyBody);
       approachTitle = mergeText(patch.approachTitle, current.approachTitle);

@@ -20,6 +20,24 @@ function stored(value: string | undefined): string | undefined {
 }
 
 /**
+ * Resolves a stored site-copy href to something safe to render as an anchor.
+ * The canister validates new writes, but a value stored before that validation
+ * existed (or written by a different deployment) must still never become an
+ * active `javascript:`/`data:` link. Only absolute http(s) URLs and same-origin
+ * paths are allowed; anything else falls back to the default route.
+ */
+export function safeHref(value: string | undefined, fallback: string): string {
+  const candidate = stored(value);
+  if (candidate === undefined) return fallback;
+  const href = candidate.trim();
+  if (/^https?:\/\//i.test(href)) return href;
+  if (href.startsWith("/") && !href.startsWith("//") && !href.includes("\\")) {
+    return href;
+  }
+  return fallback;
+}
+
+/**
  * Resolves editable site copy from the backend, falling back to the Ovanite
  * defaults whenever a field is unset or blank. Components never hardcode site
  * copy.
@@ -31,9 +49,9 @@ export function resolveSiteCopy(content: SiteContent | undefined): SiteCopy {
       stored(content?.heroDescription) ??
       "Ovanite builds thoughtful digital products designed to solve meaningful problems.",
     primaryCtaLabel: stored(content?.primaryCtaLabel) ?? "Explore products",
-    primaryCtaHref: stored(content?.primaryCtaHref) ?? "/products",
+    primaryCtaHref: safeHref(content?.primaryCtaHref, "/products"),
     secondaryCtaLabel: stored(content?.secondaryCtaLabel) ?? "About Ovanite",
-    secondaryCtaHref: stored(content?.secondaryCtaHref) ?? "/about",
+    secondaryCtaHref: safeHref(content?.secondaryCtaHref, "/about"),
     philosophyTitle: stored(content?.philosophyTitle) ?? "Built with purpose.",
     philosophyBody:
       stored(content?.philosophyBody) ??
