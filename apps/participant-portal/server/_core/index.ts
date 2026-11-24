@@ -25,6 +25,26 @@ import { checkPortalReadiness } from "./readiness";
 import { registerStorageProxy } from "./storageProxy";
 import { createRateLimitMiddleware, parseTrustedProxyHops } from "./rateLimit";
 import { describeOperationalFailure } from "./redact";
+import {
+  createHttpMetricsMiddleware,
+  createMetricsHandler,
+  createMetricsRegistry,
+  createRequestIdMiddleware,
+} from "./metrics";
+import { createErrorReporter } from "./errorTracking";
+
+// Build identity for logs and metrics. A release name is public, never a secret.
+const release = (process.env.RELEASE ?? process.env.GIT_SHA ?? "development").trim();
+const metrics = createMetricsRegistry({ release });
+const errorReporter = createErrorReporter({
+  release,
+  webhookUrl: process.env.ERROR_WEBHOOK_URL,
+});
+
+function currentRequestId(res: express.Response): string | null {
+  const value = res.locals.requestId;
+  return typeof value === "string" ? value : null;
+}
 
 async function startServer() {
   const app = express();
@@ -33,6 +53,11 @@ async function startServer() {
   // This portal accepts links and text metadata, not source-archive uploads.
   // Small request limits reduce memory pressure from oversized request bodies.
   app.disable("x-powered-by");
+
+  // Correlation id and metrics run before authentication and rate limiting so
+  // rejected traffic is measured and every log line can be tied to a request.
+  app.use(createRequestIdMiddleware());
+  app.use(createHttpMetricsMiddleware(metrics));
   app.use((_req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
@@ -92,6 +117,7 @@ async function startServer() {
       await db.select().from(automatedAssessmentRuns).limit(0);
       await db.select().from(portalAuditEvents).limit(0);
     }).then(result => {
+      metrics.countReadiness(result.ready ? "ready" : "not_ready");
       if (!result.ready) {
         // Only variable names or a generic probe label are logged—never values.
         console.warn("[Readiness] Portal is not ready:", result.missing);
@@ -99,10 +125,22 @@ async function startServer() {
         return;
       }
       res.status(200).json({ status: "ready" });
-    }).catch(next);
+    }).catch(error => {
+      metrics.countError("readiness_probe");
+      errorReporter.report("readiness_probe", error, {
+        requestId: currentRequestId(res),
+      });
+      next(error);
+    });
   };
   app.get("/api/health", readinessHandler);
   app.get("/api/health/ready", readinessHandler);
+  // Scraping requires a long METRICS_TOKEN. Without one the route does not
+  // exist, so traffic volumes and error rates are never public.
+  app.get(
+    "/api/metrics",
+    createMetricsHandler({ registry: metrics, token: process.env.METRICS_TOKEN }),
+  );
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
@@ -130,6 +168,12 @@ async function startServer() {
       : details.status === 400 || details.statusCode === 400 || details.type === "entity.parse.failed"
         ? 400
         : 500;
+    if (status === 500) {
+      metrics.countError("http_request");
+      errorReporter.report("http_request", error, {
+        requestId: currentRequestId(res),
+      });
+    }
     res.status(status).json({
       error: status === 413
         ? "Request body exceeds the allowed limit."
@@ -155,6 +199,8 @@ async function startServer() {
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
   server.on("error", error => {
     console.error(describeOperationalFailure("server_runtime", error));
+    metrics.countError("server_runtime");
+    errorReporter.report("server_runtime", error);
     process.exit(1);
   });
   server.listen(port, "0.0.0.0", () => console.log(`Server listening on port ${port}`));
@@ -162,5 +208,7 @@ async function startServer() {
 
 startServer().catch(error => {
   console.error(describeOperationalFailure("server_start", error));
+  metrics.countError("server_start");
+  errorReporter.report("server_start", error);
   process.exit(1);
 });
