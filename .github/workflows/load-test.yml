@@ -1,0 +1,93 @@
+name: Load test a deployed target
+
+# Manual only, deliberately. A capacity verdict needs a deployed environment and
+# representative data; running this on a schedule or against a guessed URL would
+# produce numbers that look like evidence and are not.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "HTTPS URL to load (for example https://portal.example.com/api/health/live)"
+        required: true
+        type: string
+      concurrency:
+        description: "Parallel workers (1-200)"
+        required: false
+        default: "10"
+        type: string
+      duration_seconds:
+        description: "Test duration in seconds (1-300)"
+        required: false
+        default: "30"
+        type: string
+      p95_ms:
+        description: "p95 latency objective in milliseconds"
+        required: false
+        default: "500"
+        type: string
+      max_error_rate:
+        description: "Maximum ratio of non-2xx/3xx responses (0-1)"
+        required: false
+        default: "0.01"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  load:
+    name: Load test and record the summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Refuse a non-HTTPS target
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$TARGET_URL" in
+            https://*) echo "Target accepted: $TARGET_URL" ;;
+            *)
+              echo "Refusing to load-test a non-HTTPS target." >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Run the load test
+        env:
+          TARGET_URL: ${{ inputs.target_url }}
+          CONCURRENCY: ${{ inputs.concurrency }}
+          DURATION_SECONDS: ${{ inputs.duration_seconds }}
+          P95_MS: ${{ inputs.p95_ms }}
+          MAX_ERROR_RATE: ${{ inputs.max_error_rate }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/load-test.mjs \
+            --url "$TARGET_URL" \
+            --concurrency "$CONCURRENCY" \
+            --duration "$DURATION_SECONDS" \
+            --p95 "$P95_MS" \
+            --max-error-rate "$MAX_ERROR_RATE" \
+            --json | tee load-summary.json
+
+      - name: Upload the load-test summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-summary
+          path: load-summary.json
+          retention-days: 30
+          if-no-files-found: warn

@@ -41,6 +41,13 @@ Harness: `scripts/load-test.mjs` (no dependencies). It is **not** scheduled: a
 throughput or latency verdict needs a deployed target, and inventing numbers from
 a laptop run would be a false claim.
 
+A manual lane exists for that reason: **Load test a deployed target**
+(`.github/workflows/load-test.yml`, `workflow_dispatch`). It takes the target URL,
+concurrency, duration, p95 objective and error-rate budget, refuses anything that
+is not HTTPS, runs the harness, and uploads the JSON summary as an artefact for
+30 days. A breached objective fails the job, so the recorded summary and the
+verdict cannot disagree.
+
 ```bash
 node scripts/load-test.mjs \
   --url https://portal.example.com/api/health/live \

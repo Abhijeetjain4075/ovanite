@@ -39,7 +39,7 @@ that a service is deployed, financed, monitored or lawful.
 | `node src/frontend/scripts/verify-runtime-config.mjs` | `release-gates.yml` | Publishing a bundle whose `env.json` cannot reach a backend |
 | `pnpm --dir src/frontend build` with `--require-deployable` | release pipelines | Writing a non-deployable `dist/env.json` |
 | `node scripts/generate-backend-sbom.mjs --check` | `security.yml`, `release-gates.yml` | An empty or unparseable Mops lockfile graph |
-| `node scripts/load-test.mjs …` | manual / release rehearsal | A target that breaches p95 or error-rate objectives |
+| `node scripts/load-test.mjs …` | `load-test.yml` (manual) | A target that breaches p95 or error-rate objectives; the lane refuses a non-HTTPS target |
 | `pnpm --dir src/frontend exec playwright test` | `frontend-quality.yml` | A broken bundle, routing regression, or runtime-config failure |
 | Trivy scans | `security.yml` | HIGH/CRITICAL vulnerable dependency, committed secret, or insecure configuration |
 
