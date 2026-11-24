@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "apps/participant-portal/**"
+      - "scripts/check-portal-migrations.mjs"
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
       - ".github/workflows/frontend-quality.yml"
@@ -11,6 +12,7 @@ on:
     branches: [main, mavis]
     paths:
       - "apps/participant-portal/**"
+      - "scripts/check-portal-migrations.mjs"
       - ".github/workflows/participant-portal-quality.yml"
       - ".github/workflows/candidate-static-assessment.yml"
       - ".github/workflows/frontend-quality.yml"
@@ -43,6 +45,9 @@ jobs:
           corepack prepare pnpm@10.18.0 --activate
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+      - name: Enforce portal migration chain invariants
+        working-directory: .
+        run: node scripts/check-portal-migrations.mjs
       - name: Typecheck
         run: pnpm check
       - name: Unit tests
