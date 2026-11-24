@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type ErrorRequestHandler, type Express } from "express";
 import { assessmentCallbackHandler } from "./assessmentCallback";
 
 /**
@@ -16,7 +16,7 @@ export function registerAssessmentCallbackRoute(app: Express): void {
 
   // Keep parser failures bounded and sanitized even when this route is mounted
   // by a minimal test host. The main server has a corresponding /api fallback.
-  app.use("/api/assessment/callback", (error: unknown, _req, res, next) => {
+  const parserErrorHandler: ErrorRequestHandler = (error, _req, res, next) => {
     if (res.headersSent) return next(error);
     const details = typeof error === "object" && error !== null
       ? error as { status?: unknown; statusCode?: unknown; type?: unknown }
@@ -33,5 +33,7 @@ export function registerAssessmentCallbackRoute(app: Express): void {
           ? "Invalid request body."
           : "Request could not be processed.",
     });
-  });
+  };
+
+  app.use("/api/assessment/callback", parserErrorHandler);
 }
