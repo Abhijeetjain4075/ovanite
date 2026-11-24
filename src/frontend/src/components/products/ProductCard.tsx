@@ -8,6 +8,7 @@ import {
 } from "@/components/shared/primitives";
 import { sectionIndex } from "@/lib/format";
 import { productImageUrlError } from "@/lib/productImageUrl";
+import { safeProductLink } from "@/lib/productLink";
 import type { Product } from "@/types/content";
 
 type ProductCardProps = {
@@ -36,6 +37,7 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
   const rawImageUrl = product.imageUrl?.trim() ?? "";
   const imageUrl =
     rawImageUrl && !productImageUrlError(rawImageUrl) ? rawImageUrl : null;
+  const link = safeProductLink(product.link);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const showUrlImage = imageUrl !== null && failedImageUrl !== imageUrl;
 
@@ -86,9 +88,9 @@ export function ProductCard({ product, position, total }: ProductCardProps) {
           {product.description}
         </p>
 
-        {product.link ? (
+        {link ? (
           <a
-            href={product.link}
+            href={link}
             target="_blank"
             rel="noreferrer"
             data-ocid={`products.link.${position}`}

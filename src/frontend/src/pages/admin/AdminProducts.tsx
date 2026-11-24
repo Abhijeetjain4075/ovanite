@@ -21,6 +21,7 @@ import {
 } from "@/hooks/useAdminProducts";
 import { formatDate } from "@/lib/format";
 import { productImageUrlError } from "@/lib/productImageUrl";
+import { safeProductLink } from "@/lib/productLink";
 import type { Product, ProductInput } from "@/types/content";
 
 const SKELETON_IDS = Array.from(
@@ -174,6 +175,7 @@ export default function AdminProducts() {
                 rawImageUrl && !productImageUrlError(rawImageUrl)
                   ? rawImageUrl
                   : null;
+              const link = safeProductLink(product.link);
               return (
                 <li
                   key={String(product.id)}
@@ -214,9 +216,9 @@ export default function AdminProducts() {
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs text-muted-foreground">
                           <span>Order {String(product.sortOrder)}</span>
                           <span>Updated {formatDate(product.updatedAt)}</span>
-                          {product.link ? (
+                          {link ? (
                             <a
-                              href={product.link}
+                              href={link}
                               target="_blank"
                               rel="noreferrer"
                               data-ocid={`admin.products.link.${i + 1}`}
