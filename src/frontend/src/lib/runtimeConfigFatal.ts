@@ -12,12 +12,24 @@
  */
 export const RUNTIME_CONFIG_ERROR_ATTRIBUTE = "runtimeConfigError";
 
-/** Record a degraded (still rendering) runtime contract and log every problem. */
+/**
+ * Capability marker for a page that rendered without its backend.
+ *
+ * This is deliberately a separate attribute from `runtimeConfigError`: a static
+ * marketing page served without a canister is a deliberate, working mode, not a
+ * failure. Monitoring alerts on `runtimeMode` when it wants to know that the
+ * backend-backed features are not active, and `runtimeConfigError` stays absent
+ * from the page unless something actually broke.
+ */
+export const RUNTIME_MODE_ATTRIBUTE = "runtimeMode";
+export const RUNTIME_MODE_STATIC = "static";
+
+/** Record the static-mode fallback and log every problem. */
 export function markRuntimeConfigDegraded(
   problems: readonly string[],
   { local }: { local: boolean },
 ): void {
-  document.documentElement.dataset[RUNTIME_CONFIG_ERROR_ATTRIBUTE] = "degraded";
+  document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE] = RUNTIME_MODE_STATIC;
   for (const problem of problems) {
     console.error(`[runtime-config] ${problem}`);
   }
@@ -35,6 +47,7 @@ export function markRuntimeConfigDegraded(
  * information leak, and it does not help the person looking at the page.
  */
 export function renderStartupFailure(root: HTMLElement): void {
+  document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE] = "failed";
   document.documentElement.dataset[RUNTIME_CONFIG_ERROR_ATTRIBUTE] = "failed";
 
   const container = document.createElement("main");

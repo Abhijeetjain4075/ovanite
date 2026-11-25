@@ -32,8 +32,9 @@ A placeholder contract is no longer a silent degradation:
   placeholder, malformed or missing contract does not replace the public site with
   an operator checklist: the application still renders, every backend-dependent
   feature stays in its explicit closed/unavailable state, each problem is logged
-  to the console, and `document.documentElement.dataset.runtimeConfigError` is set
-  to `degraded` for monitoring. Only a bootstrap that cannot mount at all shows a
+  to the console, and `document.documentElement.dataset.runtimeMode` is set to
+  `static` for monitoring. `runtimeConfigError` is reserved for a page that could
+  not mount and is absent from a healthy (even unconfigured) deployment. Only a bootstrap that cannot mount at all shows a
   failure surface, and that surface is a neutral reload prompt carrying no
   environment, canister or configuration vocabulary. The build-time gates above
   remain the release control: a degraded production deployment is still a defect

@@ -107,16 +107,19 @@ The exported site has no server-side logging. What it does have:
 - `/api/health` on the portal is unrelated, the static site cannot be probed for
   readiness; use an external uptime check on `/` plus a content assertion.
 - A deployed origin with an unusable `env.json` keeps rendering the public site
-  in degraded mode: backend-dependent features (site copy, forms, admin, sign-in)
+  in static mode: backend-dependent features (site copy, forms, admin, sign-in)
   stay in their closed states, every problem is logged to the console, and
-  `document.documentElement.dataset.runtimeConfigError = "degraded"` is set. No
-  operator text is shown to visitors.
-- A bootstrap that cannot mount at all sets the marker to `failed` and replaces
-  the page with a neutral reload prompt (`data-ocid="startup-failure"`); it never
-  names an environment, canister, or configuration key.
-- `runtimeConfigError` is therefore the alertable signal: an uptime monitor should
-  assert the marker is **absent** (not `degraded`, not `failed`) and that the page
-  contains a known heading.
+  `document.documentElement.dataset.runtimeMode = "static"` is set. No operator
+  text is shown to visitors, and `runtimeConfigError` is **not** set, because a
+  site served without its backend is a mode, not an error.
+- A bootstrap that cannot mount at all sets `runtimeMode = "failed"` and
+  `runtimeConfigError = "failed"`, then replaces the page with a neutral reload
+  prompt (`data-ocid="startup-failure"`); it never names an environment,
+  canister, or configuration key.
+- Alerts: `runtimeConfigError` present is an incident (the page did not mount).
+  `runtimeMode = "static"` is the expected, alertable-but-not-failing signal that
+  backend-backed features are inactive on a deployment that has no canister; an
+  uptime check should also assert a known heading is present.
 - The E2E smoke lane (`src/frontend/e2e/smoke.spec.ts`) fails if an unexpected
   console error appears or a failure surface is rendered.
 

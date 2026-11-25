@@ -91,8 +91,9 @@ current unconfigured repository. A gate that cannot fail is not a gate.
 All of the following, simultaneously:
 
 - preflight exits `0` with the real values;
-- the deployed frontend's `env.json` has zero placeholders and the deployed origin
-  sets no `runtimeConfigError` marker (neither `degraded` nor `failed`);
+- the deployed frontend's `env.json` has zero placeholders, the deployed origin
+  sets no `runtimeConfigError` marker, and `runtimeMode` reports the intended
+  mode (`static` only while no canister is configured);
 - `/api/health/ready` is `200` and `/api/metrics` is scraped successfully;
 - E2E smoke passes against the deployed origin;
 - one restore drill and one load baseline have been completed and written down;

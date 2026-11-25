@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   RUNTIME_CONFIG_ERROR_ATTRIBUTE,
+  RUNTIME_MODE_ATTRIBUTE,
   markRuntimeConfigDegraded,
   renderStartupFailure,
 } from "./runtimeConfigFatal";
@@ -16,6 +17,7 @@ function mountRoot(): HTMLElement {
 afterEach(() => {
   document.body.replaceChildren();
   delete document.documentElement.dataset[RUNTIME_CONFIG_ERROR_ATTRIBUTE];
+  delete document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE];
   vi.restoreAllMocks();
 });
 
@@ -30,9 +32,13 @@ describe("markRuntimeConfigDegraded", () => {
       local: false,
     });
 
+    // Static mode is a capability marker, not an error marker.
+    expect(document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE]).toBe(
+      "static",
+    );
     expect(
       document.documentElement.dataset[RUNTIME_CONFIG_ERROR_ATTRIBUTE],
-    ).toBe("degraded");
+    ).toBeUndefined();
     expect(error).toHaveBeenCalledWith(
       "[runtime-config] backend_canister_id is unset",
     );
