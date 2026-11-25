@@ -1,0 +1,65 @@
+name: Intake service
+
+on:
+  pull_request:
+    paths:
+      - "services/intake/**"
+      - ".github/workflows/intake-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/intake/**"
+      - ".github/workflows/intake-service.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: intake-service-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Contract tests and package validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate the deployment manifest
+        run: |
+          node - <<'NODE'
+          const { readFileSync, existsSync } = require("node:fs");
+          const path = require("node:path");
+          const manifestPath = "services/intake/sites.deploy.json";
+          const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+          const names = new Set(manifest.modules.map((module) => module.name));
+          const problems = [];
+          if (!names.has(manifest.entrypoint)) {
+            problems.push("entrypoint must name one of the manifest modules");
+          }
+          for (const module of manifest.modules) {
+            if (module.type !== "esm") problems.push(`${module.name}: only ESM is supported`);
+            if (!existsSync(path.resolve("services/intake", module.path))) {
+              problems.push(`${module.name}: ${module.path} does not exist`);
+            }
+          }
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(manifest.compatibilityDate ?? "")) {
+            problems.push("compatibilityDate must be YYYY-MM-DD");
+          }
+          if (problems.length > 0) {
+            console.error(problems.join("\n"));
+            process.exit(1);
+          }
+          console.log("Manifest is valid.");
+          NODE
+
+      - name: Run the handler test suite
+        run: node --test services/intake/test/*.test.mjs

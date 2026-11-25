@@ -106,13 +106,19 @@ The exported site has no server-side logging. What it does have:
 
 - `/api/health` on the portal is unrelated, the static site cannot be probed for
   readiness; use an external uptime check on `/` plus a content assertion.
-- A non-local origin with an unusable `env.json` renders a visible
-  `data-ocid="runtime-config-error"` panel, sets
-  `document.documentElement.dataset.runtimeConfigError = "invalid"` and logs each
-  problem to the console. An uptime monitor should assert that marker is absent
-  and that the page contains a known heading.
-- The E2E smoke lane (`src/frontend/e2e/smoke.spec.ts`) fails if the console
-  reports an error or the configuration panel appears.
+- A deployed origin with an unusable `env.json` keeps rendering the public site
+  in degraded mode: backend-dependent features (site copy, forms, admin, sign-in)
+  stay in their closed states, every problem is logged to the console, and
+  `document.documentElement.dataset.runtimeConfigError = "degraded"` is set. No
+  operator text is shown to visitors.
+- A bootstrap that cannot mount at all sets the marker to `failed` and replaces
+  the page with a neutral reload prompt (`data-ocid="startup-failure"`); it never
+  names an environment, canister, or configuration key.
+- `runtimeConfigError` is therefore the alertable signal: an uptime monitor should
+  assert the marker is **absent** (not `degraded`, not `failed`) and that the page
+  contains a known heading.
+- The E2E smoke lane (`src/frontend/e2e/smoke.spec.ts`) fails if an unexpected
+  console error appears or a failure surface is rendered.
 
 ## Environment variables introduced here
 

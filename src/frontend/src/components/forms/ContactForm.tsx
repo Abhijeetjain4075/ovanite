@@ -8,6 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import {
+  IntakeError,
+  isDuplicateIntakeResult,
+  isIntakeOpen,
+  submitIntake,
+} from "@/lib/intake";
+import {
   type FieldErrors,
   isDuplicateResult,
   validateEmail,
@@ -30,8 +36,11 @@ export function ContactForm() {
   const navigate = useNavigate();
   const { actor, isFetching } = useActor(createActor);
   const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
+  // A configured intake service is the release switch for this form; the
+  // Caffeine canister path remains the alternative when one is deployed.
+  const intakeOpen = isIntakeOpen();
   const publicFormsEnabled =
-    import.meta.env.VITE_PUBLIC_FORMS_ENABLED === "true";
+    intakeOpen || import.meta.env.VITE_PUBLIC_FORMS_ENABLED === "true";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,11 +54,14 @@ export function ContactForm() {
       email: string;
       message: string;
     }) => {
+      if (intakeOpen) {
+        return submitIntake("contact", input);
+      }
       if (!actor || !isHealthy) throw new Error("Backend is not ready");
       return actor.submitContact(input);
     },
     onSuccess: (result) => {
-      if (isDuplicateResult(result)) {
+      if (isDuplicateResult(result) || isDuplicateIntakeResult(result)) {
         setAlreadyReceived(true);
         return;
       }
@@ -70,7 +82,8 @@ export function ContactForm() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAlreadyReceived(false);
-    if (!validate() || !actor || !isHealthy) return;
+    if (!validate()) return;
+    if (!intakeOpen && (!actor || !isHealthy)) return;
     mutation.mutate({
       name: name.trim(),
       email: email.trim(),
@@ -92,7 +105,7 @@ export function ContactForm() {
     );
   }
 
-  if (!actor || !isHealthy) {
+  if (!intakeOpen && (!actor || !isHealthy)) {
     return (
       <output
         aria-live="polite"
@@ -217,7 +230,9 @@ export function ContactForm() {
           data-ocid="contact.error_state"
           className="border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
         >
-          Something went wrong sending your message. Please try again.
+          {mutation.error instanceof IntakeError
+            ? mutation.error.message
+            : "Something went wrong sending your message. Please try again."}
         </p>
       ) : null}
 

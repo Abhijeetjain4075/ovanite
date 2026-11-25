@@ -31,7 +31,11 @@ function isPlaceholder(value: string): boolean {
   return value.trim().toLowerCase() === RUNTIME_CONFIG_PLACEHOLDER;
 }
 
-function readString(
+/**
+ * Reads one optional string value. Returns `null` for an absent, blank or
+ * placeholder entry, so callers never have to compare against "undefined".
+ */
+export function readRuntimeConfigValue(
   config: Record<string, unknown>,
   key: string,
 ): string | null {
@@ -40,6 +44,8 @@ function readString(
   const trimmed = value.trim();
   return trimmed.length > 0 && !isPlaceholder(trimmed) ? trimmed : null;
 }
+
+const readString = readRuntimeConfigValue;
 
 function describeHttpsUrl(
   value: string,
@@ -125,6 +131,16 @@ export function findRuntimeConfigProblems(config: unknown): string[] {
   if (storageGateway) {
     const problem = describeHttpsUrl(storageGateway, "storage_gateway_url", {
       originOnly: false,
+    });
+    if (problem) problems.push(problem);
+  }
+
+  // Optional: when present it decides whether public intake is open, so a
+  // malformed value must be reported rather than silently ignored.
+  const intakeOrigin = readString(record, "intake_api_origin");
+  if (intakeOrigin) {
+    const problem = describeHttpsUrl(intakeOrigin, "intake_api_origin", {
+      originOnly: true,
     });
     if (problem) problems.push(problem);
   }

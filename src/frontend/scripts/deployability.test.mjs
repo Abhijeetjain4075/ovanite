@@ -46,6 +46,14 @@ test("optional settings are reported as warnings, never as blocking problems", (
   assert.match(warnings.join("\n"), /ii_derivation_origin is unset/);
   assert.match(warnings.join("\n"), /storage_gateway_url is unset/);
   assert.match(warnings.join("\n"), /project_id is unset/);
+  assert.doesNotMatch(warnings.join("\n"), /intake_api_origin is unset/);
+});
+
+test("an unconfigured development build reports the closed intake", () => {
+  assert.match(
+    describeDeployabilityWarnings(buildRuntimeConfig({})).join("\n"),
+    /intake_api_origin is unset/,
+  );
 });
 
 test("a fully configured contract has no warnings", () => {
@@ -54,6 +62,7 @@ test("a fully configured contract has no warnings", () => {
     OVANITE_CAFFEINE_PROJECT_ID: "public-project-id",
     OVANITE_II_DERIVATION_ORIGIN: "https://ovanite.vercel.app",
     OVANITE_STORAGE_GATEWAY_URL: "https://storage.example.test",
+    OVANITE_INTAKE_API_ORIGIN: "https://intake.ovanite.example",
   });
   assert.deepEqual(describeDeployabilityWarnings(config), []);
   assert.deepEqual(findDeployabilityProblems(config), []);

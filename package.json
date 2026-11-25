@@ -16,6 +16,7 @@
     "preflight:production": "node scripts/preflight-production.mjs",
     "preflight:selftest": "node scripts/preflight-production.mjs --self-test",
     "sbom:backend": "node scripts/generate-backend-sbom.mjs",
+  "test:intake": "node --test services/intake/test/*.test.mjs",
     "loadtest": "node scripts/load-test.mjs"
   },
   "devDependencies": {

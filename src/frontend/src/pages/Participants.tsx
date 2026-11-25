@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 
+import { isIntakeOpen } from "@/lib/intake";
+
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Container } from "@/components/layout/Container";
 import { PageMeta } from "@/components/layout/PageMeta";
@@ -34,6 +36,8 @@ const principles = [
 ] as const;
 
 export default function Participants() {
+  const intakeOpen = isIntakeOpen();
+
   return (
     <>
       <PageMeta
@@ -62,13 +66,24 @@ export default function Participants() {
               the intended review stages, not a live submission system.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <PrimaryButton
-                size="lg"
-                disabled
-                aria-describedby="participants-access-status"
-              >
-                Submission intake is not open
-              </PrimaryButton>
+              {intakeOpen ? (
+                <PrimaryButton asChild size="lg">
+                  <Link
+                    to="/participants/submit"
+                    data-ocid="participants.submit_button"
+                  >
+                    Start a submission
+                  </Link>
+                </PrimaryButton>
+              ) : (
+                <PrimaryButton
+                  size="lg"
+                  disabled
+                  aria-describedby="participants-access-status"
+                >
+                  Submission intake is not open
+                </PrimaryButton>
+              )}
               <SecondaryButton asChild size="lg">
                 <a
                   href="#submission-lifecycle"
@@ -82,8 +97,9 @@ export default function Participants() {
               id="participants-access-status"
               className="mt-4 max-w-xl text-xs leading-relaxed text-muted-foreground"
             >
-              This is an overview only. Submission, login, saved drafts, and
-              review-history features are not active on this page.
+              {intakeOpen
+                ? "Submissions are open. You will get a reference when the submission is stored."
+                : "This is an overview only. Submission, login, saved drafts, and review-history features are not active on this page."}
             </p>
           </div>
 
@@ -149,17 +165,30 @@ export default function Participants() {
             <div>
               <p className="eyebrow">Want to participate?</p>
               <h2 className="mt-2 font-display text-2xl font-semibold">
-                Intake opens after the native portal is ready.
+                {intakeOpen
+                  ? "Submit a project for review."
+                  : "Intake opens after the native portal is ready."}
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Ovanite will open submissions only after identity, data
-                isolation, reviewer permissions, and lifecycle controls have
-                been implemented and verified.
+                {intakeOpen
+                  ? "Tell us what you built and where we can see it. A submission is a review request, not a promise of selection or funding."
+                  : "Ovanite will open submissions only after identity, data isolation, reviewer permissions, and lifecycle controls have been implemented and verified."}
               </p>
             </div>
-            <SecondaryButton asChild>
-              <Link to="/contact">Contact Ovanite</Link>
-            </SecondaryButton>
+            {intakeOpen ? (
+              <PrimaryButton asChild>
+                <Link
+                  to="/participants/submit"
+                  data-ocid="participants.submit_cta"
+                >
+                  Submit a project
+                </Link>
+              </PrimaryButton>
+            ) : (
+              <SecondaryButton asChild>
+                <Link to="/contact">Contact Ovanite</Link>
+              </SecondaryButton>
+            )}
           </div>
         </div>
       </Container>

@@ -17,7 +17,7 @@ Set these under the Vercel project's Environment Variables only after the corres
 
 All values written to `env.json` are sent to browsers and must be treated as public. Never put passwords, private keys, API tokens, identity recovery material, or other secrets in these variables.
 
-The build resolves `OVANITE_BACKEND_CANISTER_ID` and `CANISTER_ID_BACKEND` to a single value for both the generated public `env.json` and Caffeine's `useActor(createActor)` integration. If both are set manually, the build fails when they differ. Public Contact/Waitlist forms additionally require `OVANITE_PUBLIC_FORMS_ENABLED=true`; a successful backend health check alone will not activate forms. The flag defaults to false for production builds and must only be enabled after backend persistence, abuse controls, privacy handling, and end-to-end checks pass. The generator validates URL syntax, requires HTTPS for deployed builds, requires an origin-only Internet Identity derivation value, and validates the backend ID as a canonical IC principal. This is syntax validation only; it does not prove that a canister exists, has been deployed, has enough cycles, exposes the expected Candid interface, or is reachable.
+The build resolves `OVANITE_BACKEND_CANISTER_ID` and `CANISTER_ID_BACKEND` to a single value for both the generated public `env.json` and Caffeine's `useActor(createActor)` integration. If both are set manually, the build fails when they differ. Public intake has two possible backends. The default is the Ovanite intake service (`services/intake`): `intake_api_origin` in `env.json` is the endpoint the browser posts to, deployed builds default to the published service, and `OVANITE_INTAKE_API_ORIGIN` overrides it. A build without that key keeps contact, waitlist and participant intake closed. The alternative is the Caffeine canister path, which additionally requires `OVANITE_PUBLIC_FORMS_ENABLED=true`; a successful backend health check alone will not activate it. The flag defaults to false for production builds and must only be enabled after backend persistence, abuse controls, privacy handling, and end-to-end checks pass. The generator validates URL syntax, requires HTTPS for deployed builds, requires an origin-only Internet Identity derivation value, and validates the backend ID as a canonical IC principal. This is syntax validation only; it does not prove that a canister exists, has been deployed, has enough cycles, exposes the expected Candid interface, or is reachable.
 
 ## Fail-loud behaviour
 
@@ -28,12 +28,16 @@ A placeholder contract is no longer a silent degradation:
   resolve to a deployable value. CI proves both the refusal and the acceptance.
 - `pnpm build` accepts `--require-deployable` so a release pipeline cannot write a
   non-deployable `dist/env.json` at all.
-- At runtime `src/frontend/src/main.tsx` fetches `/env.json` before mounting. On a
-  non-local origin with a placeholder, malformed or missing contract it logs every
-  problem and renders a visible `role="alert"` panel (and sets
-  `document.documentElement.dataset.runtimeConfigError = "invalid"`) instead of
-  loading an application whose data calls would all fail. Local development only
-  warns, because it intentionally runs without a deployed backend.
+- At runtime `src/frontend/src/main.tsx` fetches `/env.json` before mounting. A
+  placeholder, malformed or missing contract does not replace the public site with
+  an operator checklist: the application still renders, every backend-dependent
+  feature stays in its explicit closed/unavailable state, each problem is logged
+  to the console, and `document.documentElement.dataset.runtimeConfigError` is set
+  to `degraded` for monitoring. Only a bootstrap that cannot mount at all shows a
+  failure surface, and that surface is a neutral reload prompt carrying no
+  environment, canister or configuration vocabulary. The build-time gates above
+  remain the release control: a degraded production deployment is still a defect
+  and the deploy must not happen.
 - `node scripts/preflight-production.mjs` refuses a production deployment while the
   owner principal, canister id, backend host, or any required portal secret is
   missing. `--self-test` is what CI runs, and it must fail on this repository.

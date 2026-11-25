@@ -11,6 +11,7 @@ const About = lazy(() => import("@/pages/About"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Waitlist = lazy(() => import("@/pages/Waitlist"));
 const Participants = lazy(() => import("@/pages/Participants"));
+const SubmitProject = lazy(() => import("@/pages/SubmitProject"));
 const ThankYou = lazy(() => import("@/pages/ThankYou"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
@@ -44,7 +45,7 @@ export default function App() {
             <Route path="/waitlist" element={<Waitlist />} />
             <Route path="/participants" element={<Participants />} />
             <Route path="/identity-check" element={<IdentityCheck />} />
-            <Route path="/participants/submit" element={<Participants />} />
+            <Route path="/participants/submit" element={<SubmitProject />} />
             <Route
               path="/participants/my-submissions"
               element={<Participants />}

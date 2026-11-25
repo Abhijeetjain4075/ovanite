@@ -2,7 +2,19 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Container } from "@/components/layout/Container";
 import { PageMeta } from "@/components/layout/PageMeta";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { isIntakeOpen } from "@/lib/intake";
 import { resolveSiteCopy } from "@/lib/siteCopy";
+
+/**
+ * Collection notice for the three live intake surfaces. It is rendered only when
+ * this deployment has a configured intake service, so the policy never describes
+ * collection that is not happening.
+ */
+const INTAKE_PRIVACY_PARAGRAPHS = [
+  "Participant submissions, contact messages and waitlist registrations are stored so Ovanite can review them and reply. A record contains only what you type into the form: your name, your email address, and the details you choose to provide.",
+  "Submissions are kept while they are under review and for up to 12 months afterwards, then deleted. They are not sold, shared for advertising, or used to profile you. You can ask for a submission to be deleted at any time through the contact page.",
+  "The submission service stores a salted digest of your network address instead of the address itself, and uses it only to limit abusive traffic. The service provider that delivers and protects this website processes technical request data under its own terms.",
+];
 
 /**
  * Split a policy body into paragraphs on blank lines, dropping empty entries so
@@ -19,7 +31,10 @@ function toParagraphs(body: string): string[] {
 export default function Privacy() {
   const { data } = useSiteContent();
   const copy = resolveSiteCopy(data);
-  const paragraphs = toParagraphs(copy.privacyBody);
+  const paragraphs = [
+    ...toParagraphs(copy.privacyBody),
+    ...(isIntakeOpen() ? INTAKE_PRIVACY_PARAGRAPHS : []),
+  ];
 
   return (
     <>

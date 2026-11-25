@@ -76,7 +76,9 @@ current unconfigured repository. A gate that cannot fail is not a gate.
 4. Apply portal migrations; confirm `/api/health/ready` returns `200`.
 5. Deploy the frontend with `OVANITE_BACKEND_CANISTER_ID` and
    `OVANITE_BACKEND_HOST` set; confirm the deployed `env.json` contains no
-   `undefined` values.
+   `undefined` values and that `intake_api_origin` points at the intake service
+   whose `ALLOWED_ORIGINS` contains this exact origin (see
+   [`services/intake/README.md`](../services/intake/README.md)).
 6. Run the E2E smoke lane against the deployed origin, then a baseline load test.
 7. Confirm `/api/metrics` responds with the token and that the first alerts fire
    during a deliberate failing probe.
@@ -90,7 +92,7 @@ All of the following, simultaneously:
 
 - preflight exits `0` with the real values;
 - the deployed frontend's `env.json` has zero placeholders and the deployed origin
-  shows no `runtime-config-error` marker;
+  sets no `runtimeConfigError` marker (neither `degraded` nor `failed`);
 - `/api/health/ready` is `200` and `/api/metrics` is scraped successfully;
 - E2E smoke passes against the deployed origin;
 - one restore drill and one load baseline have been completed and written down;

@@ -5,11 +5,16 @@ import App from "./App";
 import "./index.css";
 import {
   RUNTIME_CONFIG_PATH,
+  type RuntimeConfig,
   findRuntimeConfigProblems,
   isLocalRuntimeHost,
   loadRuntimeConfig,
 } from "./lib/runtimeConfig";
-import { renderRuntimeConfigFailure } from "./lib/runtimeConfigFatal";
+import {
+  markRuntimeConfigDegraded,
+  renderStartupFailure,
+} from "./lib/runtimeConfigFatal";
+import { setRuntimeConfig } from "./lib/runtimeConfigStore";
 
 BigInt.prototype.toJSON = function () {
   return this.toString();
@@ -34,20 +39,26 @@ function renderApplication(root: HTMLElement) {
 }
 
 /**
- * The runtime contract is fetched before the application mounts. A deployed
- * origin with a placeholder or malformed `env.json` fails loudly and visibly;
- * local development only warns, because it intentionally runs without a
- * deployed backend.
+ * The runtime contract is fetched before the application mounts.
+ *
+ * An unusable contract is a release defect, but it is not a reason to replace
+ * the public site with an operator checklist. The application still renders:
+ * every backend-dependent feature (site copy, forms, admin, sign-in) already has
+ * an explicit unavailable or closed state, so visitors get the marketing site
+ * with those features switched off while the operators get a loud console trail
+ * and a monitoring marker. Local development behaves the same way.
  */
 async function start(): Promise<void> {
   const root = document.getElementById("root");
   if (!root) throw new Error("Application root element is missing.");
 
   const local = isLocalRuntimeHost(window.location.hostname);
-  let problems: string[];
 
+  let config: RuntimeConfig = {};
+  let problems: string[];
   try {
-    problems = findRuntimeConfigProblems(await loadRuntimeConfig());
+    config = await loadRuntimeConfig();
+    problems = findRuntimeConfigProblems(config);
   } catch (error) {
     problems = [
       error instanceof Error
@@ -55,29 +66,17 @@ async function start(): Promise<void> {
         : `${RUNTIME_CONFIG_PATH} could not be loaded.`,
     ];
   }
+  setRuntimeConfig(config);
 
   if (problems.length > 0) {
-    for (const problem of problems) {
-      console.error(`[runtime-config] ${problem}`);
-    }
-    if (!local) {
-      renderRuntimeConfigFailure(root, problems);
-      return;
-    }
-    console.warn(
-      "[runtime-config] Local development continues without a deployed backend.",
-    );
+    markRuntimeConfigDegraded(problems, { local });
   }
 
   renderApplication(root);
 }
 
 void start().catch((error: unknown) => {
-  console.error("[runtime-config] Application bootstrap failed.", error);
+  console.error("[bootstrap] Application bootstrap failed.", error);
   const root = document.getElementById("root");
-  if (root) {
-    renderRuntimeConfigFailure(root, [
-      "The application failed to start. See the console for details.",
-    ]);
-  }
+  if (root) renderStartupFailure(root);
 });

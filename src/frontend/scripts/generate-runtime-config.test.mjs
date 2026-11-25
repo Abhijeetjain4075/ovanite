@@ -11,6 +11,7 @@ test("development stays fail-closed when no backend deployment is configured", (
     project_id: "undefined",
     ii_derivation_origin: "undefined",
     storage_gateway_url: "undefined",
+    intake_api_origin: "undefined",
   });
 });
 
@@ -19,6 +20,12 @@ test("deployed Vercel builds default to the official ICP API host but do not inv
   assert.equal(config.backend_host, "https://icp-api.io");
   assert.equal(config.backend_canister_id, "undefined");
   assert.equal(config.storage_gateway_url, "undefined");
+  // Public intake is a separate service; a deployed build reaches it unless it
+  // is explicitly overridden.
+  assert.equal(
+    config.intake_api_origin,
+    "https://ovanite-intake-gn5iks-preview.freebuff.site",
+  );
 });
 
 test("configured public runtime values map to the required Caffeine template contract", () => {
@@ -29,6 +36,7 @@ test("configured public runtime values map to the required Caffeine template con
     OVANITE_CAFFEINE_PROJECT_ID: "public-project-id",
     OVANITE_II_DERIVATION_ORIGIN: "https://ovanite.vercel.app",
     OVANITE_STORAGE_GATEWAY_URL: "https://storage.example.test",
+    OVANITE_INTAKE_API_ORIGIN: "https://intake.ovanite.example",
   });
   assert.deepEqual(config, {
     backend_host: "https://icp-api.io",
@@ -36,6 +44,7 @@ test("configured public runtime values map to the required Caffeine template con
     project_id: "public-project-id",
     ii_derivation_origin: "https://ovanite.vercel.app",
     storage_gateway_url: "https://storage.example.test",
+    intake_api_origin: "https://intake.ovanite.example",
   });
 });
 

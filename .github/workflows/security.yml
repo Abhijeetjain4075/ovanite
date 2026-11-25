@@ -10,6 +10,7 @@ on:
       - "mops.toml"
       - "src/**"
       - "apps/**"
+      - "services/**"
       - "scripts/generate-backend-sbom.mjs"
       - ".github/workflows/security.yml"
   push:

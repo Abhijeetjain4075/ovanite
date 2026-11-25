@@ -3,11 +3,13 @@ import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Container } from "@/components/layout/Container";
 import { PageMeta } from "@/components/layout/PageMeta";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { isIntakeOpen } from "@/lib/intake";
 import { resolveSiteCopy } from "@/lib/siteCopy";
 
 export default function Waitlist() {
   const { data } = useSiteContent();
   const copy = resolveSiteCopy(data);
+  const intakeOpen = isIntakeOpen();
 
   return (
     <>
@@ -40,9 +42,13 @@ export default function Waitlist() {
           <div className="md:col-span-7">
             <div className="border border-border bg-card">
               <div className="flex items-center justify-between gap-4 border-b border-border px-6 py-4 md:px-10">
-                <span className="eyebrow">Registration closed</span>
+                <span className="eyebrow">
+                  {intakeOpen ? "Registration open" : "Registration closed"}
+                </span>
                 <span className="font-mono text-[0.6875rem] uppercase tracking-[0.16em] text-muted-foreground">
-                  No information is being collected
+                  {intakeOpen
+                    ? "Registrations are stored for follow-up"
+                    : "No information is being collected"}
                 </span>
               </div>
               <div className="p-6 md:p-10">

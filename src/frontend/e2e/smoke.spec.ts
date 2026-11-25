@@ -6,6 +6,7 @@ const RUNTIME_CONFIG_KEYS = [
   "project_id",
   "ii_derivation_origin",
   "storage_gateway_url",
+  "intake_api_origin",
 ];
 
 test("serves the runtime configuration contract as JSON", async ({ request }) => {

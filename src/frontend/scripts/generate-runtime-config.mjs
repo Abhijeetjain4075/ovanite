@@ -6,6 +6,10 @@ import { resolveBackendCanisterId } from "./backend-canister-env.mjs";
 
 const PLACEHOLDER = "undefined";
 const DEFAULT_ICP_HOST = "https://icp-api.io";
+// Public intake endpoint (contact, waitlist, participant submission). It is a
+// public address, not a secret; override it with OVANITE_INTAKE_API_ORIGIN.
+const DEFAULT_INTAKE_ORIGIN =
+  "https://ovanite-intake-gn5iks-preview.freebuff.site";
 
 function clean(value) {
   if (typeof value !== "string") return undefined;
@@ -91,12 +95,23 @@ export function buildRuntimeConfig(env = process.env) {
       })
     : PLACEHOLDER;
 
+  const intakeOriginRaw = clean(env.OVANITE_INTAKE_API_ORIGIN);
+  const intakeApiOrigin = intakeOriginRaw
+    ? validateHttpsUrl(intakeOriginRaw, "OVANITE_INTAKE_API_ORIGIN", {
+        originOnly: true,
+        allowLocalHttp: !isDeployedBuild,
+      })
+    : isDeployedBuild
+      ? DEFAULT_INTAKE_ORIGIN
+      : PLACEHOLDER;
+
   return {
     backend_host: backendHost,
     backend_canister_id: backendCanisterId ?? PLACEHOLDER,
     project_id: projectId ?? PLACEHOLDER,
     ii_derivation_origin: derivationOrigin,
     storage_gateway_url: storageGatewayUrl,
+    intake_api_origin: intakeApiOrigin,
   };
 }
 
@@ -163,6 +178,11 @@ export function describeDeployabilityWarnings(config) {
   }
   if (config.project_id === PLACEHOLDER) {
     warnings.push("project_id is unset; Caffeine-specific infrastructure stays inactive.");
+  }
+  if (config.intake_api_origin === PLACEHOLDER) {
+    warnings.push(
+      "intake_api_origin is unset; public contact, waitlist and participant intake stay closed.",
+    );
   }
   return warnings;
 }
