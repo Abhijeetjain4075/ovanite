@@ -76,7 +76,8 @@ describe("audit hash chain", () => {
 
     const second = await appendAuditEvent(executor, { ...base, eventType: "submission_published" });
     expect(inserted[1]).toMatchObject({ prevHash: first, hash: second });
-    expect(second).toBe(computeAuditHash(first, { ...base, eventType: "submission_published" }));
+    expect(inserted[1]).toMatchObject({ hashVersion: 2 });
+    expect(second).toBe(computeAuditHash(first, { ...base, eventType: "submission_published" }, 2, inserted[1].createdAt as Date));
   });
 
   it("verifies an intact chain", () => {
