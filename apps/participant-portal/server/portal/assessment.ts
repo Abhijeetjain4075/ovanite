@@ -2,6 +2,36 @@ import { ENV } from "../_core/env";
 
 export const ASSESSMENT_WORKFLOW_PATH = ".github/workflows/candidate-static-assessment.yml";
 export const ASSESSMENT_PIPELINE_VERSION = "static-v1";
+
+/** Validate the full callback trust configuration before creating an assessment run. */
+export function assessmentConfigurationProblem(): string | null {
+  if (!ENV.assessmentGitHubToken) return "The repository-scoped GitHub Actions token is not configured.";
+  if (Buffer.byteLength(ENV.assessmentCallbackSecret, "utf8") < 32) {
+    return "The assessment callback secret must contain at least 32 bytes.";
+  }
+  let portalUrl: URL;
+  try {
+    portalUrl = new URL(ENV.assessmentPortalBaseUrl);
+  } catch {
+    return "The configured assessment portal URL is invalid.";
+  }
+  const allowedHost = ENV.assessmentPortalAllowedHost.trim().toLowerCase().replace(/\\.$/, "");
+  const actualHost = portalUrl.hostname.toLowerCase().replace(/\\.$/, "");
+  if (
+    portalUrl.protocol !== "https:" || !portalUrl.hostname ||
+    portalUrl.username || portalUrl.password || portalUrl.search || portalUrl.hash ||
+    (portalUrl.port !== "" && portalUrl.port !== "443") ||
+    !allowedHost || actualHost !== allowedHost
+  ) {
+    return "The assessment portal URL must be HTTPS and match the configured exact callback hostname.";
+  }
+  const workflowRef = ENV.assessmentWorkflowRef;
+  if (!/^[A-Za-z0-9_.\\/-]{1,255}$/.test(workflowRef) || workflowRef.startsWith("-") || workflowRef.includes("..")) {
+    return "The configured assessment workflow ref is invalid.";
+  }
+  return null;
+}
+
 const repositoryOwner = "Abhijeetjain4075";
 const repositoryName = "ovanite";
 const apiHeaders = {
@@ -93,25 +123,11 @@ export async function dispatchStaticAssessment(input: {
   sha: string;
   branch: string;
 }): Promise<void> {
-  if (!ENV.assessmentGitHubToken || !ENV.assessmentCallbackSecret || !ENV.assessmentPortalBaseUrl) {
-    throw new AssessmentDispatchError(
-      "github_dispatch_rejected",
-      "Automated assessment is not configured. An operator must configure the GitHub Actions token, callback secret, and deployed portal URL.",
-    );
-  }
-  let portalUrl: URL;
-  try {
-    portalUrl = new URL(ENV.assessmentPortalBaseUrl);
-  } catch {
-    throw new AssessmentDispatchError("github_dispatch_rejected", "The configured assessment portal URL is invalid.");
-  }
-  if (portalUrl.protocol !== "https:" || portalUrl.username || portalUrl.password || portalUrl.search || portalUrl.hash) {
-    throw new AssessmentDispatchError("github_dispatch_rejected", "The configured assessment portal URL must be a clean HTTPS origin/path.");
+  const configurationProblem = assessmentConfigurationProblem();
+  if (configurationProblem) {
+    throw new AssessmentDispatchError("github_dispatch_rejected", configurationProblem);
   }
   const workflowRef = ENV.assessmentWorkflowRef;
-  if (!/^[A-Za-z0-9_.\/-]{1,255}$/.test(workflowRef) || workflowRef.startsWith("-") || workflowRef.includes("..")) {
-    throw new AssessmentDispatchError("github_dispatch_rejected", "The configured assessment workflow ref is invalid.");
-  }
   const endpoint = `https://api.github.com/repos/${repositoryOwner}/${repositoryName}/actions/workflows/candidate-static-assessment.yml/dispatches`;
   try {
     const response = await fetch(endpoint, {
