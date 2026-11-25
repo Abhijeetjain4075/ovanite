@@ -70,7 +70,8 @@ describe("audit hash chain", () => {
     } as unknown as AuditExecutor;
 
     const first = await appendAuditEvent(executor, base);
-    expect(inserted[0]).toMatchObject({ prevHash: null, hash: first });
+    expect(inserted[0]).toMatchObject({ prevHash: null, hash: first, hashVersion: 2 });
+    expect(inserted[0].createdAt).toBeInstanceOf(Date);
     tailHash = first;
 
     const second = await appendAuditEvent(executor, { ...base, eventType: "submission_published" });
@@ -99,5 +100,48 @@ describe("audit hash chain", () => {
     const legacy = { ...base, id: 1, prevHash: null, hash: null } as AuditEventRecord;
     const rows = [legacy, ...chain([base]).map(row => ({ ...row, id: 2 }))];
     expect(verifyAuditChain(rows)).toEqual({ valid: true, hashedEvents: 1, legacyEvents: 1 });
+  });
+});
+
+
+describe("audit chain hardening", () => {
+  it("binds version-2 event timestamps into the hash", () => {
+    const createdAt = new Date("2026-11-25T09:30:00.000Z");
+    const hash = computeAuditHash(null, base, 2, createdAt);
+    const row = {
+      ...base, id: 1, prevHash: null, hash, hashVersion: 2, createdAt,
+    } as AuditEventRecord;
+    expect(verifyAuditChain([row]).valid).toBe(true);
+    expect(verifyAuditChain([
+      { ...row, createdAt: new Date("2026-11-25T09:31:00.000Z") },
+    ])).toEqual({ valid: false, brokenAtId: 1, reason: "hash_mismatch" });
+  });
+
+  it("does not allow an unhashed event to restart a chain after hashing begins", () => {
+    const hashed = chain([base])[0];
+    const tampered = {
+      ...base, id: 2, prevHash: null, hash: null,
+    } as AuditEventRecord;
+    expect(verifyAuditChain([hashed, tampered])).toEqual({
+      valid: false,
+      brokenAtId: 2,
+      reason: "unhashed_after_chain_started",
+    });
+  });
+
+  it("rejects unknown audit hash versions", () => {
+    const row = {
+      ...base,
+      id: 1,
+      prevHash: null,
+      hash: "0".repeat(64),
+      hashVersion: 99,
+      createdAt: new Date("2026-11-25T09:30:00.000Z"),
+    } as AuditEventRecord;
+    expect(verifyAuditChain([row])).toEqual({
+      valid: false,
+      brokenAtId: 1,
+      reason: "unsupported_hash_version",
+    });
   });
 });
