@@ -64,7 +64,7 @@ The first draft text is visibly marked **configurable placeholder—not approved
 - Admin queue queries exclude drafts; participant records, status details, evaluation notes, decisions, and audit events are authenticated and private.
 - URL validation permits only well-formed `http`/`https` syntax and strips fragments; embedded credentials and other schemes are rejected. The portal does not fetch user URLs, execute submitted code, or accept source archives, avoiding SSRF and artifact-execution risk.
 - Normalized repository URLs are duplicate-checked with a generic conflict message that does not reveal another submitter or record.
-- Sensitive data is not rendered into public pages. Avoid logging submission payloads. Use explicit validation/error states and rate-limiting integration at the server/gateway boundary before broad public launch.
+- Sensitive data is not rendered into public pages. Avoid logging submission payloads. Use explicit validation/error states. The portal applies bounded process-local per-IP limits to API and storage surfaces; enforce equivalent shared edge/gateway quotas before scaling to multiple application instances or opening high-volume public intake.
 - Status, terms, rubric, validation, evaluation, decision, and withdrawal actions use additive audit events. No participant-facing delete path is provided.
 
 ## Automated static assessment (v1)
