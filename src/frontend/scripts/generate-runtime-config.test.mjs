@@ -20,11 +20,11 @@ test("deployed Vercel builds default to the official ICP API host but do not inv
   assert.equal(config.backend_host, "https://icp-api.io");
   assert.equal(config.backend_canister_id, "undefined");
   assert.equal(config.storage_gateway_url, "undefined");
-  // Public intake is a separate service; a deployed build reaches it unless it
-  // is explicitly overridden.
+  // Public intake is a separate service; a deployed build reaches its published
+  // production environment unless the origin is explicitly overridden.
   assert.equal(
     config.intake_api_origin,
-    "https://ovanite-intake-gn5iks-preview.freebuff.site",
+    "https://ovanite-intake-gn5iks.freebuff.site",
   );
 });
 

@@ -9,7 +9,7 @@ const DEFAULT_ICP_HOST = "https://icp-api.io";
 // Public intake endpoint (contact, waitlist, participant submission). It is a
 // public address, not a secret; override it with OVANITE_INTAKE_API_ORIGIN.
 const DEFAULT_INTAKE_ORIGIN =
-  "https://ovanite-intake-gn5iks-preview.freebuff.site";
+  "https://ovanite-intake-gn5iks.freebuff.site";
 
 function clean(value) {
   if (typeof value !== "string") return undefined;
