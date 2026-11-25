@@ -6,6 +6,7 @@ import {
   automatedAssessmentRuns,
   decisions,
   evaluations,
+  portalAuditChainState,
   portalAuditEvents,
   rubricVersions,
   submissions,
