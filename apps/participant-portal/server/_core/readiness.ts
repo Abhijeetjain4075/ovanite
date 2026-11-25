@@ -78,3 +78,38 @@ export async function checkPortalReadiness(
     return { ready: false, missing: ["DATABASE_CONNECTIVITY_OR_SCHEMA"] };
   }
 }
+
+
+/**
+ * Coalesces concurrent readiness probes and caches their result for a short,
+ * explicit TTL. Health traffic must not fan out into many database queries per
+ * request. Rejected promises are not cached, so a later probe can recover.
+ */
+export function createReadinessCache<T>(
+  probe: () => Promise<T>,
+  ttlMs = 5_000,
+  now: () => number = () => performance.now(),
+): () => Promise<T> {
+  if (!Number.isFinite(ttlMs) || ttlMs <= 0) {
+    throw new Error("Readiness cache TTL must be a positive finite number.");
+  }
+
+  let cached: { value: T; expiresAt: number } | null = null;
+  let inFlight: Promise<T> | null = null;
+
+  return async () => {
+    const current = now();
+    if (cached && current < cached.expiresAt) return cached.value;
+    if (inFlight) return inFlight;
+
+    const pending = Promise.resolve().then(probe);
+    inFlight = pending;
+    try {
+      const value = await pending;
+      cached = { value, expiresAt: now() + ttlMs };
+      return value;
+    } finally {
+      if (inFlight === pending) inFlight = null;
+    }
+  };
+}
