@@ -253,3 +253,15 @@ export const portalAuditEvents = mysqlTable(
     index("audit_hash_idx").on(table.hash),
   ],
 );
+
+
+/**
+ * Singleton row locked by every audit append. Locking the tail event is not
+ * sufficient when the log is empty: two first writers could otherwise both
+ * append a genesis record. This row serializes both initial and later writers.
+ */
+export const portalAuditChainState = mysqlTable("portal_audit_chain_state", {
+  id: int("id").primaryKey(),
+  tipHash: varchar("tipHash", { length: 64 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
