@@ -244,6 +244,7 @@ export const portalAuditEvents = mysqlTable(
     // deleting history is detectable. Null on rows written before the chain.
     prevHash: varchar("prevHash", { length: 64 }),
     hash: varchar("hash", { length: 64 }),
+    hashVersion: int("hashVersion").notNull().default(1),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
