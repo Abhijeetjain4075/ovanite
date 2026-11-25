@@ -144,8 +144,8 @@ function normalizeRequestPath(path: string): string {
 
 /**
  * Classify every API route consistently with Express's default
- * case-insensitive routing. Only the three exact health endpoints bypass
- * limits; similarly prefixed paths do not inherit the exemption.
+ * case-insensitive routing. Only the cheap liveness endpoint bypasses
+ * limits; readiness and similarly prefixed paths remain rate-limited.
  */
 export function rateLimitClass(method: string, path: string): RateLimitClass | null {
   const normalizedPath = normalizeRequestPath(path);
