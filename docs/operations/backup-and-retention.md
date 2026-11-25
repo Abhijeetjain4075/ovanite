@@ -166,6 +166,14 @@ This is the only recovery path for content if the canister is lost entirely.
 - Never re-deploy an old tag with a rebuilt `env.json` unless the change is
   recorded: a canister id change silently re-points the site.
 
+## Intake attachments
+
+Participant submissions may carry up to three files (a zip, a tarball, a PDF or
+a source file). They are retained exactly as long as the submission they belong
+to: deleting the submission means deleting its `intake_file` rows and the R2
+objects named by them. Nothing else indexes those objects, so an orphaned row is
+the only way to reach a file.
+
 ## Secret rotation and retention
 
 - Rotate `MANUS_JWT_SECRET` on a schedule and immediately after suspected

@@ -13,6 +13,7 @@ import { resolveSiteCopy } from "@/lib/siteCopy";
 const INTAKE_PRIVACY_PARAGRAPHS = [
   "Participant submissions, contact messages and waitlist registrations are stored so Ovanite can review them and reply. A record contains only what you type into the form: your name, your email address, and the details you choose to provide.",
   "Submissions are kept while they are under review and for up to 12 months afterwards, then deleted. They are not sold, shared for advertising, or used to profile you. You can ask for a submission to be deleted at any time through the contact page.",
+  "If you attach files, such as a zip of your source code, they are stored with your submission under a generated name, are never unpacked, never run, and never published or served to anyone but the reviewer handling your submission. Attachments are deleted together with the submission, and a submission without attachments is unaffected.",
   "The submission service stores a salted digest of your network address instead of the address itself, and uses it only to limit abusive traffic. The service provider that delivers and protects this website processes technical request data under its own terms.",
 ];
 

@@ -22,7 +22,11 @@ export type IntakePayload = {
 };
 
 export type IntakeOutcome =
-  | { status: "received"; reference?: string }
+  | {
+      status: "received";
+      reference?: string;
+      attachments?: { name: string; size: number }[];
+    }
   | { status: "duplicate" };
 
 export type IntakeFailureReason =
@@ -68,10 +72,22 @@ export function isDuplicateIntakeResult(result: unknown): boolean {
  * Submits one record. Resolves only for a stored or duplicate record; every
  * other path throws an `IntakeError` the caller renders to the visitor.
  */
+/**
+ * Submits one record, optionally with attachments.
+ *
+ * A JSON body is used when there is nothing attached; attachments switch the
+ * request to `multipart/form-data` so the record and its files arrive together
+ * and the service can store them atomically. The browser sets the multipart
+ * boundary itself, so no `content-type` header is sent here.
+ */
 export async function submitIntake(
   kind: IntakeKind,
   payload: IntakePayload,
-  options: { fetcher?: typeof fetch; signal?: AbortSignal } = {},
+  options: {
+    fetcher?: typeof fetch;
+    signal?: AbortSignal;
+    files?: File[];
+  } = {},
 ): Promise<IntakeOutcome> {
   const origin = intakeApiOrigin();
   if (!origin) {
@@ -90,6 +106,13 @@ export async function submitIntake(
     });
   }
 
+  const files = options.files ?? [];
+  const form = new FormData();
+  form.set("payload", JSON.stringify({ kind, ...payload }));
+  for (const file of files) {
+    form.append("files", file, file.name);
+  }
+
   let response: Response;
   try {
     response = await fetcher(`${origin}/api/intake`, {
@@ -97,11 +120,14 @@ export async function submitIntake(
       mode: "cors",
       credentials: "omit",
       cache: "no-store",
-      headers: {
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({ kind, ...payload }),
+      headers:
+        files.length > 0
+          ? { accept: "application/json" }
+          : {
+              "content-type": "application/json",
+              accept: "application/json",
+            },
+      body: files.length > 0 ? form : JSON.stringify({ kind, ...payload }),
       signal: controller.signal,
     });
   } catch {
@@ -123,6 +149,7 @@ export async function submitIntake(
     status?: unknown;
     reference?: unknown;
     fields?: unknown;
+    attachments?: unknown;
   };
 
   if (response.status === 201 && record.status === "received") {
@@ -130,6 +157,9 @@ export async function submitIntake(
       status: "received",
       reference:
         typeof record.reference === "string" ? record.reference : undefined,
+      attachments: Array.isArray(record.attachments)
+        ? (record.attachments as { name: string; size: number }[])
+        : undefined,
     };
   }
 

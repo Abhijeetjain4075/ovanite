@@ -6,7 +6,9 @@ server of its own — a static deployment cannot store a submission.
 
 ## Contract
 
-`POST /api/intake` with `content-type: application/json`.
+`POST /api/intake` with `content-type: application/json`, or
+`multipart/form-data` when files are attached: the same JSON travels in a
+`payload` field and each file is a `files` part.
 
 | Field | `contact` | `waitlist` | `participant` | Notes |
 | --- | --- | --- | --- | --- |
@@ -20,6 +22,7 @@ server of its own — a static deployment cannot store a submission.
 | `repository` | — | — | optional | HTTPS URL only |
 | `status` | — | — | optional | ≤ 60 chars |
 | `website` | — | — | — | Honeypot. Any value is accepted and discarded. |
+| `files` | — | — | optional | Multipart file parts: up to 3, 20 MB each, 25 MB total |
 
 Responses:
 
@@ -33,7 +36,33 @@ Responses:
 | `429` | `{ok:false, error:"rate_limited"}` + `retry-after` | 5 per hour and 20 per day per client |
 | `500` / `503` | `{ok:false, error:"unavailable"}` | Generic failure; never a stack or SQL fragment |
 
+### Attachments
+
+The participant form accepts files so a visitor can send a repository zip, a
+tarball, a PDF or a single source file.
+
+| Rule | Value |
+| --- | --- |
+| Files per submission | 3 |
+| Size per file | 20 MB |
+| Total per submission | 25 MB |
+| Archives | `.zip`, `.tar.gz`, `.tgz`, `.gz`, `.7z`, `.rar` |
+| Documents | `.pdf`, `.docx`, `.xlsx`, `.pptx`, `.md`, `.txt`, `.csv` |
+| Source files | `.ts`, `.tsx`, `.js`, `.py`, `.go`, `.rs`, `.java`, `.sql`, `.json`, `.yaml`, `.sh`, and the rest of the list in `src/files.js` |
+
+An archive must carry its signature (`PK\x03\x04` for zip, `1f 8b` for gzip) and
+a text file must contain no NUL bytes, so renaming an executable to `.zip` is
+refused. The service never unpacks, executes or serves an upload inline: bytes go
+to the R2 binding `FILES` under a generated key (`intake/<year>/<month>/<uuid>.<ext>`)
+and the original name is kept only as metadata. A rejected or failed submission
+leaves no object behind.
+
 `GET /healthz` returns `{ok:true}` once the database answers.
+
+`GET /api/files?submission=<reference>` lists a submission's attachments and
+`GET /api/files/<id>` streams one as a download. Both require the same bearer
+token as the operator read path, both are absent without `INTAKE_ADMIN_TOKEN`,
+and nothing about an attachment is reachable from the public site.
 
 `GET /api/intake?limit=50` is the operator read path. It does not exist unless
 `INTAKE_ADMIN_TOKEN` is set to at least 32 characters, and it requires
@@ -50,7 +79,8 @@ Submissions contain personal data: retention and deletion follow
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `DB` | yes | D1 binding; apply `schema.sql` before the first submission |
+| `DB` | yes | D1 binding; `schema.sql` is applied idempotently on first request |
+| `FILES` | for attachments | R2 binding; without it a submission carrying files is refused with `503` |
 | `ALLOWED_ORIGINS` | recommended | Comma-separated browser origins; defaults to `https://ovanite.vercel.app` |
 | `RATE_SALT` | recommended | Salt for the IP digest |
 | `INTAKE_ADMIN_TOKEN` | optional | ≥ 32 characters; enables the operator read path |

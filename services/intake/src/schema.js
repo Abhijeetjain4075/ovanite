@@ -35,6 +35,18 @@ export const SCHEMA_STATEMENTS = [
   )`,
   `CREATE INDEX IF NOT EXISTS intake_rate_window
     ON intake_rate (window_start)`,
+  `CREATE TABLE IF NOT EXISTS intake_file (
+    id TEXT PRIMARY KEY,
+    submission_id TEXT NOT NULL REFERENCES intake(id),
+    object_key TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    content_type TEXT NOT NULL,
+    digest TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS intake_file_submission
+    ON intake_file (submission_id)`,
 ];
 
 let ready = false;

@@ -6,6 +6,58 @@
  * check, so two simultaneous identical submissions can never both be stored.
  */
 
+const INSERT_SUBMISSION = `INSERT INTO intake
+   (id, kind, name, email, message, note, project, stack, repository,
+    status, dedupe_hash, created_at, source_origin, ip_hash, request_id)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+const INSERT_FILE = `INSERT INTO intake_file
+   (id, submission_id, object_key, name, size, content_type, digest, created_at)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+function submissionStatement(db, record) {
+  return db.prepare(INSERT_SUBMISSION).bind(
+    record.id,
+    record.kind,
+    record.name,
+    record.email,
+    record.message ?? null,
+    record.note ?? null,
+    record.project ?? null,
+    record.stack ?? null,
+    record.repository ?? null,
+    record.status ?? null,
+    record.dedupeHash,
+    record.createdAt,
+    record.sourceOrigin,
+    record.ipHash,
+    record.requestId ?? null,
+  );
+}
+
+function fileStatement(db, row) {
+  return db.prepare(INSERT_FILE).bind(
+    row.id,
+    row.submissionId,
+    row.objectKey,
+    row.name,
+    row.size,
+    row.contentType,
+    row.digest,
+    row.createdAt,
+  );
+}
+
+function asDuplicateError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (/UNIQUE constraint failed/i.test(message)) {
+    const duplicate = new Error("duplicate submission");
+    duplicate.code = "DUPLICATE";
+    return duplicate;
+  }
+  return null;
+}
+
 export function createD1Store(db) {
   return {
     async findByDedupe(kind, dedupeHash) {
@@ -18,40 +70,81 @@ export function createD1Store(db) {
 
     async insert(record) {
       try {
-        await db
-          .prepare(
-            `INSERT INTO intake
-               (id, kind, name, email, message, note, project, stack, repository,
-                status, dedupe_hash, created_at, source_origin, ip_hash, request_id)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          )
-          .bind(
-            record.id,
-            record.kind,
-            record.name,
-            record.email,
-            record.message ?? null,
-            record.note ?? null,
-            record.project ?? null,
-            record.stack ?? null,
-            record.repository ?? null,
-            record.status ?? null,
-            record.dedupeHash,
-            record.createdAt,
-            record.sourceOrigin,
-            record.ipHash,
-            record.requestId ?? null,
-          )
-          .run();
+        await submissionStatement(db, record).run();
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (/UNIQUE constraint failed/i.test(message)) {
-          const duplicate = new Error("duplicate submission");
-          duplicate.code = "DUPLICATE";
-          throw duplicate;
-        }
+        const duplicate = asDuplicateError(error);
+        if (duplicate) throw duplicate;
         throw error;
       }
+    },
+
+    /**
+     * The submission and its attachment rows land in one batch: D1 applies the
+     * batch as a transaction, so a submission can never point at a file row that
+     * was rolled back, and vice versa.
+     */
+    async insertWithFiles(record, files) {
+      const statements = [
+        submissionStatement(db, record),
+        ...files.map((row) => fileStatement(db, row)),
+      ];
+      try {
+        await db.batch(statements);
+      } catch (error) {
+        const duplicate = asDuplicateError(error);
+        if (duplicate) throw duplicate;
+        throw error;
+      }
+    },
+
+    async insertFiles(files) {
+      await db.batch(files.map((row) => fileStatement(db, row)));
+    },
+
+    async listFiles(submissionId) {
+      const result = await db
+        .prepare(
+          `SELECT id, submission_id, object_key, name, size, content_type,
+                  digest, created_at
+             FROM intake_file
+            WHERE submission_id = ?
+            ORDER BY created_at ASC`,
+        )
+        .bind(submissionId)
+        .all();
+      return (result.results ?? []).map((row) => ({
+        id: row.id,
+        submissionId: row.submission_id,
+        objectKey: row.object_key,
+        name: row.name,
+        size: Number(row.size),
+        contentType: row.content_type,
+        digest: row.digest,
+        createdAt: row.created_at,
+      }));
+    },
+
+    async findFile(fileId) {
+      const row = await db
+        .prepare(
+          `SELECT id, submission_id, object_key, name, size, content_type,
+                  digest, created_at
+             FROM intake_file
+            WHERE id = ?`,
+        )
+        .bind(fileId)
+        .first();
+      if (!row) return null;
+      return {
+        id: row.id,
+        submissionId: row.submission_id,
+        objectKey: row.object_key,
+        name: row.name,
+        size: Number(row.size),
+        contentType: row.content_type,
+        digest: row.digest,
+        createdAt: row.created_at,
+      };
     },
 
     async takeRateToken(bucket, windowStart) {

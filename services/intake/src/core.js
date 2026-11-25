@@ -3,20 +3,36 @@
  *
  * One endpoint serves every public intake surface on the site (contact,
  * waitlist, participant submission). It is deliberately transport-agnostic: the
- * Worker entrypoint supplies a store, a clock and an origin allowlist, so the
- * whole contract — validation, rate limiting, duplicate detection, error shapes
- * — is testable without a database or a network.
+ * Worker entrypoint supplies a store, an object bucket, a clock and an origin
+ * allowlist, so the whole contract — validation, attachments, rate limiting,
+ * duplicate detection, error shapes — is testable without a database or a
+ * network.
  *
  * Guarantees:
  *   - nothing from the request is echoed back except field names;
  *   - unexpected failures return a generic `unavailable` error, never a stack,
  *     SQL fragment, host name or provider detail;
- *   - a visitor gets `received` only after the record is durably stored.
+ *   - a visitor gets `received` only after the record and its attachments are
+ *     durably stored;
+ *   - attachments are stored under generated keys, never unpacked and never
+ *     reachable without the operator token.
  */
+import {
+  MAX_FILES,
+  MAX_TOTAL_BYTES,
+  MULTIPART_OVERHEAD_BYTES,
+  contentTypeFor,
+  extensionOf,
+  inspectAttachment,
+  objectKeyFor,
+  sanitizeFileName,
+  validateAttachment,
+} from "./files.js";
 
 export const INTAKE_KINDS = ["contact", "waitlist", "participant"];
 
 const MAX_BODY_BYTES = 16 * 1024;
+const MAX_MULTIPART_BYTES = MAX_TOTAL_BYTES + MULTIPART_OVERHEAD_BYTES;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_HOME_FIELD = "website";
 
@@ -67,10 +83,9 @@ function json(status, body, extraHeaders = {}) {
 }
 
 async function sha256Hex(value) {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
+  const input =
+    typeof value === "string" ? new TextEncoder().encode(value) : value;
+  const digest = await crypto.subtle.digest("SHA-256", input);
   return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
@@ -130,8 +145,15 @@ export function validateSubmission(kind, body) {
   return { fields, values };
 }
 
-function dedupeMaterial(kind, values) {
-  return JSON.stringify([kind, values.email.toLowerCase(), values.name, values.message ?? "", values.project ?? ""]);
+function dedupeMaterial(kind, values, attachmentDigests) {
+  return JSON.stringify([
+    kind,
+    values.email.toLowerCase(),
+    values.name,
+    values.message ?? "",
+    values.project ?? "",
+    attachmentDigests,
+  ]);
 }
 
 async function applyRateLimit(store, fingerprint, now) {
@@ -150,11 +172,117 @@ async function applyRateLimit(store, fingerprint, now) {
   return null;
 }
 
+function isMultipart(contentType) {
+  return contentType.toLowerCase().includes("multipart/form-data");
+}
+
+/**
+ * Reads the submission envelope. JSON keeps the original single-part contract;
+ * a multipart request carries the same JSON in a `payload` field plus zero or
+ * more `files` parts.
+ */
+async function readSubmission(request, contentType) {
+  const declaredLength = Number(request.headers.get("content-length") ?? 0);
+
+  if (isMultipart(contentType)) {
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_MULTIPART_BYTES) {
+      return { errorResponse: json(413, { ok: false, error: "payload_too_large" }) };
+    }
+    let form;
+    try {
+      form = await request.formData();
+    } catch {
+      return { errorResponse: json(400, { ok: false, error: "invalid_payload" }) };
+    }
+    const payload = form.get("payload");
+    if (typeof payload !== "string" || payload.length > MAX_BODY_BYTES) {
+      return { errorResponse: json(400, { ok: false, error: "invalid_payload" }) };
+    }
+    let body;
+    try {
+      body = JSON.parse(payload);
+    } catch {
+      return { errorResponse: json(400, { ok: false, error: "invalid_json" }) };
+    }
+    const files = form
+      .getAll("files")
+      .filter((entry) => typeof entry === "object" && entry !== null);
+    return { body, files };
+  }
+
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return { errorResponse: json(415, { ok: false, error: "unsupported_media_type" }) };
+  }
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    return { errorResponse: json(413, { ok: false, error: "payload_too_large" }) };
+  }
+  let body;
+  try {
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_BYTES) {
+      return { errorResponse: json(413, { ok: false, error: "payload_too_large" }) };
+    }
+    body = JSON.parse(raw);
+  } catch {
+    return { errorResponse: json(400, { ok: false, error: "invalid_json" }) };
+  }
+  return { body, files: [] };
+}
+
+/**
+ * Validates every attached file and turns it into an upload candidate.
+ * Returns `{ problem, fieldError }` on rejection.
+ */
+async function prepareAttachments(files) {
+  if (files.length > MAX_FILES) {
+    return { fieldError: `Attach at most ${MAX_FILES} files.` };
+  }
+
+  let total = 0;
+  const prepared = [];
+  for (const entry of files) {
+    const name = sanitizeFileName(entry.name);
+    const size = typeof entry.size === "number" ? entry.size : 0;
+    total += size;
+
+    const declaredProblem = validateAttachment(name, size);
+    if (declaredProblem) return { fieldError: declaredProblem };
+
+    let bytes;
+    try {
+      bytes = new Uint8Array(await entry.arrayBuffer());
+    } catch {
+      return { fieldError: "That file could not be read." };
+    }
+    if (bytes.length !== size) {
+      return { fieldError: "That file could not be read completely. Please try again." };
+    }
+    const byteProblem = inspectAttachment(name, bytes);
+    if (byteProblem) return { fieldError: byteProblem };
+
+    const extension = extensionOf(name);
+    prepared.push({
+      name,
+      size: bytes.length,
+      extension,
+      contentType: contentTypeFor(extension),
+      bytes,
+      digest: await sha256Hex(bytes),
+    });
+  }
+
+  if (total > MAX_TOTAL_BYTES) {
+    return { fieldError: "Attachments must total 25 MB or less." };
+  }
+  return { prepared };
+}
+
 /**
  * POST /api/intake
  */
 export async function handleSubmission(request, deps) {
   const { store, allowedOrigins, now, rateSalt, requestId } = deps;
+  const attachments = deps.attachments ?? null;
 
   if (request.method !== "POST") {
     return json(405, { ok: false, error: "method_not_allowed" }, { allow: "POST, OPTIONS" });
@@ -166,25 +294,9 @@ export async function handleSubmission(request, deps) {
   }
 
   const contentType = request.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) {
-    return json(415, { ok: false, error: "unsupported_media_type" });
-  }
-
-  const declaredLength = Number(request.headers.get("content-length") ?? 0);
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
-    return json(413, { ok: false, error: "payload_too_large" });
-  }
-
-  let body;
-  try {
-    const raw = await request.text();
-    if (raw.length > MAX_BODY_BYTES) {
-      return json(413, { ok: false, error: "payload_too_large" });
-    }
-    body = JSON.parse(raw);
-  } catch {
-    return json(400, { ok: false, error: "invalid_json" });
-  }
+  const read = await readSubmission(request, contentType);
+  if (read.errorResponse) return read.errorResponse;
+  const { body, files } = read;
 
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return json(400, { ok: false, error: "invalid_payload" });
@@ -202,6 +314,15 @@ export async function handleSubmission(request, deps) {
     return json(400, { ok: false, error: "invalid", fields });
   }
 
+  if (files.length > 0 && !attachments) {
+    return json(503, { ok: false, error: "unavailable" });
+  }
+
+  const { prepared, fieldError } = await prepareAttachments(files);
+  if (fieldError) {
+    return json(400, { ok: false, error: "invalid", fields: { files: fieldError } });
+  }
+
   const clientAddress =
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -217,15 +338,39 @@ export async function handleSubmission(request, deps) {
     );
   }
 
-  const dedupeHash = await sha256Hex(dedupeMaterial(kind, values));
+  const digests = prepared.map((file) => file.digest);
+  const dedupeHash = await sha256Hex(dedupeMaterial(kind, values, digests));
   const existing = await store.findByDedupe(kind, dedupeHash);
   if (existing) {
     return json(200, { ok: true, status: "duplicate", reference: existing });
   }
 
   const id = crypto.randomUUID();
+  const stored = [];
+  const fileRows = [];
+
   try {
-    await store.insert({
+    for (const file of prepared) {
+      const objectKey = objectKeyFor(file.extension, now);
+      await attachments.put(objectKey, file.bytes, {
+        contentType: file.contentType,
+        originalName: file.name,
+        submissionId: id,
+      });
+      stored.push(objectKey);
+      fileRows.push({
+        id: crypto.randomUUID(),
+        submissionId: id,
+        objectKey,
+        name: file.name,
+        size: file.size,
+        contentType: file.contentType,
+        digest: file.digest,
+        createdAt: new Date(now).toISOString(),
+      });
+    }
+
+    const record = {
       id,
       kind,
       ...values,
@@ -234,8 +379,27 @@ export async function handleSubmission(request, deps) {
       sourceOrigin: origin ?? null,
       ipHash: fingerprint,
       requestId,
-    });
+    };
+
+    if (fileRows.length > 0 && typeof store.insertWithFiles === "function") {
+      await store.insertWithFiles(record, fileRows);
+    } else {
+      await store.insert(record);
+      if (fileRows.length > 0) {
+        if (typeof store.insertFiles !== "function") {
+          throw new Error("store cannot record attachments");
+        }
+        await store.insertFiles(fileRows);
+      }
+    }
   } catch (error) {
+    for (const objectKey of stored) {
+      try {
+        await attachments.delete(objectKey);
+      } catch {
+        // Best effort: the row was not written, so the object is unreachable.
+      }
+    }
     if (error && error.code === "DUPLICATE") {
       const raced = await store.findByDedupe(kind, dedupeHash);
       if (raced) {
@@ -248,13 +412,43 @@ export async function handleSubmission(request, deps) {
         event: "intake_insert_failed",
         requestId,
         kind,
+        attachments: fileRows.length,
         message: error instanceof Error ? error.message : "unknown",
       }),
     );
     return json(500, { ok: false, error: "unavailable" });
   }
 
-  return json(201, { ok: true, status: "received", reference: id });
+  // The response stays deliberately thin: a reference, plus the attachment
+  // names when there are any. Nothing else from the request is echoed.
+  return json(201, {
+    ok: true,
+    status: "received",
+    reference: id,
+    ...(fileRows.length > 0
+      ? {
+          attachments: fileRows.map((row) => ({
+            name: row.name,
+            size: row.size,
+          })),
+        }
+      : {}),
+  });
+}
+
+/** Operator authentication shared by both read paths. */
+function requireOperator(request, token) {
+  if (!token || token.length < 32) {
+    return json(404, { ok: false, error: "not_found" });
+  }
+  const authorization = request.headers.get("authorization") ?? "";
+  const provided = authorization.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : "";
+  if (provided !== token) {
+    return json(401, { ok: false, error: "unauthorized" });
+  }
+  return null;
 }
 
 /**
@@ -267,16 +461,8 @@ export async function handleSubmission(request, deps) {
  */
 export async function handleList(request, deps) {
   const { store, token } = deps;
-  if (!token || token.length < 32) {
-    return json(404, { ok: false, error: "not_found" });
-  }
-  const authorization = request.headers.get("authorization") ?? "";
-  const provided = authorization.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length)
-    : "";
-  if (provided !== token) {
-    return json(401, { ok: false, error: "unauthorized" });
-  }
+  const denied = requireOperator(request, token);
+  if (denied) return denied;
 
   const limit = Math.min(
     200,
@@ -284,4 +470,77 @@ export async function handleList(request, deps) {
   );
   const rows = await store.list(limit);
   return json(200, { ok: true, count: rows.length, rows });
+}
+
+/**
+ * GET /api/files?submission=<reference> — attachment metadata for one
+ * submission. Operator only; never a download URL an anonymous visitor could
+ * reuse.
+ */
+export async function handleFileList(request, deps) {
+  const { store, token } = deps;
+  const denied = requireOperator(request, token);
+  if (denied) return denied;
+
+  const submissionId = cleanString(
+    new URL(request.url).searchParams.get("submission"),
+  );
+  if (!submissionId) {
+    return json(400, { ok: false, error: "invalid" });
+  }
+  if (typeof store.listFiles !== "function") {
+    return json(503, { ok: false, error: "unavailable" });
+  }
+
+  const files = await store.listFiles(submissionId);
+  return json(200, {
+    ok: true,
+    count: files.length,
+    files: files.map((file) => ({
+      id: file.id,
+      name: file.name,
+      size: file.size,
+      contentType: file.contentType,
+      createdAt: file.createdAt,
+    })),
+  });
+}
+
+/**
+ * GET /api/files/<id> — streams one attachment as a download. Operator only.
+ */
+export async function handleFileDownload(request, deps) {
+  const { store, attachments, token } = deps;
+  const denied = requireOperator(request, token);
+  if (denied) return denied;
+  if (!attachments || typeof store.findFile !== "function") {
+    return json(503, { ok: false, error: "unavailable" });
+  }
+
+  const url = new URL(request.url);
+  const fileId = url.pathname.split("/").pop() ?? "";
+  if (!/^[0-9a-f-]{36}$/i.test(fileId)) {
+    return json(400, { ok: false, error: "invalid" });
+  }
+
+  const file = await store.findFile(fileId);
+  if (!file) {
+    return json(404, { ok: false, error: "not_found" });
+  }
+
+  const object = await attachments.get(file.objectKey);
+  if (!object) {
+    return json(404, { ok: false, error: "not_found" });
+  }
+
+  return new Response(object.body, {
+    headers: {
+      "content-type": file.contentType,
+      "content-length": String(file.size),
+      "content-disposition": `attachment; filename="${file.name.replace(/["\\]/g, "")}"`,
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "referrer-policy": "no-referrer",
+    },
+  });
 }

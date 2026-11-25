@@ -4,6 +4,7 @@
   "modules": [
     { "name": "worker.js", "type": "esm", "path": "./src/worker.js" },
     { "name": "core.js", "type": "esm", "path": "./src/core.js" },
+    { "name": "files.js", "type": "esm", "path": "./src/files.js" },
     { "name": "store-d1.js", "type": "esm", "path": "./src/store-d1.js" },
     { "name": "schema.js", "type": "esm", "path": "./src/schema.js" }
   ]

@@ -21,6 +21,12 @@ import {
   submitIntake,
 } from "@/lib/intake";
 import {
+  ACCEPT_ATTRIBUTE,
+  MAX_FILES,
+  formatBytes,
+  validateAttachmentSet,
+} from "@/lib/uploads";
+import {
   validateEmail,
   validateMessage,
   validateName,
@@ -76,6 +82,8 @@ export default function SubmitProject() {
   const [repository, setRepository] = useState("");
   const [status, setStatus] = useState("");
   const [consent, setConsent] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<
     Partial<Record<Field | "consent", string>>
@@ -100,6 +108,7 @@ export default function SubmitProject() {
   }
 
   function applyServerErrors(fields: IntakeFieldErrors): void {
+    if (typeof fields.files === "string") setFileError(fields.files);
     const mapped: Partial<Record<Field, string>> = {};
     for (const field of Object.keys(FIELD_IDS) as Field[]) {
       const message = fields[field];
@@ -108,23 +117,65 @@ export default function SubmitProject() {
     if (Object.keys(mapped).length > 0) setErrors(mapped);
   }
 
+  /**
+   * Merges a new pick into the current selection so replacing one file does not
+   * silently drop the others. The first problem is shown once, before upload.
+   */
+  function handleFiles(event: React.ChangeEvent<HTMLInputElement>): void {
+    const picked = Array.from(event.target.files ?? []);
+    if (picked.length === 0) return;
+
+    const merged = [...files];
+    for (const file of picked) {
+      const duplicate = merged.some(
+        (existing) =>
+          existing.name === file.name &&
+          existing.size === file.size &&
+          existing.lastModified === file.lastModified,
+      );
+      if (!duplicate) merged.push(file);
+    }
+
+    const problem = validateAttachmentSet(merged);
+    setFileError(problem ?? null);
+    if (!problem) setFiles(merged);
+    // Let the same file be picked again after it was removed.
+    event.target.value = "";
+  }
+
+  function removeFile(index: number): void {
+    const next = files.filter((_, position) => position !== index);
+    setFiles(next);
+    setFileError(validateAttachmentSet(next) ?? null);
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFailure(null);
     setDuplicate(false);
     if (!validate()) return;
 
+    const attachmentProblem = validateAttachmentSet(files);
+    if (attachmentProblem) {
+      setFileError(attachmentProblem);
+      return;
+    }
+
     setPending(true);
     try {
-      const outcome = await submitIntake("participant", {
-        name: name.trim(),
-        email: email.trim(),
-        project: project.trim(),
-        message: message.trim(),
-        ...(stack.trim() ? { stack: stack.trim() } : {}),
-        ...(repository.trim() ? { repository: repository.trim() } : {}),
-        ...(status ? { status } : {}),
-      });
+      const outcome = await submitIntake(
+        "participant",
+        {
+          name: name.trim(),
+          email: email.trim(),
+          project: project.trim(),
+          message: message.trim(),
+          ...(stack.trim() ? { stack: stack.trim() } : {}),
+          ...(repository.trim() ? { repository: repository.trim() } : {}),
+          ...(status ? { status } : {}),
+        },
+        { files },
+      );
       if (isDuplicateIntakeResult(outcome)) {
         setDuplicate(true);
         return;
@@ -244,6 +295,13 @@ export default function SubmitProject() {
                   {received ? (
                     <p className="mt-4 font-mono text-xs text-muted-foreground">
                       Reference: {received}
+                    </p>
+                  ) : null}
+                  {files.length > 0 ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {files.length === 1
+                        ? "1 attachment stored."
+                        : `${files.length} attachments stored.`}
                     </p>
                   ) : null}
                   <div className="mt-6">
@@ -470,6 +528,69 @@ export default function SubmitProject() {
                       >
                         {errors.repository}
                       </p>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="intake-files" className="mb-2">
+                      Files (optional)
+                    </Label>
+                    <input
+                      id="intake-files"
+                      name="files"
+                      type="file"
+                      multiple
+                      accept={ACCEPT_ATTRIBUTE}
+                      onChange={handleFiles}
+                      data-ocid="intake.files_input"
+                      aria-describedby="intake-files-hint"
+                      aria-invalid={fileError ? true : undefined}
+                      className="block w-full cursor-pointer rounded-sm border border-input bg-background px-3 py-2 text-sm file:mr-3 file:rounded-sm file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-secondary-foreground"
+                    />
+                    <p
+                      id="intake-files-hint"
+                      className="mt-2 text-xs text-muted-foreground"
+                    >
+                      A zip or tarball of your source, a PDF, or a single source
+                      file. Up to {MAX_FILES} files, 20 MB each and 25 MB in
+                      total. Files are reviewed privately and never published.
+                    </p>
+                    {fileError ? (
+                      <p
+                        role="alert"
+                        data-ocid="intake.files_error"
+                        className="mt-2 text-sm text-destructive"
+                      >
+                        {fileError}
+                      </p>
+                    ) : null}
+                    {files.length > 0 ? (
+                      <ul
+                        data-ocid="intake.files_list"
+                        className="mt-3 space-y-2"
+                      >
+                        {files.map((file, index) => (
+                          <li
+                            key={`${file.name}-${file.size}-${index}`}
+                            className="flex items-center justify-between gap-3 border border-border px-3 py-2 text-sm"
+                          >
+                            <span className="truncate">
+                              {file.name}
+                              <span className="ml-2 font-mono text-xs text-muted-foreground">
+                                {formatBytes(file.size)}
+                              </span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              data-ocid={`intake.files_remove.${index + 1}`}
+                              className="text-xs text-muted-foreground underline hover:text-foreground"
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
                   </div>
 
