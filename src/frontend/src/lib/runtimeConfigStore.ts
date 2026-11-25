@@ -1,6 +1,7 @@
 import {
   RUNTIME_CONFIG_PLACEHOLDER,
   type RuntimeConfig,
+  isCanonicalPrincipal,
   readRuntimeConfigValue,
 } from "./runtimeConfig";
 
@@ -39,3 +40,16 @@ export function intakeApiOrigin(): string | null {
 }
 
 export const INTAKE_UNCONFIGURED = RUNTIME_CONFIG_PLACEHOLDER;
+
+/**
+ * True only when this deployment names a canonical canister principal.
+ *
+ * Nothing backend-dependent (site copy reads, forms via the canister, admin,
+ * sign-in) may construct an actor otherwise: the Caffeine SDK logs a missing
+ * `CANISTER_ID_BACKEND` on every attempt, and a static-mode deployment must keep
+ * a clean console.
+ */
+export function isBackendConfigured(): boolean {
+  const canisterId = readRuntimeConfigValue(current, "backend_canister_id");
+  return canisterId !== null && isCanonicalPrincipal(canisterId);
+}

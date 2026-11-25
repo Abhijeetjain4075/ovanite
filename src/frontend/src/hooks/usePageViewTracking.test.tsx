@@ -1,10 +1,14 @@
-import { render, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CONSENT_STORAGE_KEY } from "@/lib/consent";
 
-import { type MockActor, actorResult, createMockActor } from "@/test/utils";
+import {
+  type MockActor,
+  actorResult,
+  createMockActor,
+  renderWithProviders,
+} from "@/test/utils";
 
 const { useActorMock } = vi.hoisted(() => ({ useActorMock: vi.fn() }));
 
@@ -31,11 +35,8 @@ function Tracker() {
 
 function renderAt(path: string, actor: MockActor) {
   useActorMock.mockReturnValue(actorResult(actor));
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Tracker />
-    </MemoryRouter>,
-  );
+  // The provider owns the actor, exactly as in the application tree.
+  return renderWithProviders(<Tracker />, { route: path });
 }
 
 describe("usePageViewTracking", () => {

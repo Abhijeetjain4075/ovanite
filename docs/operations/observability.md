@@ -116,6 +116,11 @@ The exported site has no server-side logging. What it does have:
   `runtimeConfigError = "failed"`, then replaces the page with a neutral reload
   prompt (`data-ocid="startup-failure"`); it never names an environment,
   canister, or configuration key.
+- A static-mode deployment never mounts the Caffeine actor or identity
+  providers (`BackendActorProvider` / `IdentityProvider` render only when the
+  runtime contract names a canonical canister principal), so the visitor console
+  stays free of the SDK's `CANISTER_ID_BACKEND is not set` diagnostics. The only
+  runtime-config output is a warning per problem.
 - Alerts: `runtimeConfigError` present is an incident (the page did not mount).
   `runtimeMode = "static"` is the expected, alertable-but-not-failing signal that
   backend-backed features are inactive on a deployment that has no canister; an

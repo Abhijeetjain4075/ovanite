@@ -5,6 +5,8 @@ import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 
 import type { backendInterface } from "@/backend";
+import { BackendActorProvider } from "@/hooks/useBackendActor";
+import { IdentityProvider } from "@/hooks/useIdentity";
 
 /**
  * A typed stand-in for the generated backend actor. Every method is a Vitest
@@ -65,7 +67,11 @@ function Providers({
   });
   return (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+      <IdentityProvider>
+        <BackendActorProvider>
+          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+        </BackendActorProvider>
+      </IdentityProvider>
     </QueryClientProvider>
   );
 }

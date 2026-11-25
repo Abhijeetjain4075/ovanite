@@ -1,7 +1,6 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type { AdminRole } from "@/types/content";
 import type { Admin } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import type { Principal } from "@icp-sdk/core/principal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -10,7 +9,7 @@ export const ownerClaimedQueryKey = ["admin", "owner-claimed"] as const;
 
 /** Every admin. Admin only. */
 export function useAdminTeam() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Admin[]>({
     queryKey: adminTeamQueryKey,
     queryFn: async () => {
@@ -27,7 +26,7 @@ export function useAdminTeam() {
  * has a configured owner principal and the one-time claim may be attempted.
  */
 export function useIsOwnerClaimed() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<boolean>({
     queryKey: ownerClaimedQueryKey,
     queryFn: async () => {
@@ -43,7 +42,7 @@ export function useIsOwnerClaimed() {
  * matches the configured owner address; the backend traps otherwise.
  */
 export function useClaimOwner() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (email: string) => {
@@ -60,7 +59,7 @@ export function useClaimOwner() {
 }
 
 export function useAddAdmin() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -81,7 +80,7 @@ export function useAddAdmin() {
 
 /** Changes a non-owner admin's role. Owner only. */
 export function useSetAdminRole() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -101,7 +100,7 @@ export function useSetAdminRole() {
 }
 
 export function useRemoveAdmin() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (principal: Principal) => {

@@ -7,6 +7,8 @@ const { useInternetIdentityMock } = vi.hoisted(() => ({
 
 vi.mock("@caffeineai/core-infrastructure", () => ({
   useInternetIdentity: useInternetIdentityMock,
+  // The shared provider tree owns the actor; this page never calls the backend.
+  useActor: () => ({ actor: null, isFetching: false }),
 }));
 
 import IdentityCheck, {

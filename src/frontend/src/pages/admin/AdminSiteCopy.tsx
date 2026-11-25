@@ -1,12 +1,11 @@
-import { createActor } from "@/backend";
 import type { SiteContentPatch } from "@/backend";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SiteCopyForm } from "@/components/admin/SiteCopyForm";
 import { PageMeta } from "@/components/layout/PageMeta";
 import { SecondaryButton } from "@/components/shared/primitives";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import { siteContentQueryKey, useSiteContent } from "@/hooks/useSiteContent";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 function errorText(error: unknown): string {
@@ -19,7 +18,7 @@ function errorText(error: unknown): string {
 
 export default function AdminSiteCopy() {
   const { data, isLoading, isError, refetch } = useSiteContent();
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({

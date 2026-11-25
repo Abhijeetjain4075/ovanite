@@ -1,13 +1,12 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type { Product } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useQuery } from "@tanstack/react-query";
 
 export const productsQueryKey = ["products", "published"] as const;
 
 /** Published products in admin-defined order. */
 export function useProducts() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Product[]>({
     queryKey: productsQueryKey,
     queryFn: async () => {

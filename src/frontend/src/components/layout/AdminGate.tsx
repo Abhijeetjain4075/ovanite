@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useClaimOwner, useIsOwnerClaimed } from "@/hooks/useAdminTeam";
-import { useInternetIdentity } from "@caffeineai/core-infrastructure";
+import { useIdentity } from "@/hooks/useIdentity";
+import { isBackendConfigured } from "@/lib/runtimeConfigStore";
 
 /** Turn a backend trap into a short, human message. */
 function friendlyClaimError(error: unknown): string {
@@ -33,7 +34,7 @@ function friendlyClaimError(error: unknown): string {
  * and otherwise are told they lack access. Renders children only for admins.
  */
 export function AdminGate({ children }: { children: ReactNode }) {
-  const { isAuthenticated, login, isLoggingIn } = useInternetIdentity();
+  const { isAuthenticated, login, isLoggingIn } = useIdentity();
   const { data: admin, isLoading } = useAdmin();
   const { data: isOwnerClaimed, isLoading: isClaimedLoading } =
     useIsOwnerClaimed();
@@ -41,6 +42,38 @@ export function AdminGate({ children }: { children: ReactNode }) {
 
   const [email, setEmail] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Without a canister there is no owner, no admin record and no session to
+  // create, so offering a sign-in button would be a dead end.
+  if (!isBackendConfigured()) {
+    return (
+      <Container className="py-24 md:py-32">
+        <div
+          className="mx-auto max-w-md text-center"
+          data-ocid="admin.unconfigured_state"
+        >
+          <p className="eyebrow">Restricted</p>
+          <h1 className="mt-4 font-display text-3xl font-bold tracking-tight">
+            Administration is unavailable
+          </h1>
+          <p className="mt-4 text-muted-foreground">
+            This deployment has no backend configured, so there is no owner and
+            no content to manage. The public site is unaffected.
+          </p>
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="mt-8 rounded-sm"
+          >
+            <Link to="/" data-ocid="admin.back_home_link">
+              Back to home
+            </Link>
+          </Button>
+        </div>
+      </Container>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

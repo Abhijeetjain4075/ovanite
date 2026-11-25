@@ -1,6 +1,5 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type { SiteContent } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useQuery } from "@tanstack/react-query";
 
 export const siteContentQueryKey = ["site-content"] as const;
@@ -10,7 +9,7 @@ export const siteContentQueryKey = ["site-content"] as const;
  * and fall back to sensible defaults when a field is unset.
  */
 export function useSiteContent() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<SiteContent>({
     queryKey: siteContentQueryKey,
     queryFn: async () => {

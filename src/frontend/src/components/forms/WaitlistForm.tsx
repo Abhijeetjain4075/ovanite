@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { createActor } from "@/backend";
 import { PrimaryButton } from "@/components/shared/primitives";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import { useBackendHealth } from "@/hooks/useBackendHealth";
 import {
   IntakeError,
@@ -20,7 +20,6 @@ import {
   validateName,
   validateNote,
 } from "@/lib/validation";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation } from "@tanstack/react-query";
 
 type WaitlistFields = "name" | "email" | "note";
@@ -34,7 +33,7 @@ const FIELD_IDS: Record<WaitlistFields, string> = {
 /** Accessible waitlist form with inline validation and success routing. */
 export function WaitlistForm() {
   const navigate = useNavigate();
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   const { isHealthy, isChecking } = useBackendHealth(actor, isFetching);
   const intakeOpen = isIntakeOpen();
   const publicFormsEnabled =

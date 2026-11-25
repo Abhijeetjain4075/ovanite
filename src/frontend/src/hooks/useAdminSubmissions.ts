@@ -1,17 +1,16 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type {
   Submission,
   SubmissionFilter,
   SubmissionStatus,
 } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const adminSubmissionsQueryKey = ["admin", "submissions"] as const;
 
 /** Submissions matching `filter`, newest first. Admin only. */
 export function useAdminSubmissions(filter: SubmissionFilter) {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Submission[]>({
     queryKey: [
       ...adminSubmissionsQueryKey,
@@ -27,7 +26,7 @@ export function useAdminSubmissions(filter: SubmissionFilter) {
 }
 
 export function useSetSubmissionStatus() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -49,7 +48,7 @@ export function useSetSubmissionStatus() {
 }
 
 export function useDeleteSubmission() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: bigint) => {

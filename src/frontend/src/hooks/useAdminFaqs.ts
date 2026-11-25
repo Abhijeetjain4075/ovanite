@@ -1,13 +1,12 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type { Faq, FaqInput, FaqPatch, PublishState } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const adminFaqsQueryKey = ["admin", "faqs"] as const;
 
 /** Every FAQ, published or not. Admin only. */
 export function useAdminFaqs() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Faq[]>({
     queryKey: adminFaqsQueryKey,
     queryFn: async () => {
@@ -27,7 +26,7 @@ function useInvalidateFaqs() {
 }
 
 export function useCreateFaq() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateFaqs();
   return useMutation({
     mutationFn: async (input: FaqInput) => {
@@ -41,7 +40,7 @@ export function useCreateFaq() {
 }
 
 export function useUpdateFaq() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateFaqs();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: bigint; patch: FaqPatch }) => {
@@ -55,7 +54,7 @@ export function useUpdateFaq() {
 }
 
 export function useSetFaqState() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateFaqs();
   return useMutation({
     mutationFn: async ({ id, state }: { id: bigint; state: PublishState }) => {
@@ -69,7 +68,7 @@ export function useSetFaqState() {
 }
 
 export function useDeleteFaq() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateFaqs();
   return useMutation({
     mutationFn: async (id: bigint) => {

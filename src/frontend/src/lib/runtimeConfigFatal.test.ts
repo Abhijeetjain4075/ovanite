@@ -39,10 +39,11 @@ describe("markRuntimeConfigDegraded", () => {
     expect(
       document.documentElement.dataset[RUNTIME_CONFIG_ERROR_ATTRIBUTE],
     ).toBeUndefined();
-    expect(error).toHaveBeenCalledWith(
+    // A rendered page logs at warning level; errors are reserved for failures.
+    expect(warn).toHaveBeenCalledWith(
       "[runtime-config] backend_canister_id is unset",
     );
-    expect(warn).toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
     expect(root.querySelector("#app")?.textContent).toBe(
       "rendered application",
     );

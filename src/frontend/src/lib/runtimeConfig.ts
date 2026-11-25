@@ -47,6 +47,19 @@ export function readRuntimeConfigValue(
 
 const readString = readRuntimeConfigValue;
 
+/**
+ * True when `value` is a canonical textual Internet Computer principal.
+ * Shared by the startup guard and the backend-capability gate so both judge the
+ * contract the same way.
+ */
+export function isCanonicalPrincipal(value: string): boolean {
+  try {
+    return Principal.fromText(value).toText() === value;
+  } catch {
+    return false;
+  }
+}
+
 function describeHttpsUrl(
   value: string,
   key: string,
@@ -105,18 +118,10 @@ export function findRuntimeConfigProblems(config: unknown): string[] {
   }
 
   const canisterId = readString(record, "backend_canister_id");
-  if (canisterId) {
-    try {
-      if (Principal.fromText(canisterId).toText() !== canisterId) {
-        problems.push(
-          "backend_canister_id must use its canonical lowercase textual form.",
-        );
-      }
-    } catch {
-      problems.push(
-        "backend_canister_id must be a valid Internet Computer principal.",
-      );
-    }
+  if (canisterId && !isCanonicalPrincipal(canisterId)) {
+    problems.push(
+      "backend_canister_id must be a valid Internet Computer principal in its canonical lowercase textual form.",
+    );
   }
 
   const derivationOrigin = readString(record, "ii_derivation_origin");

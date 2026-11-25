@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { PageMeta } from "@/components/layout/PageMeta";
 import { Button } from "@/components/ui/button";
-import { useInternetIdentity } from "@caffeineai/core-infrastructure";
+import { useIdentity } from "@/hooks/useIdentity";
 
 export const CANONICAL_OVANITE_ORIGIN = "https://ovanite.vercel.app";
 
@@ -32,7 +32,7 @@ export default function IdentityCheck({
     isLoggingIn,
     login,
     isLoginError,
-  } = useInternetIdentity();
+  } = useIdentity();
   const [copyState, setCopyState] = useState<"idle" | "copied" | "unavailable">(
     "idle",
   );

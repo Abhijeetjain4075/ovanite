@@ -1,6 +1,5 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type { Admin } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useQuery } from "@tanstack/react-query";
 
 export const callerAdminQueryKey = ["admin", "caller"] as const;
@@ -10,7 +9,7 @@ export const callerAdminQueryKey = ["admin", "caller"] as const;
  * Drives the admin nav entry point and admin route gating.
  */
 export function useAdmin() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Admin | null>({
     queryKey: callerAdminQueryKey,
     queryFn: async () => {
@@ -23,7 +22,7 @@ export function useAdmin() {
 
 /** Whether the caller is the owner (highest privilege). */
 export function useIsOwner() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<boolean>({
     queryKey: ["admin", "is-owner"],
     queryFn: async () => {

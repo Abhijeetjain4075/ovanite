@@ -1,18 +1,17 @@
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import type {
   Product,
   ProductInput,
   ProductPatch,
   PublishState,
 } from "@/types/content";
-import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const adminProductsQueryKey = ["admin", "products"] as const;
 
 /** Every product, published or not. Admin only. */
 export function useAdminProducts() {
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
   return useQuery<Product[]>({
     queryKey: adminProductsQueryKey,
     queryFn: async () => {
@@ -32,7 +31,7 @@ function useInvalidateProducts() {
 }
 
 export function useCreateProduct() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateProducts();
   return useMutation({
     mutationFn: async (input: ProductInput) => {
@@ -46,7 +45,7 @@ export function useCreateProduct() {
 }
 
 export function useUpdateProduct() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateProducts();
   return useMutation({
     mutationFn: async ({ id, patch }: { id: bigint; patch: ProductPatch }) => {
@@ -60,7 +59,7 @@ export function useUpdateProduct() {
 }
 
 export function useSetProductState() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateProducts();
   return useMutation({
     mutationFn: async ({ id, state }: { id: bigint; state: PublishState }) => {
@@ -74,7 +73,7 @@ export function useSetProductState() {
 }
 
 export function useDeleteProduct() {
-  const { actor } = useActor(createActor);
+  const { actor } = useBackendActor();
   const invalidate = useInvalidateProducts();
   return useMutation({
     mutationFn: async (id: bigint) => {

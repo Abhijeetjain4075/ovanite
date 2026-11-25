@@ -1,7 +1,17 @@
 import { screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "@/test/utils";
+
+// The shared provider tree reads the Caffeine actor; this page never needs one.
+vi.mock("@caffeineai/core-infrastructure", () => ({
+  useActor: () => ({ actor: null, isFetching: false }),
+  useInternetIdentity: () => ({
+    isAuthenticated: false,
+    login: vi.fn(),
+    isLoggingIn: false,
+  }),
+}));
 
 import NotFound from "@/pages/NotFound";
 

@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-import { createActor } from "@/backend";
+import { useBackendActor } from "@/hooks/useBackendActor";
 import {
   ANALYTICS_COLLECTION_ENABLED,
   hasAnalyticsConsent,
 } from "@/lib/consent";
-import { useActor } from "@caffeineai/core-infrastructure";
 
 /**
  * Records one aggregate page view only when analytics collection is explicitly
@@ -18,7 +17,7 @@ import { useActor } from "@caffeineai/core-infrastructure";
  */
 export function usePageViewTracking(): void {
   const { pathname } = useLocation();
-  const { actor, isFetching } = useActor(createActor);
+  const { actor, isFetching } = useBackendActor();
 
   useEffect(() => {
     if (!ANALYTICS_COLLECTION_ENABLED) return;

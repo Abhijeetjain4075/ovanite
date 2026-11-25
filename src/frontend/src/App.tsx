@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AdminGate } from "@/components/layout/AdminGate";
 import { RouteFallback } from "@/components/layout/RouteFallback";
 import { SiteLayout } from "@/components/layout/SiteLayout";
+import { BackendActorProvider } from "@/hooks/useBackendActor";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Products = lazy(() => import("@/pages/Products"));
@@ -35,44 +36,49 @@ const AdminTeam = lazy(() => import("@/pages/admin/AdminTeam"));
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route element={<SiteLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/waitlist" element={<Waitlist />} />
-            <Route path="/participants" element={<Participants />} />
-            <Route path="/identity-check" element={<IdentityCheck />} />
-            <Route path="/participants/submit" element={<SubmitProject />} />
-            <Route
-              path="/participants/my-submissions"
-              element={<Participants />}
-            />
-            <Route path="/thank-you" element={<ThankYou />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route
-              path="/admin/*"
-              element={
-                <AdminGate>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="faqs" element={<AdminFaqs />} />
-                    <Route path="site-copy" element={<AdminSiteCopy />} />
-                    <Route path="submissions" element={<AdminSubmissions />} />
-                    <Route path="team" element={<AdminTeam />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AdminGate>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </Suspense>
+      <BackendActorProvider>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route element={<SiteLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/waitlist" element={<Waitlist />} />
+              <Route path="/participants" element={<Participants />} />
+              <Route path="/identity-check" element={<IdentityCheck />} />
+              <Route path="/participants/submit" element={<SubmitProject />} />
+              <Route
+                path="/participants/my-submissions"
+                element={<Participants />}
+              />
+              <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminGate>
+                    <Routes>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="products" element={<AdminProducts />} />
+                      <Route path="faqs" element={<AdminFaqs />} />
+                      <Route path="site-copy" element={<AdminSiteCopy />} />
+                      <Route
+                        path="submissions"
+                        element={<AdminSubmissions />}
+                      />
+                      <Route path="team" element={<AdminTeam />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AdminGate>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </BackendActorProvider>
     </BrowserRouter>
   );
 }

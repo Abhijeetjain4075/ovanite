@@ -1,8 +1,8 @@
-import { InternetIdentityProvider } from "@caffeineai/core-infrastructure";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { IdentityProvider } from "./hooks/useIdentity";
 import {
   RUNTIME_CONFIG_PATH,
   type RuntimeConfig,
@@ -31,9 +31,9 @@ const queryClient = new QueryClient();
 function renderApplication(root: HTMLElement) {
   ReactDOM.createRoot(root).render(
     <QueryClientProvider client={queryClient}>
-      <InternetIdentityProvider>
+      <IdentityProvider>
         <App />
-      </InternetIdentityProvider>
+      </IdentityProvider>
     </QueryClientProvider>,
   );
 }

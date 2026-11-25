@@ -29,9 +29,12 @@ export function markRuntimeConfigDegraded(
   problems: readonly string[],
   { local }: { local: boolean },
 ): void {
-  document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE] = RUNTIME_MODE_STATIC;
+  document.documentElement.dataset[RUNTIME_MODE_ATTRIBUTE] =
+    RUNTIME_MODE_STATIC;
+  // Warnings, not errors: the page rendered. `runtimeMode` is the machine
+  // signal, and the build-time gates are what block a misconfigured release.
   for (const problem of problems) {
-    console.error(`[runtime-config] ${problem}`);
+    console.warn(`[runtime-config] ${problem}`);
   }
   console.warn(
     local
