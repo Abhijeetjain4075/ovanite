@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { desc } from "drizzle-orm";
-import { portalAuditEvents } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { portalAuditChainState, portalAuditEvents } from "../../drizzle/schema";
 import type { getDb } from "../db";
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
@@ -9,7 +9,7 @@ type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
  * Either the pooled database or a transaction opened on it. Callers must pass
  * the transaction that writes the state change so the audit append commits atomically.
  */
-export type AuditExecutor = Pick<Database, "select" | "insert">;
+export type AuditExecutor = Pick<Database, "select" | "insert" | "update">;
 
 export type AuditEventValues = {
   submissionId?: string | null;
@@ -113,14 +113,18 @@ export async function appendAuditEvent(
   executor: AuditExecutor,
   values: AuditEventValues,
 ): Promise<string> {
-  const [tail] = await executor
-    .select({ hash: portalAuditEvents.hash })
-    .from(portalAuditEvents)
-    .orderBy(desc(portalAuditEvents.id))
+  const [state] = await executor
+    .select({ tipHash: portalAuditChainState.tipHash })
+    .from(portalAuditChainState)
+    .where(eq(portalAuditChainState.id, 1))
     .limit(1)
     .for("update");
 
-  const prevHash = tail?.hash ?? null;
+  if (!state) {
+    throw new Error("Audit chain state row is missing; apply the portal audit-chain migration.");
+  }
+
+  const prevHash = state.tipHash ?? null;
   const createdAt = new Date();
   createdAt.setMilliseconds(0);
   const hash = computeAuditHash(prevHash, values, CURRENT_HASH_VERSION, createdAt);
@@ -132,6 +136,9 @@ export async function appendAuditEvent(
     prevHash,
     hash,
   });
+  await executor.update(portalAuditChainState)
+    .set({ tipHash: hash, updatedAt: new Date() })
+    .where(eq(portalAuditChainState.id, 1));
   return hash;
 }
 
