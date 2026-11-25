@@ -6,10 +6,11 @@ import type { getDb } from "../db";
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
 /**
- * Either the pooled database or a transaction opened on it. Callers must pass
- * the transaction that writes the state change so the audit append commits atomically.
+ * Require the transaction callback's executor rather than the pooled database:
+ * the state-row lock, event insert, state update, and business-state write must
+ * share one transaction boundary.
  */
-export type AuditExecutor = Pick<Database, "select" | "insert" | "update">;
+export type AuditExecutor = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export type AuditEventValues = {
   submissionId?: string | null;
