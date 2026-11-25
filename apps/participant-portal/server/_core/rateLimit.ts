@@ -33,7 +33,7 @@ export function createRateLimiter(
     throw new Error("Rate limiter capacity must reserve one overflow bucket per surface.");
   }
 
-  const buckets = new Map<string, number[]>();
+  const buckets = new Map<string, { ruleName: string; hits: number[] }>();
   const overflowKeys = new Map<string, string>();
 
   for (const [ruleName, rule] of ruleEntries) {
@@ -43,32 +43,45 @@ export function createRateLimiter(
     }
     const overflowKey = `${ruleName}:\u0000overflow`;
     overflowKeys.set(ruleName, overflowKey);
-    buckets.set(overflowKey, []);
+    buckets.set(overflowKey, { ruleName, hits: [] });
   }
 
-  function pruneStaleBuckets(at: number) {
-    for (const [bucketKey, hits] of buckets) {
-      const separator = bucketKey.indexOf(":");
-      const ruleName = bucketKey.slice(0, separator);
-      if (overflowKeys.get(ruleName) === bucketKey) continue;
-      const rule = rules[ruleName];
-      if (!rule || hits.every(timestamp => timestamp <= at - rule.windowMs)) {
+  // Sweep a fixed number of oldest buckets per overflow request. New keys
+  // are attacker-controlled, so a full-map scan here would turn the limiter
+  // itself into an O(capacity × window) CPU denial-of-service primitive.
+  function pruneStaleBuckets(at: number, budget = 128) {
+    const candidates: Array<[string, { ruleName: string; hits: number[] }]> = [];
+    const iterator = buckets.entries();
+    for (let scanned = 0; scanned < budget; scanned += 1) {
+      const next = iterator.next();
+      if (next.done) break;
+      candidates.push(next.value);
+    }
+
+    for (const [bucketKey, bucket] of candidates) {
+      if (overflowKeys.get(bucket.ruleName) === bucketKey) {
         buckets.delete(bucketKey);
+        buckets.set(bucketKey, bucket);
+        continue;
+      }
+      const rule = rules[bucket.ruleName];
+      const oldestHit = bucket.hits[0];
+      if (!rule || oldestHit === undefined || oldestHit <= at - rule.windowMs) {
+        buckets.delete(bucketKey);
+      } else {
+        // Rotate active buckets so later bounded sweeps make forward progress.
+        buckets.delete(bucketKey);
+        buckets.set(bucketKey, bucket);
       }
     }
   }
 
-  function remember(bucketKey: string, hits: number[]) {
-    // Refresh known buckets. New unique keys never evict a known client's
-    // bucket; once capacity is reached they share the reserved surface bucket.
-    if (buckets.has(bucketKey)) {
-      buckets.delete(bucketKey);
-      buckets.set(bucketKey, hits);
-    } else if (buckets.size < maxTrackedKeys) {
-      buckets.set(bucketKey, hits);
-    } else {
-      throw new Error("Rate limiter overflow bucket invariant violated.");
+  function remember(bucketKey: string, ruleName: string, hits: number[]) {
+    if (buckets.has(bucketKey)) buckets.delete(bucketKey);
+    if (buckets.size >= maxTrackedKeys) {
+      throw new Error("Rate limiter capacity invariant violated.");
     }
+    buckets.set(bucketKey, { ruleName, hits });
   }
 
   return {
@@ -77,7 +90,7 @@ export function createRateLimiter(
       if (!rule) throw new Error(`Unknown rate-limit rule: ${ruleName}`);
       if (!Number.isFinite(at)) throw new Error("Rate-limit clock value must be finite.");
 
-      const requestedKey = `${ruleName}:${key}`;
+      const requestedKey = JSON.stringify([ruleName, key]);
       if (!buckets.has(requestedKey) && buckets.size >= maxTrackedKeys) {
         pruneStaleBuckets(at);
       }
@@ -85,13 +98,13 @@ export function createRateLimiter(
         ? requestedKey
         : overflowKeys.get(ruleName)!;
       const windowStart = at - rule.windowMs;
-      const previous = buckets.get(bucketKey) ?? [];
+      const previous = buckets.get(bucketKey)?.hits ?? [];
       const hits = previous.filter(timestamp => timestamp > windowStart);
 
       if (hits.length >= rule.max) {
         const oldest = hits[0] ?? at;
         const waitMs = oldest + rule.windowMs - at;
-        remember(bucketKey, hits);
+        remember(bucketKey, ruleName, hits);
         return {
           allowed: false,
           retryAfterSeconds: Math.max(1, Math.ceil(waitMs / 1000)),
@@ -100,7 +113,7 @@ export function createRateLimiter(
       }
 
       hits.push(at);
-      remember(bucketKey, hits);
+      remember(bucketKey, ruleName, hits);
       return {
         allowed: true,
         retryAfterSeconds: 0,
@@ -111,7 +124,7 @@ export function createRateLimiter(
     reset() {
       buckets.clear();
       for (const [ruleName, overflowKey] of overflowKeys) {
-        buckets.set(overflowKey, []);
+        buckets.set(overflowKey, { ruleName, hits: [] });
       }
     },
   };
