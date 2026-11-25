@@ -59,23 +59,83 @@ describe("audit hash chain", () => {
     expect(a).toBe(b);
   });
 
-  it("links each event to the previous hash", async () => {
+  it("links each event to the persistent chain-state tip", async () => {
     const inserted: Record<string, unknown>[] = [];
-    let tailHash: string | null = null;
+    let tipHash: string | null = null;
     const executor = {
-      select: () => ({ from: () => ({ orderBy: () => ({ limit: () => ({
-        for: async () => (tailHash === null ? [] : [{ hash: tailHash }]),
+      select: () => ({ from: () => ({ where: () => ({ limit: () => ({
+        for: async () => [{ tipHash }],
       }) }) }) }),
       insert: () => ({ values: async (row: Record<string, unknown>) => { inserted.push(row); } }),
+      update: () => ({ set: (values: Record<string, unknown>) => ({ where: async () => {
+        tipHash = values.tipHash as string;
+      } }) }),
     } as unknown as AuditExecutor;
 
     const first = await appendAuditEvent(executor, base);
-    expect(inserted[0]).toMatchObject({ prevHash: null, hash: first });
-    tailHash = first;
+    expect(inserted[0]).toMatchObject({ prevHash: null, hash: first, hashVersion: 2 });
+    expect(inserted[0].createdAt).toBeInstanceOf(Date);
+    expect(tipHash).toBe(first);
 
     const second = await appendAuditEvent(executor, { ...base, eventType: "submission_published" });
-    expect(inserted[1]).toMatchObject({ prevHash: first, hash: second });
-    expect(second).toBe(computeAuditHash(first, { ...base, eventType: "submission_published" }));
+    expect(inserted[1]).toMatchObject({ prevHash: first, hash: second, hashVersion: 2 });
+    expect(tipHash).toBe(second);
+    expect(second).toBe(computeAuditHash(first, { ...base, eventType: "submission_published" }, 2, inserted[1].createdAt as Date));
+  });
+
+  it("refuses to append when the singleton chain-state row is missing", async () => {
+    const executor = {
+      select: () => ({ from: () => ({ where: () => ({ limit: () => ({
+        for: async () => [],
+      }) }) }) }),
+      insert: () => ({ values: async () => { throw new Error("must not insert"); } }),
+      update: () => ({ set: () => ({ where: async () => {} }) }),
+    } as unknown as AuditExecutor;
+    await expect(appendAuditEvent(executor, base)).rejects.toThrow(/chain state row is missing/i);
+  });
+
+  it("serializes concurrent first appends through the locked state row", async () => {
+    const inserted: Record<string, unknown>[] = [];
+    let tipHash: string | null = null;
+    let lockTail: Promise<void> = Promise.resolve();
+
+    const transactionExecutor = (): AuditExecutor => {
+      let releaseLock: (() => void) | null = null;
+      return {
+        select: () => ({ from: () => ({ where: () => ({ limit: () => ({
+          for: async () => {
+            const previous = lockTail;
+            let release!: () => void;
+            lockTail = new Promise<void>(resolve => { release = resolve; });
+            await previous;
+            releaseLock = release;
+            return [{ tipHash }];
+          },
+        }) }) }) }),
+        insert: () => ({ values: async (row: Record<string, unknown>) => {
+          if ((row.prevHash ?? null) !== tipHash) throw new Error("concurrent audit fork");
+          inserted.push(row);
+        } }),
+        update: () => ({ set: (values: Record<string, unknown>) => ({ where: async () => {
+          tipHash = values.tipHash as string;
+          releaseLock?.();
+          releaseLock = null;
+        } }) }),
+      } as unknown as AuditExecutor;
+    };
+
+    const [first, second] = await Promise.all([
+      appendAuditEvent(transactionExecutor(), { ...base, eventType: "concurrent_first" }),
+      appendAuditEvent(transactionExecutor(), { ...base, eventType: "concurrent_second" }),
+    ]);
+    expect(inserted).toHaveLength(2);
+    expect(inserted[0].prevHash).toBeNull();
+    expect(inserted[1].prevHash).toBe(first);
+    expect(tipHash).toBe(second);
+    expect(verifyAuditChain([
+      { ...base, ...inserted[0], id: 1 } as AuditEventRecord,
+      { ...base, ...inserted[1], id: 2 } as AuditEventRecord,
+    ]).valid).toBe(true);
   });
 
   it("verifies an intact chain", () => {
@@ -99,5 +159,48 @@ describe("audit hash chain", () => {
     const legacy = { ...base, id: 1, prevHash: null, hash: null } as AuditEventRecord;
     const rows = [legacy, ...chain([base]).map(row => ({ ...row, id: 2 }))];
     expect(verifyAuditChain(rows)).toEqual({ valid: true, hashedEvents: 1, legacyEvents: 1 });
+  });
+});
+
+
+describe("audit chain hardening", () => {
+  it("binds version-2 event timestamps into the hash", () => {
+    const createdAt = new Date("2026-11-25T09:30:00.000Z");
+    const hash = computeAuditHash(null, base, 2, createdAt);
+    const row = {
+      ...base, id: 1, prevHash: null, hash, hashVersion: 2, createdAt,
+    } as AuditEventRecord;
+    expect(verifyAuditChain([row]).valid).toBe(true);
+    expect(verifyAuditChain([
+      { ...row, createdAt: new Date("2026-11-25T09:31:00.000Z") },
+    ])).toEqual({ valid: false, brokenAtId: 1, reason: "hash_mismatch" });
+  });
+
+  it("does not allow an unhashed event to restart a chain after hashing begins", () => {
+    const hashed = chain([base])[0];
+    const tampered = {
+      ...base, id: 2, prevHash: null, hash: null,
+    } as AuditEventRecord;
+    expect(verifyAuditChain([hashed, tampered])).toEqual({
+      valid: false,
+      brokenAtId: 2,
+      reason: "unhashed_after_chain_started",
+    });
+  });
+
+  it("rejects unknown audit hash versions", () => {
+    const row = {
+      ...base,
+      id: 1,
+      prevHash: null,
+      hash: "0".repeat(64),
+      hashVersion: 99,
+      createdAt: new Date("2026-11-25T09:30:00.000Z"),
+    } as AuditEventRecord;
+    expect(verifyAuditChain([row])).toEqual({
+      valid: false,
+      brokenAtId: 1,
+      reason: "unsupported_hash_version",
+    });
   });
 });

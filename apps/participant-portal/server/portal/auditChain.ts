@@ -1,16 +1,16 @@
 import { createHash } from "node:crypto";
-import { desc } from "drizzle-orm";
-import { portalAuditEvents } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
+import { portalAuditChainState, portalAuditEvents } from "../../drizzle/schema";
 import type { getDb } from "../db";
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
 /**
- * Either the pooled database or a transaction opened on it. The audit chain is
- * only correct when the caller passes the same executor that writes the state
- * change, so both are accepted explicitly.
+ * Require the transaction callback's executor rather than the pooled database:
+ * the state-row lock, event insert, state update, and business-state write must
+ * share one transaction boundary.
  */
-export type AuditExecutor = Pick<Database, "select" | "insert">;
+export type AuditExecutor = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export type AuditEventValues = {
   submissionId?: string | null;
@@ -26,10 +26,13 @@ export type AuditEventRecord = AuditEventValues & {
   id: number;
   prevHash: string | null;
   hash: string | null;
+  /** Missing values are treated as v1 for historical rows and test fixtures. */
+  hashVersion?: number | null;
+  createdAt?: Date | string | null;
 };
 
-/** Sentinel used for the first link so a null predecessor can never be spoofed. */
 const GENESIS = "genesis";
+const CURRENT_HASH_VERSION = 2;
 
 function canonicalValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalValue);
@@ -43,13 +46,29 @@ function canonicalValue(value: unknown): unknown {
   return value;
 }
 
+function canonicalTimestamp(value: Date | string | null | undefined): string {
+  const date = value instanceof Date
+    ? new Date(value.getTime())
+    : new Date(value ?? Number.NaN);
+  if (!Number.isFinite(date.getTime())) {
+    throw new Error("A valid createdAt timestamp is required for audit hash version 2.");
+  }
+  // MySQL TIMESTAMP without fractional precision persists to whole seconds.
+  // Normalize a copy before hashing so caller-owned Date values are not mutated.
+  date.setMilliseconds(0);
+  return date.toISOString();
+}
+
 /**
- * Stable serialization of the fields covered by the chain. Object keys are
- * sorted so a JSON column round-tripped by MySQL hashes identically, and the
- * field order is fixed so a reordered insert cannot collide with a real one.
+ * V1 is retained byte-for-byte for existing audit history. V2 additionally
+ * commits to createdAt, preventing silent edits to event chronology.
  */
-export function canonicalAuditPayload(values: AuditEventValues): string {
-  return JSON.stringify([
+export function canonicalAuditPayload(
+  values: AuditEventValues,
+  version = 1,
+  createdAt?: Date | string | null,
+): string {
+  const payload: unknown[] = [
     values.submissionId ?? null,
     values.actorId ?? null,
     values.actorRole,
@@ -57,12 +76,20 @@ export function canonicalAuditPayload(values: AuditEventValues): string {
     values.fromStatus ?? null,
     values.toStatus ?? null,
     canonicalValue(values.details ?? null),
-  ]);
+  ];
+  if (version === 2) payload.push(canonicalTimestamp(createdAt));
+  else if (version !== 1) throw new Error(`Unsupported audit hash version: ${version}`);
+  return JSON.stringify(payload);
 }
 
-export function computeAuditHash(prevHash: string | null, values: AuditEventValues): string {
+export function computeAuditHash(
+  prevHash: string | null,
+  values: AuditEventValues,
+  version = 1,
+  createdAt?: Date | string | null,
+): string {
   return createHash("sha256")
-    .update(`${prevHash ?? GENESIS}\n${canonicalAuditPayload(values)}`)
+    .update(`${prevHash ?? GENESIS}\n${canonicalAuditPayload(values, version, createdAt)}`)
     .digest("hex");
 }
 
@@ -79,44 +106,55 @@ function normalize(values: AuditEventValues) {
 }
 
 /**
- * Appends one event and returns its hash.
- *
- * The predecessor row is read with `FOR UPDATE` inside the caller's
- * transaction, so two concurrent appends serialize on the current tail instead
- * of both linking to the same predecessor and forking the chain. Call this with
- * the transaction that performs the audited change; inserting outside a
- * transaction weakens the guarantee and is reported by `verifyAuditChain` if it
- * ever produces a fork.
+ * Appends one event. The caller must pass its existing DB transaction so the
+ * state change and audit row commit atomically. New V2 hashes include createdAt;
+ * old V1 events remain verifiable during the migration.
  */
 export async function appendAuditEvent(
   executor: AuditExecutor,
   values: AuditEventValues,
 ): Promise<string> {
-  const [tail] = await executor
-    .select({ hash: portalAuditEvents.hash })
-    .from(portalAuditEvents)
-    .orderBy(desc(portalAuditEvents.id))
+  const [state] = await executor
+    .select({ tipHash: portalAuditChainState.tipHash })
+    .from(portalAuditChainState)
+    .where(eq(portalAuditChainState.id, 1))
     .limit(1)
     .for("update");
 
-  const prevHash = tail?.hash ?? null;
-  const hash = computeAuditHash(prevHash, values);
+  if (!state) {
+    throw new Error("Audit chain state row is missing; apply the portal audit-chain migration.");
+  }
 
-  await executor.insert(portalAuditEvents).values({ ...normalize(values), prevHash, hash });
+  const prevHash = state.tipHash ?? null;
+  const createdAt = new Date();
+  createdAt.setMilliseconds(0);
+  const hash = computeAuditHash(prevHash, values, CURRENT_HASH_VERSION, createdAt);
+
+  await executor.insert(portalAuditEvents).values({
+    ...normalize(values),
+    createdAt,
+    hashVersion: CURRENT_HASH_VERSION,
+    prevHash,
+    hash,
+  });
+  await executor.update(portalAuditChainState)
+    .set({ tipHash: hash, updatedAt: new Date() })
+    .where(eq(portalAuditChainState.id, 1));
   return hash;
 }
 
 export type AuditChainVerification =
   | { valid: true; hashedEvents: number; legacyEvents: number }
-  | { valid: false; brokenAtId: number; reason: "missing_predecessor" | "hash_mismatch" };
+  | {
+      valid: false;
+      brokenAtId: number;
+      reason: "missing_predecessor" | "hash_mismatch" | "unhashed_after_chain_started" | "unsupported_hash_version";
+    };
 
 /**
- * Recomputes the chain over rows ordered by id.
- *
- * Rows written before this chain existed have a null hash and are counted as
- * legacy: they cannot be verified retroactively, and the chain restarts after
- * them. A deleted or edited hashed row breaks the link at the next hashed row,
- * which is exactly the tamper signal this exists to produce.
+ * Legacy unhashed rows are accepted only as a prefix. Once a hashed event has
+ * started the chain, a null-hash row is corruption and cannot reset genesis.
+ * V1 and V2 are independently verifiable for backward-compatible migrations.
  */
 export function verifyAuditChain(rows: AuditEventRecord[]): AuditChainVerification {
   let expectedPrevHash: string | null = null;
@@ -125,14 +163,31 @@ export function verifyAuditChain(rows: AuditEventRecord[]): AuditChainVerificati
 
   for (const row of rows) {
     if (row.hash == null) {
+      if (hashedEvents > 0) {
+        return { valid: false, brokenAtId: row.id, reason: "unhashed_after_chain_started" };
+      }
+      if (row.prevHash != null) {
+        return { valid: false, brokenAtId: row.id, reason: "missing_predecessor" };
+      }
       legacyEvents += 1;
-      expectedPrevHash = null;
       continue;
     }
     if ((row.prevHash ?? null) !== expectedPrevHash) {
       return { valid: false, brokenAtId: row.id, reason: "missing_predecessor" };
     }
-    if (computeAuditHash(expectedPrevHash, row) !== row.hash) {
+
+    const version = row.hashVersion ?? 1;
+    let expectedHash: string;
+    try {
+      expectedHash = computeAuditHash(expectedPrevHash, row, version, row.createdAt);
+    } catch {
+      return {
+        valid: false,
+        brokenAtId: row.id,
+        reason: version === 1 || version === 2 ? "hash_mismatch" : "unsupported_hash_version",
+      };
+    }
+    if (expectedHash !== row.hash) {
       return { valid: false, brokenAtId: row.id, reason: "hash_mismatch" };
     }
     expectedPrevHash = row.hash;

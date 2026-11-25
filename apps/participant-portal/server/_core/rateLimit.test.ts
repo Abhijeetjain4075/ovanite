@@ -90,9 +90,9 @@ describe("rateLimitClass", () => {
   });
 
   it("exempts only exact health probes", () => {
-    expect(rateLimitClass("GET", "/api/health")).toBeNull();
-    expect(rateLimitClass("GET", "/API/HEALTH/READY")).toBeNull();
     expect(rateLimitClass("GET", "/api/health/live")).toBeNull();
+    expect(rateLimitClass("GET", "/api/health")).toBe("read");
+    expect(rateLimitClass("GET", "/API/HEALTH/READY")).toBe("read");
     expect(rateLimitClass("GET", "/api/health/anything-else")).toBe("read");
     expect(rateLimitClass("POST", "/api/health-malicious")).toBe("write");
   });

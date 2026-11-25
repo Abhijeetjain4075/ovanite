@@ -327,11 +327,8 @@ class SDKServer {
       throw ForbiddenError("User not found");
     }
 
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
-
+    // lastSignedIn is updated at OAuth sign-in, not on every API call.
+    // Avoid turning every authenticated request into a database write.
     return user;
   }
 }

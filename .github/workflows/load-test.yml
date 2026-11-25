@@ -12,7 +12,7 @@ on:
         required: true
         type: string
       concurrency:
-        description: "Parallel workers (1-200)"
+        description: "Parallel workers (1-100)"
         required: false
         default: "10"
         type: string
@@ -51,19 +51,52 @@ jobs:
         with:
           node-version: 22
 
-      - name: Refuse a non-HTTPS target
+      - name: Validate HTTPS target, hostname allowlist, and public DNS
         env:
           TARGET_URL: ${{ inputs.target_url }}
+          ALLOWED_HOSTS: ${{ vars.OVANITE_LOAD_TEST_ALLOWED_HOSTS }}
+          CONCURRENCY: ${{ inputs.concurrency }}
         shell: bash
         run: |
           set -euo pipefail
-          case "$TARGET_URL" in
-            https://*) echo "Target accepted: $TARGET_URL" ;;
-            *)
-              echo "Refusing to load-test a non-HTTPS target." >&2
-              exit 1
-              ;;
-          esac
+          python - <<'PY'
+          import ipaddress
+          import os
+          import socket
+          import sys
+          from urllib.parse import urlsplit
+
+          raw = os.environ["TARGET_URL"]
+          if any(ord(char) < 32 or ord(char) == 127 for char in raw):
+              sys.exit("Refusing target: control characters are not allowed.")
+          parsed = urlsplit(raw)
+          if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+              sys.exit("Refusing target: absolute HTTPS URL without credentials is required.")
+          host = parsed.hostname.lower().rstrip(".")
+          allowed = {
+              item.strip().lower().rstrip(".")
+              for item in os.environ.get("ALLOWED_HOSTS", "").split(",")
+              if item.strip()
+          }
+          if not allowed or host not in allowed:
+              sys.exit("Refusing target: hostname is not in OVANITE_LOAD_TEST_ALLOWED_HOSTS.")
+          try:
+              concurrency = int(os.environ.get("CONCURRENCY", "10"))
+              if concurrency < 1 or concurrency > 100:
+                  sys.exit("Refusing target: concurrency must be between 1 and 100.")
+              records = socket.getaddrinfo(host, parsed.port or 443, type=socket.SOCK_STREAM)
+              addresses = {record[4][0].split("%", 1)[0] for record in records}
+              if not addresses:
+                  raise RuntimeError("no DNS answers")
+              non_public = [address for address in addresses if not ipaddress.ip_address(address).is_global]
+              if non_public:
+                  sys.exit("Refusing target: hostname resolves to a non-public IP address.")
+          except SystemExit:
+              raise
+          except Exception:
+              sys.exit("Refusing target: DNS resolution failed or returned an invalid address.")
+          print(f"Target accepted: https://{host}{parsed.path or '/'}")
+          PY
 
       - name: Run the load test
         env:
@@ -81,6 +114,7 @@ jobs:
             --duration "$DURATION_SECONDS" \
             --p95 "$P95_MS" \
             --max-error-rate "$MAX_ERROR_RATE" \
+            --max-response-bytes 1048576 \
             --json | tee load-summary.json
 
       - name: Upload the load-test summary

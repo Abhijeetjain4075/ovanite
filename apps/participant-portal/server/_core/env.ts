@@ -26,5 +26,6 @@ export const ENV = {
   get assessmentCallbackSecret() { return process.env.OVANITE_ASSESSMENT_CALLBACK_SECRET ?? ""; },
   // Public base URL of the deployed participant portal, not the marketing site unless co-hosted.
   get assessmentPortalBaseUrl() { return process.env.OVANITE_ASSESSMENT_PORTAL_BASE_URL ?? ""; },
+  get assessmentPortalAllowedHost() { return process.env.OVANITE_ASSESSMENT_PORTAL_ALLOWED_HOST ?? ""; },
   get assessmentWorkflowRef() { return process.env.OVANITE_ASSESSMENT_WORKFLOW_REF ?? "main"; },
 };

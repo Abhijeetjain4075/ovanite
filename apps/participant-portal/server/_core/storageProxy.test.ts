@@ -4,13 +4,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { registerStorageProxy, resolveSignedRedirect } from "./storageProxy";
 
 describe("resolveSignedRedirect", () => {
-  it("accepts absolute http(s) URLs and normalizes them", () => {
+  it("accepts only absolute HTTPS URLs and normalizes them", () => {
     expect(resolveSignedRedirect("https://cdn.example.com/a/b.pdf?sig=1")).toBe(
       "https://cdn.example.com/a/b.pdf?sig=1",
     );
-    expect(resolveSignedRedirect("  http://127.0.0.1:9000/object  ")).toBe(
-      "http://127.0.0.1:9000/object",
-    );
+    expect(resolveSignedRedirect("  http://127.0.0.1:9000/object  ")).toBeNull();
   });
 
   it("rejects every non-HTTP scheme", () => {
@@ -21,6 +19,7 @@ describe("resolveSignedRedirect", () => {
       "file:///etc/passwd",
       "//cdn.example.com/a.pdf",
       "ftp://cdn.example.com/a.pdf",
+      "http://cdn.example.com/a.pdf",
     ]) {
       expect(resolveSignedRedirect(value)).toBeNull();
     }
@@ -88,8 +87,16 @@ describe("storage proxy route", () => {
     }
   });
 
-  it("reports an unconfigured backend instead of redirecting", async () => {
+  it("does not expose non-public storage namespaces", async () => {
     const response = await fetch(`${baseUrl}/manus-storage/evidence/report.pdf`, {
+      redirect: "manual",
+    });
+    expect(response.status).toBe(404);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("reports an unconfigured backend instead of redirecting", async () => {
+    const response = await fetch(`${baseUrl}/manus-storage/generated/report.png`, {
       redirect: "manual",
     });
     // No MANUS_API_* credentials are set in the test environment, so the route

@@ -132,3 +132,36 @@ test("fails when the p95 objective is breached", async () => {
     },
   );
 });
+
+
+test("measures full response time after the body has finished streaming", async () => {
+  await withServer((_request, response) => {
+    response.writeHead(200, { "content-type": "text/plain" });
+    response.write("headers are immediate");
+    setTimeout(() => response.end("body arrives later"), 150);
+  }, async (url) => {
+    const result = await run([
+      "--url", url, "--concurrency", "1", "--duration", "1",
+      "--p95", "50", "--max-error-rate", "1", "--json",
+    ]);
+    assert.equal(result.code, 2);
+    const summary = JSON.parse(result.stdout.trim());
+    assert.ok(summary.latencyMs.p95 >= 100, JSON.stringify(summary));
+  });
+});
+
+test("bounds response-body memory and reports oversize responses as failures", async () => {
+  await withServer((_request, response) => {
+    response.writeHead(200, { "content-type": "application/octet-stream" });
+    response.end(Buffer.alloc(1024));
+  }, async (url) => {
+    const result = await run([
+      "--url", url, "--concurrency", "2", "--duration", "1",
+      "--max-response-bytes", "32", "--max-error-rate", "0", "--json",
+    ]);
+    assert.equal(result.code, 2);
+    const summary = JSON.parse(result.stdout.trim());
+    assert.ok(summary.responseTooLargeErrors > 0, JSON.stringify(summary));
+    assert.equal(summary.maxResponseBytes, 32);
+  });
+});

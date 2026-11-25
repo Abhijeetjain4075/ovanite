@@ -36,10 +36,11 @@ For example, generate a strong random secret with `openssl rand -hex 32`, then s
 
 In the GitHub repository's Actions configuration, set:
 
-- **Repository variable** `OVANITE_ASSESSMENT_PORTAL_BASE_URL`: the same HTTPS participant portal base URL.
+- **Repository variable** `OVANITE_ASSESSMENT_PORTAL_BASE_URL`: the HTTPS participant portal base URL, including any deployment path prefix and without query or fragment.
+- **Repository variable** `OVANITE_ASSESSMENT_PORTAL_ALLOWED_HOST`: the exact lowercase hostname for that URL (host only; no scheme, port, path, wildcard, or suffix). Both callback jobs compare the URL hostname against this independent value before sending the secret.
 - **Repository Actions secret** `OVANITE_ASSESSMENT_CALLBACK_SECRET`: exactly the same random secret as the portal runtime setting.
 
-The callback secret is delivered only to separate lightweight workflow jobs that mark a run started or return its sanitized result. It is not set in the job that checks out and scans candidate source. The scanner job has read-only repository permissions, checks out a public repository at the pinned SHA without persisting checkout credentials, and does not execute files from that repository.
+The callback secret is delivered only to separate lightweight workflow jobs that mark a run started or return its sanitized result. Both jobs validate HTTPS, the exact allowlisted hostname, absence of URL credentials/query/fragment, and reject redirects/non-2xx responses. The secret is not set in the job that checks out and scans candidate source. The scanner job has read-only repository permissions, checks out a public repository at the pinned SHA without persisting checkout credentials, and does not execute files from that repository.
 
 The candidate workflow is present on the Ovanite repository's default branch at `.github/workflows/candidate-static-assessment.yml`. Live dispatch still requires a deployed portal, a reachable HTTPS callback URL, the required least-privilege GitHub Actions dispatch credential, the matching callback secret, an applied additive database migration, and server/repository configuration. A workflow file on `main` alone is not proof of a working end-to-end scan.
 

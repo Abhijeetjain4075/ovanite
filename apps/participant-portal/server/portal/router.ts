@@ -6,6 +6,7 @@ import {
   automatedAssessmentRuns,
   decisions,
   evaluations,
+  portalAuditChainState,
   portalAuditEvents,
   rubricVersions,
   submissions,
@@ -196,17 +197,32 @@ export const portalRouter = router({
       // Report coverage explicitly. A verification that silently stopped at a
       // row limit would read as "the whole log is intact".
       const verificationLimit = 10000;
-      const [total] = await db.select({ value: count() }).from(portalAuditEvents);
-      const rows = await db.select().from(portalAuditEvents)
-        .orderBy(portalAuditEvents.id)
-        .limit(verificationLimit);
-      const totalEvents = Number(total?.value ?? rows.length);
-      return {
-        ...verifyAuditChain(rows),
-        verifiedEvents: rows.length,
-        totalEvents,
-        truncated: totalEvents > rows.length,
-      };
+      // Keep count, prefix, latest row, and checkpoint in one consistent
+      // database snapshot so a concurrent append cannot produce a false alarm.
+      return db.transaction(async tx => {
+        const [total] = await tx.select({ value: count() }).from(portalAuditEvents);
+        const rows = await tx.select().from(portalAuditEvents)
+          .orderBy(portalAuditEvents.id)
+          .limit(verificationLimit);
+        const [latest] = await tx.select({ hash: portalAuditEvents.hash })
+          .from(portalAuditEvents)
+          .orderBy(desc(portalAuditEvents.id))
+          .limit(1);
+        const [chainState] = await tx.select({ tipHash: portalAuditChainState.tipHash })
+          .from(portalAuditChainState)
+          .where(eq(portalAuditChainState.id, 1))
+          .limit(1);
+        const totalEvents = Number(total?.value ?? rows.length);
+        const tipMatches = Boolean(chainState) && (latest?.hash ?? null) === (chainState.tipHash ?? null);
+        return {
+          ...verifyAuditChain(rows),
+          verifiedEvents: rows.length,
+          totalEvents,
+          truncated: totalEvents > rows.length,
+          chainStatePresent: Boolean(chainState),
+          tipMatches,
+        };
+      });
     }),
   }),
 

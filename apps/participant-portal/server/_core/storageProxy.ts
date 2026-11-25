@@ -3,23 +3,15 @@ import { ENV } from "./env";
 import { describeOperationalFailure } from "./redact";
 import { normalizeStorageKey } from "./storageKeys";
 
-/** Signed download URLs are absolute HTTP(S) URLs without embedded credentials. */
 const MAX_SIGNED_URL_LENGTH = 4096;
+const MAX_UPSTREAM_JSON_BYTES = 8 * 1024;
+const UPSTREAM_TIMEOUT_MS = 5_000;
+const PUBLIC_STORAGE_PREFIX = "generated/";
 
-/**
- * Validate the URL returned by the storage backend before it becomes a redirect.
- *
- * The value is trusted infrastructure output, but a compromised or
- * misconfigured presign endpoint must not be able to turn this public route into
- * an open redirect (or a `javascript:`/`data:` sink). Only absolute HTTP(S)
- * URLs without credentials or control characters are allowed.
- */
 export function resolveSignedRedirect(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const value = raw.trim();
   if (value.length === 0 || value.length > MAX_SIGNED_URL_LENGTH) return null;
-  // Reject control characters and whitespace outright: a browser would strip
-  // some of them, so the parsed origin could differ from the one we validated.
   if (/[\u0000-\u0020\u007f\\]/.test(value)) return null;
 
   let parsed: URL;
@@ -29,10 +21,63 @@ export function resolveSignedRedirect(raw: unknown): string | null {
     return null;
   }
 
-  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
-  if (parsed.username !== "" || parsed.password !== "") return null;
-  if (parsed.hostname === "") return null;
+  if (parsed.protocol !== "https:" || parsed.username !== "" || parsed.password !== "") {
+    return null;
+  }
+  if (!parsed.hostname || parsed.hostname.endsWith(".")) return null;
   return parsed.toString();
+}
+
+function forgeBaseUrl(): URL | null {
+  if (!ENV.forgeApiUrl) return null;
+  try {
+    const parsed = new URL(ENV.forgeApiUrl);
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function readBoundedText(response: Response, maxBytes: number): Promise<string | null> {
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength && /^\d+$/.test(declaredLength) && Number(declaredLength) > maxBytes) {
+    await response.body?.cancel().catch(() => undefined);
+    return null;
+  }
+  if (!response.body) return "";
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(body);
+  } catch {
+    return null;
+  }
 }
 
 export function registerStorageProxy(app: Express) {
@@ -43,28 +88,34 @@ export function registerStorageProxy(app: Express) {
       return;
     }
 
-    // This route forwards the key to the presign endpoint. Validate it here so a
-    // crafted `..`-style or absolute key is refused before any upstream call.
     const key = normalizeStorageKey(rawKey);
     if (!key) {
       res.status(400).send("Invalid storage key");
       return;
     }
+    // This unauthenticated route is only for generated, public site assets.
+    // It must never act as a general-purpose presign oracle for private objects.
+    if (!key.startsWith(PUBLIC_STORAGE_PREFIX)) {
+      res.status(404).send("Not found");
+      return;
+    }
 
-    if (!ENV.forgeApiUrl || !ENV.forgeApiKey) {
+    const base = forgeBaseUrl();
+    if (!base || !ENV.forgeApiKey) {
       res.status(500).send("Storage proxy not configured");
       return;
     }
 
     try {
-      const forgeUrl = new URL(
-        "v1/storage/presign/get",
-        ENV.forgeApiUrl.replace(/\/+$/, "") + "/",
-      );
+      const forgeUrl = new URL("v1/storage/presign/get", base.toString().replace(/\/+$/, "") + "/");
       forgeUrl.searchParams.set("path", key);
-
       const forgeResp = await fetch(forgeUrl, {
-        headers: { Authorization: `Bearer ${ENV.forgeApiKey}` },
+        headers: {
+          Authorization: `Bearer ${ENV.forgeApiKey}`,
+          Accept: "application/json",
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
       });
 
       if (!forgeResp.ok) {
@@ -73,23 +124,41 @@ export function registerStorageProxy(app: Express) {
         return;
       }
 
-      const { url } = (await forgeResp.json()) as { url: unknown };
-      if (!url) {
-        res.status(502).send("Empty signed URL from backend");
+      const contentType = forgeResp.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+      if (contentType !== "application/json") {
+        console.error("[StorageProxy] upstream returned an unexpected content type.");
+        res.status(502).send("Storage backend error");
         return;
       }
-      const target = resolveSignedRedirect(url);
+      const responseBody = await readBoundedText(forgeResp, MAX_UPSTREAM_JSON_BYTES);
+      if (responseBody === null) {
+        console.error("[StorageProxy] upstream response exceeded the JSON safety bound.");
+        res.status(502).send("Storage backend error");
+        return;
+      }
+
+      let payload: unknown;
+      try {
+        payload = JSON.parse(responseBody);
+      } catch {
+        res.status(502).send("Storage backend error");
+        return;
+      }
+      const rawUrl = typeof payload === "object" && payload !== null
+        ? (payload as { url?: unknown }).url
+        : null;
+      const target = resolveSignedRedirect(rawUrl);
       if (!target) {
-        // Log only the shape of the failure, never the untrusted URL itself.
         console.error("[StorageProxy] backend returned an unusable signed URL.");
         res.status(502).send("Storage backend error");
         return;
       }
 
       res.set("Cache-Control", "no-store");
+      res.set("Referrer-Policy", "no-referrer");
       res.redirect(307, target);
-    } catch (err) {
-      console.error(describeOperationalFailure("storage_proxy", err));
+    } catch (error) {
+      console.error(describeOperationalFailure("storage_proxy", error));
       res.status(502).send("Storage proxy error");
     }
   });

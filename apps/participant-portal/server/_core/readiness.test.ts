@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   checkPortalReadiness,
+  createReadinessCache,
   missingPortalRuntimeConfig,
   type PortalRuntimeEnv,
 } from "./readiness";
@@ -76,5 +77,43 @@ describe("participant portal readiness", () => {
       ready: false,
       missing: ["DATABASE_CONNECTIVITY_OR_SCHEMA"],
     });
+  });
+});
+
+
+describe("readiness probe cache", () => {
+  it("coalesces concurrent calls and reuses a result during the TTL", async () => {
+    let now = 0;
+    let resolveProbe!: (value: string) => void;
+    const probe = vi.fn(() => new Promise<string>(resolve => { resolveProbe = resolve; }));
+    const cached = createReadinessCache(probe, 5_000, () => now);
+    const first = cached();
+    const second = cached();
+    await Promise.resolve();
+    expect(probe).toHaveBeenCalledTimes(1);
+    resolveProbe("ready");
+    await expect(Promise.all([first, second])).resolves.toEqual(["ready", "ready"]);
+    now = 4_999;
+    await expect(cached()).resolves.toBe("ready");
+    expect(probe).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes after expiry and does not cache rejected probes", async () => {
+    let now = 0;
+    const probe = vi.fn()
+      .mockRejectedValueOnce(new Error("temporary failure"))
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(3);
+    const cached = createReadinessCache(probe, 100, () => now);
+    await expect(cached()).rejects.toThrow("temporary failure");
+    await expect(cached()).resolves.toBe(2);
+    now = 100;
+    await expect(cached()).resolves.toBe(3);
+    expect(probe).toHaveBeenCalledTimes(3);
+  });
+
+  it("rejects a non-positive or non-finite TTL", () => {
+    expect(() => createReadinessCache(async () => true, 0)).toThrow(/TTL/);
+    expect(() => createReadinessCache(async () => true, Number.POSITIVE_INFINITY)).toThrow(/TTL/);
   });
 });
