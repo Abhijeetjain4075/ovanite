@@ -39,7 +39,7 @@ export function markRuntimeConfigDegraded(
   console.warn(
     local
       ? "[runtime-config] Local development continues without a deployed backend."
-      : "[runtime-config] Rendering the site without backend features; see the errors above.",
+      : "[runtime-config] Rendering the site without backend features; see the warnings above.",
   );
 }
 
