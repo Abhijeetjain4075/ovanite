@@ -21,7 +21,7 @@ import {
   validationResults,
   withdrawals,
 } from "../../drizzle/schema";
-import { checkPortalReadiness } from "./readiness";
+import { checkPortalReadiness, createReadinessCache } from "./readiness";
 import { registerStorageProxy } from "./storageProxy";
 import { createRateLimitMiddleware, parseTrustedProxyHops } from "./rateLimit";
 import { describeOperationalFailure } from "./redact";
@@ -82,9 +82,9 @@ async function startServer() {
   const proxyHops = parseTrustedProxyHops(process.env.TRUST_PROXY_HOPS);
   if (proxyHops > 0) app.set("trust proxy", proxyHops);
 
-  // Anonymous abuse protection for every /api surface: sign-in and OAuth
-  // callbacks, worker callbacks, anonymous reads and mutations. Health probes
-  // are exempt, and static assets are never limited.
+  // Anonymous abuse protection for every API surface. Only the cheap liveness
+  // endpoint is exempt; readiness probes are read-limited and short-TTL cached.
+  // Static assets outside /api are never limited.
   app.use(createRateLimitMiddleware());
 
   // The callback route registers its own bounded JSON parser before its handler.
@@ -102,8 +102,7 @@ async function startServer() {
   // every table required for submissions, terms, evaluations, and audit history.
   // Keep /api/health as a backwards-compatible readiness check; it must not
   // report "ok" merely because the Node process started.
-  const readinessHandler: express.RequestHandler = (_req, res, next) => {
-    void checkPortalReadiness(process.env, async () => {
+  const cachedPortalReadiness = createReadinessCache(() => checkPortalReadiness(process.env, async () => {
       const db = await getDb();
       if (!db) throw new Error("Database is not configured or unavailable.");
       await db.select().from(users).limit(0);
@@ -116,7 +115,10 @@ async function startServer() {
       await db.select().from(withdrawals).limit(0);
       await db.select().from(automatedAssessmentRuns).limit(0);
       await db.select().from(portalAuditEvents).limit(0);
-    }).then(result => {
+    }), 5_000);
+
+  const readinessHandler: express.RequestHandler = (_req, res, next) => {
+    void cachedPortalReadiness().then(result => {
       metrics.countReadiness(result.ready ? "ready" : "not_ready");
       if (!result.ready) {
         // Only variable names or a generic probe label are logged—never values.
