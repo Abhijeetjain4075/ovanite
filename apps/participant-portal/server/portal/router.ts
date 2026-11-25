@@ -200,12 +200,23 @@ export const portalRouter = router({
       const rows = await db.select().from(portalAuditEvents)
         .orderBy(portalAuditEvents.id)
         .limit(verificationLimit);
+      const [latest] = await db.select({ hash: portalAuditEvents.hash })
+        .from(portalAuditEvents)
+        .orderBy(desc(portalAuditEvents.id))
+        .limit(1);
+      const [chainState] = await db.select({ tipHash: portalAuditChainState.tipHash })
+        .from(portalAuditChainState)
+        .where(eq(portalAuditChainState.id, 1))
+        .limit(1);
       const totalEvents = Number(total?.value ?? rows.length);
+      const tipMatches = Boolean(chainState) && (latest?.hash ?? null) === (chainState.tipHash ?? null);
       return {
         ...verifyAuditChain(rows),
         verifiedEvents: rows.length,
         totalEvents,
         truncated: totalEvents > rows.length,
+        chainStatePresent: Boolean(chainState),
+        tipMatches,
       };
     }),
   }),
