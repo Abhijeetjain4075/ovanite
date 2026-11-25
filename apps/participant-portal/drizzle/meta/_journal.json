@@ -29,6 +29,13 @@
       "when": 1795515420000,
       "tag": "0003_portal_audit_hash_chain",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1795599000000,
+      "tag": "0004_audit_timestamp_hash_version",
+      "breakpoints": true
     }
   ]
 }
