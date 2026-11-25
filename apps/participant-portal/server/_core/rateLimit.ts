@@ -154,11 +154,7 @@ export function rateLimitClass(method: string, path: string): RateLimitClass | n
   }
   if (!normalizedPath.startsWith("/api/")) return null;
 
-  if (normalizedPath === "/api/health" ||
-      normalizedPath === "/api/health/live" ||
-      normalizedPath === "/api/health/ready") {
-    return null;
-  }
+  if (normalizedPath === "/api/health/live") return null;
 
   if (normalizedPath === "/api/assessment/callback" ||
       normalizedPath.startsWith("/api/assessment/callback/")) {
