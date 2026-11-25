@@ -124,11 +124,9 @@ describe("audit hash chain", () => {
       } as unknown as AuditExecutor;
     };
 
-    const firstExecutor = transactionExecutor();
-    const secondExecutor = transactionExecutor();
     const [first, second] = await Promise.all([
-      appendAuditEvent(firstExecutor, { ...base, eventType: "concurrent_first" }),
-      appendAuditEvent(secondExecutor, { ...base, eventType: "concurrent_second" }),
+      appendAuditEvent(transactionExecutor(), { ...base, eventType: "concurrent_first" }),
+      appendAuditEvent(transactionExecutor(), { ...base, eventType: "concurrent_second" }),
     ]);
     expect(inserted).toHaveLength(2);
     expect(inserted[0].prevHash).toBeNull();
