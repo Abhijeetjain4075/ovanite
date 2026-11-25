@@ -88,6 +88,7 @@ jobs:
       - name: Send authenticated running callback
         env:
           PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
+          PORTAL_ALLOWED_HOST: ${{ vars.OVANITE_ASSESSMENT_PORTAL_ALLOWED_HOST }}
           CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
           ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
           CANDIDATE_REPOSITORY: ${{ needs.validate-inputs.outputs.candidate_repository }}
@@ -98,10 +99,23 @@ jobs:
           import hashlib, json, os
           from datetime import datetime, timezone
           from urllib.parse import urlparse
-          base = os.environ.get("PORTAL_BASE_URL", "").rstrip("/")
+          raw_base = os.environ.get("PORTAL_BASE_URL", "")
+          base = raw_base.rstrip("/")
           secret = os.environ.get("CALLBACK_SECRET", "")
+          allowed_host = os.environ.get("PORTAL_ALLOWED_HOST", "").strip().lower().rstrip(".")
           parsed = urlparse(base)
-          if not secret or parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+          try:
+              port = parsed.port
+          except ValueError:
+              raise SystemExit("Assessment callback URL has an invalid port")
+          if (
+              not secret or not base or raw_base != raw_base.strip()
+              or any(ord(char) < 32 or ord(char) == 127 for char in raw_base)
+              or parsed.scheme != "https" or not parsed.hostname
+              or parsed.username or parsed.password or parsed.query or parsed.fragment
+              or parsed.hostname.lower().rstrip(".") != allowed_host
+              or (port is not None and port != 443)
+          ):
               raise SystemExit("Assessment callback configuration is missing or invalid")
           payload = {
               "assessmentRunId": os.environ["ASSESSMENT_RUN_ID"],
@@ -118,13 +132,17 @@ jobs:
           python - <<'PY'
           import json, os, subprocess
           saved = json.load(open(os.environ["RUNNER_TEMP"] + "/assessment-start.json", encoding="utf-8"))
-          subprocess.run([
-              "curl", "--silent", "--show-error", "--fail", "--max-time", "15",
+          status = subprocess.run([
+              "curl", "--silent", "--show-error", "--proto", "=https",
+              "--connect-timeout", "5", "--max-time", "15",
+              "--output", os.devnull, "--write-out", "%{http_code}",
               "-X", "POST", saved["url"],
               "-H", "Content-Type: application/json",
               "-H", "Authorization: Bearer " + os.environ["CALLBACK_SECRET"],
               "--data-binary", json.dumps(saved["payload"]),
-          ], check=True)
+          ], check=True, capture_output=True, text=True).stdout.strip()
+          if not status.startswith("2"):
+              raise SystemExit("Assessment running callback did not return a 2xx status")
           PY
 
   inspect:
@@ -360,6 +378,7 @@ jobs:
       - name: Deliver result or safe worker-failure status
         env:
           PORTAL_BASE_URL: ${{ vars.OVANITE_ASSESSMENT_PORTAL_BASE_URL }}
+          PORTAL_ALLOWED_HOST: ${{ vars.OVANITE_ASSESSMENT_PORTAL_ALLOWED_HOST }}
           CALLBACK_SECRET: ${{ secrets.OVANITE_ASSESSMENT_CALLBACK_SECRET }}
           ASSESSMENT_RUN_ID: ${{ needs.validate-inputs.outputs.assessment_run_id }}
           CANDIDATE_REPOSITORY: ${{ needs.validate-inputs.outputs.candidate_repository }}
@@ -392,10 +411,36 @@ jobs:
           with open("reports/callback-to-send.json", "w", encoding="utf-8") as f:
               json.dump(payload, f, ensure_ascii=False)
           PY
-          test -n "$PORTAL_BASE_URL" || { echo "Missing portal callback URL configuration"; exit 1; }
-          test -n "$CALLBACK_SECRET" || { echo "Missing callback secret configuration"; exit 1; }
-          curl --silent --show-error --fail --max-time 20 \
+          python - <<'PY'
+          import os, sys
+          from urllib.parse import urlparse
+
+          raw = os.environ.get("PORTAL_BASE_URL", "")
+          base = raw.rstrip("/")
+          allowed_host = os.environ.get("PORTAL_ALLOWED_HOST", "").strip().lower().rstrip(".")
+          secret = os.environ.get("CALLBACK_SECRET", "")
+          parsed = urlparse(base)
+          try:
+              port = parsed.port
+          except ValueError:
+              sys.exit("Assessment callback URL has an invalid port")
+          if (
+              not secret or not base or raw != raw.strip()
+              or any(ord(char) < 32 or ord(char) == 127 for char in raw)
+              or parsed.scheme != "https" or not parsed.hostname
+              or parsed.username or parsed.password or parsed.query or parsed.fragment
+              or parsed.hostname.lower().rstrip(".") != allowed_host
+              or (port is not None and port != 443)
+          ):
+              sys.exit("Assessment callback configuration is missing or invalid")
+          PY
+          HTTP_STATUS="$(curl --silent --show-error --proto '=https' \
+            --connect-timeout 5 --max-time 20 --output /dev/null --write-out '%{http_code}' \
             -X POST "${PORTAL_BASE_URL%/}/api/assessment/callback" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${CALLBACK_SECRET}" \
-            --data-binary @reports/callback-to-send.json
+            --data-binary @reports/callback-to-send.json)"
+          case "$HTTP_STATUS" in
+            2??) ;;
+            *) echo "Assessment result callback returned a non-2xx status." >&2; exit 1 ;;
+          esac
