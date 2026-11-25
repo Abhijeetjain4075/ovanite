@@ -130,19 +130,36 @@ jobs:
               json.dump({"url": base + "/api/assessment/callback", "payload": payload}, f)
           PY
           python - <<'PY'
-          import json, os, subprocess
-          saved = json.load(open(os.environ["RUNNER_TEMP"] + "/assessment-start.json", encoding="utf-8"))
-          status = subprocess.run([
-              "curl", "--silent", "--show-error", "--proto", "=https",
-              "--connect-timeout", "5", "--max-time", "15",
-              "--output", os.devnull, "--write-out", "%{http_code}",
-              "-X", "POST", saved["url"],
-              "-H", "Content-Type: application/json",
-              "-H", "Authorization: Bearer " + os.environ["CALLBACK_SECRET"],
-              "--data-binary", json.dumps(saved["payload"]),
-          ], check=True, capture_output=True, text=True).stdout.strip()
-          if not status.startswith("2"):
-              raise SystemExit("Assessment running callback did not return a 2xx status")
+          import json, os, sys
+          from urllib.error import HTTPError
+          from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+          with open(os.environ["RUNNER_TEMP"] + "/assessment-start.json", encoding="utf-8") as source:
+              saved = json.load(source)
+          request = Request(
+              saved["url"],
+              data=json.dumps(saved["payload"]).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + os.environ["CALLBACK_SECRET"],
+              },
+              method="POST",
+          )
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          try:
+              try:
+                  response = build_opener(NoRedirect).open(request, timeout=15)
+                  status = response.status
+                  response.close()
+              except HTTPError as error:
+                  status = error.code
+                  error.close()
+          except Exception:
+              sys.exit("Assessment running callback request failed.")
+          if not 200 <= status < 300:
+              sys.exit("Assessment running callback did not return a 2xx status.")
           PY
 
   inspect:
@@ -434,13 +451,35 @@ jobs:
           ):
               sys.exit("Assessment callback configuration is missing or invalid")
           PY
-          HTTP_STATUS="$(curl --silent --show-error --proto '=https' \
-            --connect-timeout 5 --max-time 20 --output /dev/null --write-out '%{http_code}' \
-            -X POST "${PORTAL_BASE_URL%/}/api/assessment/callback" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${CALLBACK_SECRET}" \
-            --data-binary @reports/callback-to-send.json)"
-          case "$HTTP_STATUS" in
-            2??) ;;
-            *) echo "Assessment result callback returned a non-2xx status." >&2; exit 1 ;;
-          esac
+          python - <<'PY'
+          import json, os, sys
+          from urllib.error import HTTPError
+          from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+          with open("reports/callback-to-send.json", encoding="utf-8") as source:
+              payload = json.load(source)
+          request = Request(
+              os.environ["PORTAL_BASE_URL"].rstrip("/") + "/api/assessment/callback",
+              data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + os.environ["CALLBACK_SECRET"],
+              },
+              method="POST",
+          )
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          try:
+              try:
+                  response = build_opener(NoRedirect).open(request, timeout=20)
+                  status = response.status
+                  response.close()
+              except HTTPError as error:
+                  status = error.code
+                  error.close()
+          except Exception:
+              sys.exit("Assessment result callback request failed.")
+          if not 200 <= status < 300:
+              sys.exit("Assessment result callback did not return a 2xx status.")
+          PY
