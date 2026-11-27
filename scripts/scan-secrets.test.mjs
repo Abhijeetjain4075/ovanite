@@ -49,8 +49,9 @@ describe("findCredentialShapes", () => {
     assert.deepEqual(findCredentialShapes("AKIA" + "A".repeat(16)), [
       "aws-access-key",
     ]);
+    // Built at runtime so this fixture does not itself contain a PEM header.
     assert.deepEqual(
-      findCredentialShapes("-----BEGIN RSA PRIVATE KEY-----"),
+      findCredentialShapes(["-----BEGIN", "RSA PRIVATE KEY-----"].join(" ")),
       ["private-key-block"],
     );
     assert.deepEqual(

@@ -106,9 +106,13 @@ export function scanRepository({ cwd = process.cwd(), needles = [] } = {}) {
 
   // Credential shapes in the published tree. `git grep` reports locations only.
   for (const { label, pattern } of CREDENTIAL_PATTERNS) {
-    const output = git(cwd, ["grep", "-I", "-l", "-E", pattern.source], {
-      allowFailure: true,
-    });
+    // `-e` is required: a pattern such as the private-key marker starts with a
+    // dash and would otherwise be parsed as an option, silently skipping it.
+    const output = git(
+      cwd,
+      ["grep", "-I", "-l", "-E", "-e", pattern.source],
+      { allowFailure: true },
+    );
     for (const path of output.split("\n").filter(Boolean)) {
       findings.push({ kind: "credential-shape", label, path });
     }
