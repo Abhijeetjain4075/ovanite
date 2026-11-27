@@ -23,6 +23,12 @@ id_ed25519*
 credentials.json
 service-account*.json
 
+# Local operator secrets (the intake token, once generated)
+.secrets/
+
+# Local export of stored submissions (personal data, never committed)
+intake-export/
+
 # Local deployment metadata
 .vercel/
 .wrangler/
