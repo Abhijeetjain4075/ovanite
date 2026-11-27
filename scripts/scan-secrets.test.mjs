@@ -49,9 +49,12 @@ describe("findCredentialShapes", () => {
     assert.deepEqual(findCredentialShapes("AKIA" + "A".repeat(16)), [
       "aws-access-key",
     ]);
-    // Built at runtime so this fixture does not itself contain a PEM header.
+    // Built at runtime so this fixture does not itself contain a PEM header, and
+    // a header alone is a placeholder rather than key material.
+    const header = ["-----BEGIN", "RSA PRIVATE KEY-----"].join(" ");
+    assert.deepEqual(findCredentialShapes(header), []);
     assert.deepEqual(
-      findCredentialShapes(["-----BEGIN", "RSA PRIVATE KEY-----"].join(" ")),
+      findCredentialShapes(`${header}\n${"MIIE".repeat(12)}\n`),
       ["private-key-block"],
     );
     assert.deepEqual(
@@ -111,6 +114,23 @@ describe("scanRepository", () => {
     const { findings } = scanRepository({ cwd, needles: ["Ovanite"] });
     assert.equal(findings.length, 1);
     assert.equal(findings[0].kind, "known-value");
+  });
+
+  it("finds a credential shape in a file that was later deleted", async () => {
+    const cwd = await seedRepository({
+      "gone.sh": "curl -H 'Authorization: Bearer " + "c".repeat(40) + "'\n",
+    });
+    execFileSync("git", ["rm", "-q", "gone.sh"], { cwd });
+    execFileSync("git", ["commit", "-qm", "remove"], { cwd });
+
+    const { findings } = scanRepository({ cwd });
+    assert.ok(
+      findings.some(
+        (finding) =>
+          finding.kind === "credential-shape" && finding.path === "gone.sh",
+      ),
+      JSON.stringify(findings),
+    );
   });
 
   it("never prints the secret value in its findings", async () => {

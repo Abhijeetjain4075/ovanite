@@ -37,7 +37,14 @@ export const FORBIDDEN_PATH_PATTERNS = [
 
 /** Credential shapes worth failing on even when their value is unknown. */
 export const CREDENTIAL_PATTERNS = [
-  { label: "private-key-block", pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
+  // The header alone is not key material: a private key always carries base64
+  // body lines, so requiring some keeps a documentation placeholder from
+  // becoming a permanent finding while a real key still matches.
+  {
+    label: "private-key-block",
+    pattern:
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]{0,64}[A-Za-z0-9+/=]{24,}/,
+  },
   { label: "github-token", pattern: /\bgh[pousr]_[A-Za-z0-9]{20,}/ },
   { label: "aws-access-key", pattern: /\bAKIA[0-9A-Z]{16}\b/ },
   { label: "openai-key", pattern: /\bsk-[A-Za-z0-9]{24,}/ },
@@ -61,6 +68,36 @@ export function findCredentialShapes(text) {
   );
 }
 
+function gitBuffer(cwd, args, input) {
+  return execFileSync("git", args, {
+    cwd,
+    input,
+    maxBuffer: 1024 * 1024 * 1024,
+    stdio: ["pipe", "pipe", "ignore"],
+  });
+}
+
+/**
+ * Walks a `git cat-file --batch` stream. Blobs come back as raw bytes so a
+ * binary file cannot be mis-decoded into a false negative.
+ */
+function* parseBatch(buffer) {
+  let offset = 0;
+  while (offset < buffer.length) {
+    const newline = buffer.indexOf(0x0a, offset);
+    if (newline === -1) return;
+    const header = buffer.toString("utf8", offset, newline);
+    offset = newline + 1;
+    const [sha, type, sizeText] = header.split(" ");
+    if (type !== "blob") continue;
+    const size = Number(sizeText);
+    if (!Number.isFinite(size)) continue;
+    const body = buffer.subarray(offset, offset + size);
+    offset += size + 1;
+    yield { sha, body };
+  }
+}
+
 function git(cwd, args, { allowFailure = false } = {}) {
   try {
     return execFileSync("git", args, {
@@ -81,7 +118,12 @@ function git(cwd, args, { allowFailure = false } = {}) {
  */
 export function scanRepository({ cwd = process.cwd(), needles = [] } = {}) {
   const findings = [];
-  const scanned = { trackedPaths: 0, historicalPaths: 0, needles: 0 };
+  const scanned = {
+    trackedPaths: 0,
+    historicalPaths: 0,
+    blobs: 0,
+    needles: 0,
+  };
 
   const tracked = git(cwd, ["ls-files", "-z"])
     .split("\0")
@@ -93,28 +135,49 @@ export function scanRepository({ cwd = process.cwd(), needles = [] } = {}) {
   }
 
   // Every path ever reachable from any ref, so a file that was committed and
-  // later deleted is still reported.
-  const historical = git(cwd, ["rev-list", "--objects", "--all"])
+  // later deleted is still reported. The same walk maps each blob to its paths.
+  const objects = git(cwd, ["rev-list", "--objects", "--all"])
     .split("\n")
-    .map((line) => line.slice(line.indexOf(" ") + 1))
-    .filter((path) => path.length > 0);
+    .filter(Boolean)
+    .map((line) => {
+      const space = line.indexOf(" ");
+      return space === -1
+        ? { sha: line, path: null }
+        : { sha: line.slice(0, space), path: line.slice(space + 1) };
+    });
+  const pathsBySha = new Map();
+  for (const { sha, path } of objects) {
+    if (!path) continue;
+    const known = pathsBySha.get(sha);
+    if (known) known.push(path);
+    else pathsBySha.set(sha, [path]);
+  }
+  const historical = [...new Set(objects.map(({ path }) => path).filter(Boolean))];
   scanned.historicalPaths = historical.length;
   for (const path of historical) {
     const label = isForbiddenPath(path);
     if (label) findings.push({ kind: "historical-path", label, path });
   }
 
-  // Credential shapes in the published tree. `git grep` reports locations only.
-  for (const { label, pattern } of CREDENTIAL_PATTERNS) {
-    // `-e` is required: a pattern such as the private-key marker starts with a
-    // dash and would otherwise be parsed as an option, silently skipping it.
-    const output = git(
-      cwd,
-      ["grep", "-I", "-l", "-E", "-e", pattern.source],
-      { allowFailure: true },
-    );
-    for (const path of output.split("\n").filter(Boolean)) {
-      findings.push({ kind: "credential-shape", label, path });
+  // Credential shapes in every blob reachable from any ref, including blobs
+  // that are no longer in the working tree. A single cat-file pass keeps this
+  // affordable, and it cannot be silently skipped the way an option-shaped
+  // grep pattern could.
+  const blobs = [...new Set(objects.map(({ sha }) => sha))];
+  if (blobs.length > 0) {
+    const batch = gitBuffer(cwd, ["cat-file", "--batch"], `${blobs.join("\n")}\n`);
+    scanned.blobs = blobs.length;
+    for (const { sha, body } of parseBatch(batch)) {
+      const text = body.toString("utf8");
+      for (const { label, pattern } of CREDENTIAL_PATTERNS) {
+        if (pattern.test(text)) {
+          findings.push({
+            kind: "credential-shape",
+            label,
+            path: pathsBySha.get(sha)?.[0] ?? sha,
+          });
+        }
+      }
     }
   }
 
@@ -169,7 +232,7 @@ async function main() {
 
   const { findings, scanned } = scanRepository({ needles });
   console.log(
-    `Scanned ${scanned.trackedPaths} tracked paths, ${scanned.historicalPaths} historical paths and ${scanned.needles} known value(s).`,
+    `Scanned ${scanned.trackedPaths} tracked paths, ${scanned.historicalPaths} historical paths, ${scanned.blobs} blobs and ${scanned.needles} known value(s).`,
   );
 
   if (findings.length === 0) {
