@@ -37,6 +37,27 @@ function corsHeaders(origin, allowlist) {
   };
 }
 
+/**
+ * Headers for a refused browser origin.
+ *
+ * Without these a refused origin reaches the browser as an opaque network
+ * failure, so a visitor on a deployment that was never registered is told the
+ * service is unreachable when it is only refusing their origin. Echoing the
+ * refused origin back lets the client say what actually happened. Nothing is
+ * granted: the response is a 403 carrying a static error code, no record data,
+ * no credentials and no readable route.
+ */
+function refusalHeaders(origin) {
+  if (!origin) return {};
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-methods": "POST, OPTIONS",
+    "access-control-allow-headers": "content-type",
+    "access-control-max-age": "60",
+    vary: "origin",
+  };
+}
+
 /** Narrow R2 surface the contract needs: put, get, delete. */
 function createR2Attachments(bucket) {
   return {
@@ -58,24 +79,37 @@ function createR2Attachments(bucket) {
   };
 }
 
+export { allowedOrigins, corsHeaders, refusalHeaders };
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const allowlist = allowedOrigins(env);
     const origin = request.headers.get("origin");
+    const allowlisted = !origin || allowlist.includes(origin);
     const cors = corsHeaders(origin, allowlist);
+    // The preflight completes and the refusal is then readable, which is why the
+    // handler checks the origin before reading a body.
+    const refusal = allowlisted ? {} : refusalHeaders(origin);
     const requestId = crypto.randomUUID();
 
     if (request.method === "OPTIONS") {
-      // A preflight from an origin that is not allowlisted gets no CORS headers,
-      // so the browser refuses the actual request.
-      return new Response(null, { status: 204, headers: cors });
+      return new Response(null, {
+        status: 204,
+        headers: allowlisted ? cors : refusal,
+      });
     }
 
     if (!env.DB) {
       return Response.json(
         { ok: false, error: "unavailable" },
-        { status: 503, headers: { ...cors, "cache-control": "no-store" } },
+        {
+          status: 503,
+          headers: {
+            ...(allowlisted ? cors : refusal),
+            "cache-control": "no-store",
+          },
+        },
       );
     }
 
@@ -114,7 +148,9 @@ export default {
                 allowedOrigins: allowlist,
                 requestId,
               });
-        for (const [header, value] of Object.entries(cors)) {
+        for (const [header, value] of Object.entries(
+          allowlisted ? cors : refusal,
+        )) {
           response.headers.set(header, value);
         }
         return response;
@@ -131,13 +167,25 @@ export default {
       );
       return Response.json(
         { ok: false, error: "unavailable" },
-        { status: 503, headers: { ...cors, "cache-control": "no-store" } },
+        {
+          status: 503,
+          headers: {
+            ...(allowlisted ? cors : refusal),
+            "cache-control": "no-store",
+          },
+        },
       );
     }
 
     return Response.json(
       { ok: false, error: "not_found" },
-      { status: 404, headers: { ...cors, "cache-control": "no-store" } },
+      {
+        status: 404,
+        headers: {
+          ...(allowlisted ? cors : refusal),
+          "cache-control": "no-store",
+        },
+      },
     );
   },
 };

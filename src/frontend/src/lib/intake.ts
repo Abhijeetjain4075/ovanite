@@ -33,7 +33,10 @@ export type IntakeFailureReason =
   | "unavailable"
   | "rate_limited"
   | "invalid"
-  | "not_configured";
+  | "not_configured"
+  | "not_allowed"
+  | "too_large"
+  | "timeout";
 
 export type IntakeFieldErrors = Record<string, string>;
 
@@ -53,7 +56,14 @@ export class IntakeError extends Error {
   }
 }
 
-const REQUEST_TIMEOUT_MS = 15_000;
+/** A record without attachments is small; a slow response is a real fault. */
+const REQUEST_TIMEOUT_MS = 20_000;
+/**
+ * An attachment submission can carry 25 MB, which a mobile uplink may need
+ * minutes to send. The old fixed 15 s budget aborted these uploads and reported
+ * them as an unreachable service.
+ */
+const UPLOAD_TIMEOUT_MS = 180_000;
 
 /** True when this build has a configured intake endpoint. */
 export function isIntakeOpen(): boolean {
@@ -98,15 +108,17 @@ export async function submitIntake(
   }
 
   const fetcher = options.fetcher ?? fetch;
+  const files = options.files ?? [];
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(
+    () => controller.abort(),
+    files.length > 0 ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS,
+  );
   if (options.signal) {
     options.signal.addEventListener("abort", () => controller.abort(), {
       once: true,
     });
   }
-
-  const files = options.files ?? [];
   const form = new FormData();
   form.set("payload", JSON.stringify({ kind, ...payload }));
   for (const file of files) {
@@ -131,6 +143,19 @@ export async function submitIntake(
       signal: controller.signal,
     });
   } catch {
+    // The caller's own cancellation is not a service failure.
+    if (options.signal?.aborted) {
+      throw new IntakeError(
+        "unavailable",
+        "The submission was cancelled. Nothing was submitted.",
+      );
+    }
+    if (controller.signal.aborted) {
+      throw new IntakeError(
+        "timeout",
+        "The submission service took too long to answer, so nothing was submitted. Check your connection and try again; a smaller attachment sends faster.",
+      );
+    }
     throw new IntakeError(
       "unavailable",
       "We could not reach the submission service. Nothing was submitted.",
@@ -150,6 +175,7 @@ export async function submitIntake(
     reference?: unknown;
     fields?: unknown;
     attachments?: unknown;
+    error?: unknown;
   };
 
   if (response.status === 201 && record.status === "received") {
@@ -179,6 +205,22 @@ export async function submitIntake(
     throw new IntakeError(
       "rate_limited",
       "Too many submissions from this connection. Please try again later.",
+    );
+  }
+
+  // The service now answers a refused origin readably instead of letting the
+  // browser turn it into an opaque network failure.
+  if (response.status === 403 && record.error === "origin_not_allowed") {
+    throw new IntakeError(
+      "not_allowed",
+      "This website address is not authorised to send submissions, so nothing was submitted. Send it from https://ovanite.vercel.app instead.",
+    );
+  }
+
+  if (response.status === 413) {
+    throw new IntakeError(
+      "too_large",
+      "That submission is too large to send: 25 MB in total and 20 MB per file. Nothing was submitted.",
     );
   }
 
