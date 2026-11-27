@@ -165,7 +165,11 @@ How those rules are enforced:
   byte is combined, so response timing cannot reveal a prefix of the token.
 - **Guessing is rate-limited.** Ten failed operator attempts per client per hour
   return `429` with `retry-after`; the counter is keyed by the same salted
-  address digest as the intake limit, never by the address itself.
+  address digest as the intake limit, never by the address itself. The limit is
+  per client address and applies to correct tokens too, so an address that has
+  already failed ten times waits out the hour (or uses another network). That is
+  deliberate: a check that ran before the counter would give every guess one
+  comparison.
 - **A missing token hides the routes.** With no `INTAKE_ADMIN_TOKEN` the operator
   routes answer `404`, so an unconfigured deployment has no readable surface at
   all rather than an unauthenticated one.
