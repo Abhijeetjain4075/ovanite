@@ -160,6 +160,29 @@ export function createD1Store(db) {
       return Number(row?.count ?? 1);
     },
 
+    /**
+     * Removes a submission and its file rows in one batch, so neither can
+     * outlive the other. Returns false when the record did not exist.
+     */
+    async deleteSubmission(submissionId) {
+      const results = await db.batch([
+        db
+          .prepare("DELETE FROM intake_file WHERE submission_id = ?")
+          .bind(submissionId),
+        db.prepare("DELETE FROM intake WHERE id = ?").bind(submissionId),
+      ]);
+      return Number(results?.[1]?.meta?.changes ?? 0) > 0;
+    },
+
+    /** Reads a counter without consuming it, so a lockout can be checked first. */
+    async readRateToken(bucket) {
+      const row = await db
+        .prepare("SELECT count FROM intake_rate WHERE bucket = ?")
+        .bind(bucket)
+        .first();
+      return Number(row?.count ?? 0);
+    },
+
     async list(limit) {
       const result = await db
         .prepare(

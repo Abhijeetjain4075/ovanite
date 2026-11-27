@@ -16,7 +16,8 @@ drills at least quarterly.
 | Object storage (presigned S3-compatible, reached through `MANUS_API_URL`) | Uploaded participant artefacts referenced by `/manus-storage/<key>` | Provider versioning + lifecycle policy | Enable bucket versioning, object lock if available, and a deletion-protection policy |
 | Motoko backend canister | All published and draft content (products, FAQs, site copy) plus admins and submissions policy in stable memory | Stable-memory snapshot on upgrade + periodic export through the admin query surface | Fund the canister, configure the owner principal, and rehearse an upgrade |
 | Frontend build artefact | Static bundle and publicly injected `env.json` | Git tag + immutable deploy artefact | Keep the deploy artefact for every released tag; never rebuild an old release from a moving branch |
-| Secrets | JWT signing key, OAuth credentials, DB URL, metrics token, webhook URL | Secret store only | Rotate on a schedule and after any suspected exposure; never back them up to the repository |
+| Secrets | JWT signing key, OAuth credentials, DB URL, metrics token, webhook URL, `INTAKE_ADMIN_TOKEN` | Secret store only | Rotate on a schedule and after any suspected exposure; never back them up to the repository |
+| Intake submissions | Contact, waitlist and participant records in D1 plus attachments in R2 | Provider-managed durability; export on demand | Erasure and retention purge are implemented (see below); the export is `node services/intake/scripts/export-submissions.mjs` |
 
 ## Portal MySQL
 
@@ -166,13 +167,57 @@ This is the only recovery path for content if the canister is lost entirely.
 - Never re-deploy an old tag with a rebuilt `env.json` unless the change is
   recorded: a canister id change silently re-points the site.
 
-## Intake attachments
+## Intake submissions and attachments
 
 Participant submissions may carry up to three files (a zip, a tarball, a PDF or
 a source file). They are retained exactly as long as the submission they belong
 to: deleting the submission means deleting its `intake_file` rows and the R2
 objects named by them. Nothing else indexes those objects, so an orphaned row is
 the only way to reach a file.
+
+Both operations below are implemented and tested; neither is scheduled, because
+scheduling them needs the operator token and a decision about the window.
+
+### Erasure on request
+
+The published privacy notice promises deletion on request. Run:
+
+```bash
+node services/intake/scripts/delete-submission.mjs <reference> --yes \
+  --token-file ~/.config/ovanite/intake-admin-token
+```
+
+The Worker removes the R2 objects, then the file rows and the record in one D1
+batch, and logs an `intake_submission_deleted` line with the reference and the
+attachment count. A failed object deletion aborts the whole call, leaving the
+record intact for a retry. Record the reference, the date and who asked in the
+release log: that line is the audit trail.
+
+### Retention purge
+
+The notice states a maximum of 12 months after review. The purge is dry by
+default:
+
+```bash
+# Report what is due (no deletion).
+node services/intake/scripts/delete-submission.mjs --older-than-days 365 \
+  --token-file ~/.config/ovanite/intake-admin-token
+
+# Delete the reported set.
+node services/intake/scripts/delete-submission.mjs --older-than-days 365 --yes \
+  --token-file ~/.config/ovanite/intake-admin-token
+```
+
+Run it quarterly or monthly, keep the printed output as the deletion log, and
+remember that a cloud provider's own backups may retain a copy for their
+snapshot window — say so in the notice if that becomes material.
+
+### Never publish the preview environment
+
+The intake service's preview environment has its own database and bucket and no
+operator token. A published preview therefore accepts real visitor data that
+nobody can read. Production is the only environment that should be published;
+unpublishing leaves the data, secrets and URL in place.
 
 ## Secret rotation and retention
 
@@ -189,7 +234,8 @@ the only way to reach a file.
 
 - No cron, scheduled workflow or cron container performs backups: doing that
   safely needs production credentials and a destination, both owner-supplied.
-- No retention job deletes data. Deletion requires a written policy plus an audit
-  trail, so it must be a reviewed, explicit operation.
+- No retention job runs on a schedule. The purge exists and is tested, but
+  running it needs the operator token and a reviewed decision, so it is invoked
+  by hand and its output is the audit trail.
 - No restore has been performed against production data, because there is no
   production deployment yet.

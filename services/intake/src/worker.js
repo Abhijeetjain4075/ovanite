@@ -8,6 +8,7 @@
  * token — there is no public download route.
  */
 import {
+  handleDeleteSubmission,
   handleFileDownload,
   handleFileList,
   handleList,
@@ -31,7 +32,10 @@ function corsHeaders(origin, allowlist) {
   return {
     "access-control-allow-origin": origin,
     "access-control-allow-methods": "GET, POST, OPTIONS",
-    "access-control-allow-headers": "content-type, authorization",
+    // Only the public submission shape is allowed cross-origin. Operator calls
+    // carry a bearer token and are made by scripts, never by a browser, so a
+    // page running on the site origin cannot replay a stolen token either.
+    "access-control-allow-headers": "content-type",
     "access-control-max-age": "600",
     vary: "origin",
   };
@@ -115,7 +119,14 @@ export default {
 
     const store = createD1Store(env.DB);
     const attachments = env.FILES ? createR2Attachments(env.FILES) : null;
-    const operatorDeps = { store, attachments, token: env.INTAKE_ADMIN_TOKEN };
+    const operatorDeps = {
+      store,
+      attachments,
+      token: env.INTAKE_ADMIN_TOKEN,
+      rateSalt: env.RATE_SALT ?? "ovanite-intake",
+      now: Date.now(),
+      requestId,
+    };
 
     try {
       await ensureSchema(env.DB);
@@ -134,6 +145,19 @@ export default {
 
       if (url.pathname.startsWith("/api/files/")) {
         return await handleFileDownload(request, operatorDeps);
+      }
+
+      if (url.pathname.startsWith("/api/intake/")) {
+        if (request.method !== "DELETE") {
+          return Response.json(
+            { ok: false, error: "method_not_allowed" },
+            {
+              status: 405,
+              headers: { allow: "DELETE", "cache-control": "no-store" },
+            },
+          );
+        }
+        return await handleDeleteSubmission(request, operatorDeps);
       }
 
       if (url.pathname === "/api/intake") {

@@ -145,6 +145,95 @@ comma-separated value on the service, redeploy, then submit from that origin. A
 refused origin gets a readable 403, so the failure is diagnosable rather than a
 silent timeout.
 
+## Security model
+
+A submission is personal data. The design rule is therefore that **no anonymous
+request can ever read stored data**, and that the operator path is the only one.
+
+| Surface | Anonymous | Operator (bearer token) |
+| --- | --- | --- |
+| `POST /api/intake` | create only; the response is a reference and attachment names | — |
+| `GET /api/intake` | `401` (or `404` when no token is configured) | record list, never the IP digest |
+| `GET /api/files?submission=` | `401` | attachment metadata |
+| `GET /api/files/<id>` | `401` | the bytes, as a download |
+| `DELETE /api/intake/<reference>` | `401` | erasure of the record and its objects |
+| anything else, including `/` and `/env.json` | `404` | `404` |
+
+How those rules are enforced:
+
+- **The token is compared in constant time.** Both sides are hashed and every
+  byte is combined, so response timing cannot reveal a prefix of the token.
+- **Guessing is rate-limited.** Ten failed operator attempts per client per hour
+  return `429` with `retry-after`; the counter is keyed by the same salted
+  address digest as the intake limit, never by the address itself.
+- **A missing token hides the routes.** With no `INTAKE_ADMIN_TOKEN` the operator
+  routes answer `404`, so an unconfigured deployment has no readable surface at
+  all rather than an unauthenticated one.
+- **Nothing is echoed.** A response never repeats a submitted value beyond the
+  reference and attachment names; error bodies are static codes. Database and
+  provider errors are logged as a message without row contents and returned as a
+  generic `503`.
+- **Attachments are inert.** Bytes are never unpacked, executed, transformed or
+  served inline: the key is generated server-side, the stored name is reduced to
+  a single segment, the response is `attachment` + `nosniff` +
+  `content-security-policy: default-src 'none'; sandbox` +
+  `cross-origin-resource-policy: same-origin`, so opening a file in a browser
+  cannot run it or hand anything to another page.
+- **No browser can replay the token.** CORS allows only `content-type` as a
+  request header, so a script running on any origin — including the site origin —
+  cannot attach an `authorization` header.
+- **Transport and response hardening.** Every response carries `no-store`,
+  `nosniff`, `referrer-policy: no-referrer` and HSTS; nothing is cacheable by an
+  intermediary.
+
+Residual properties an operator should know:
+
+- **A duplicate answer is an oracle.** `200 duplicate` versus `201 received`
+  confirms that an identical submission already exists, but only to someone who
+  already knows the exact name, email, message and attachment bytes, and only
+  within the 5-per-hour limit. This is inherent to telling a visitor "we already
+  have this"; it reveals nothing about any other record.
+- **The address digest is pseudonymous, not anonymous.** `ip_hash` is a salted
+  SHA-256 of the client address, stored so abuse can be traced to a rate-limit
+  bucket. It is never returned by any route.
+- **Attachments are at rest in R2 under platform-managed encryption.** This
+  service adds no encryption of its own; anyone who controls the Cloudflare
+  account, the Sites project, or the operator token can read the objects.
+- **The preview environment must not be published.** It has its own database and
+  bucket and no operator token, so a published preview is a write-only sink for
+  real visitor data. Publish production only.
+
+## Erasing a submission
+
+The privacy notice promises deletion on request, so erasure is an implemented
+operation, not a manual database edit:
+
+```bash
+# One submission: the reference is required, and --yes confirms permanence.
+node services/intake/scripts/delete-submission.mjs <reference> --yes \
+  --token-file ~/.config/ovanite/intake-admin-token
+```
+
+`DELETE /api/intake/<reference>` removes the R2 objects first, then the
+`intake_file` rows and the record in one D1 batch, and writes an audit line
+(`intake_submission_deleted`, with the reference and attachment count, no
+personal data). If an object cannot be removed the call fails and the record is
+left intact, so a retry still finds every attachment it is responsible for.
+
+### Retention purge
+
+The notice also says a submission is deleted at most 12 months after review. The
+purge is dry by default and reports exactly what it would remove:
+
+```bash
+node services/intake/scripts/delete-submission.mjs --older-than-days 365 \
+  --token-file ~/.config/ovanite/intake-admin-token
+
+# Same command with --yes actually deletes.
+node services/intake/scripts/delete-submission.mjs --older-than-days 365 --yes \
+  --token-file ~/.config/ovanite/intake-admin-token
+```
+
 ## Privacy
 
 The client address is never stored. `ip_hash` is a salted SHA-256 digest used

@@ -77,6 +77,10 @@ function json(status, body, extraHeaders = {}) {
       "cache-control": "no-store",
       "x-content-type-options": "nosniff",
       "referrer-policy": "no-referrer",
+      // No response from this service is a document, a frame or a shared
+      // resource: it is JSON read by one caller and nothing else.
+      "cross-origin-resource-policy": "same-origin",
+      "strict-transport-security": "max-age=31536000; includeSubDomains",
       ...extraHeaders,
     },
   });
@@ -436,16 +440,85 @@ export async function handleSubmission(request, deps) {
   });
 }
 
-/** Operator authentication shared by both read paths. */
-function requireOperator(request, token) {
+/**
+ * Compares two secrets without leaking their content through timing.
+ *
+ * `a !== b` on strings returns as soon as a character differs, so a caller can
+ * learn a prefix byte by byte from response times. Hashing both sides first and
+ * combining every byte makes the work independent of where they differ.
+ */
+export async function constantTimeEqual(a, b) {
+  const encoder = new TextEncoder();
+  const [left, right] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(String(a))),
+    crypto.subtle.digest("SHA-256", encoder.encode(String(b))),
+  ]);
+  const leftBytes = new Uint8Array(left);
+  const rightBytes = new Uint8Array(right);
+  let difference = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    difference |= leftBytes[index] ^ rightBytes[index];
+  }
+  return difference === 0;
+}
+
+/** Ten failed operator attempts per client per hour, then a cooling-off period. */
+const AUTH_LIMITS = { windowMs: 60 * 60 * 1000, max: 10 };
+
+async function clientFingerprint(request, salt) {
+  const address =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+  return sha256Hex(`${salt}:operator:${address}`);
+}
+
+/**
+ * Operator authentication for the read, download and delete routes.
+ *
+ * The routes stay absent (`404`) when no token is configured, a missing or wrong
+ * token is indistinguishable (`401`), and repeated failures from one client are
+ * counted so a token cannot be guessed at line speed.
+ */
+async function authorizeOperator(request, deps) {
+  const { token, store } = deps;
   if (!token || token.length < 32) {
     return json(404, { ok: false, error: "not_found" });
   }
+
+  const now = typeof deps.now === "number" ? deps.now : Date.now();
+  const windowStart =
+    Math.floor(now / AUTH_LIMITS.windowMs) * AUTH_LIMITS.windowMs;
+  const fingerprint = await clientFingerprint(request, deps.rateSalt ?? "");
+  const bucket = `${fingerprint}:auth:${windowStart}`;
+
+  if (typeof store.readRateToken === "function") {
+    const failures = await store.readRateToken(bucket);
+    if (failures >= AUTH_LIMITS.max) {
+      return json(
+        429,
+        { ok: false, error: "rate_limited" },
+        {
+          "retry-after": String(
+            Math.max(
+              1,
+              Math.ceil((windowStart + AUTH_LIMITS.windowMs - now) / 1000),
+            ),
+          ),
+        },
+      );
+    }
+  }
+
   const authorization = request.headers.get("authorization") ?? "";
   const provided = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length)
     : "";
-  if (provided !== token) {
+
+  if (!(await constantTimeEqual(provided, token))) {
+    if (typeof store.takeRateToken === "function") {
+      await store.takeRateToken(bucket, windowStart);
+    }
     return json(401, { ok: false, error: "unauthorized" });
   }
   return null;
@@ -460,8 +533,8 @@ function requireOperator(request, token) {
  * database console.
  */
 export async function handleList(request, deps) {
-  const { store, token } = deps;
-  const denied = requireOperator(request, token);
+  const { store } = deps;
+  const denied = await authorizeOperator(request, deps);
   if (denied) return denied;
 
   const limit = Math.min(
@@ -478,8 +551,8 @@ export async function handleList(request, deps) {
  * reuse.
  */
 export async function handleFileList(request, deps) {
-  const { store, token } = deps;
-  const denied = requireOperator(request, token);
+  const { store } = deps;
+  const denied = await authorizeOperator(request, deps);
   if (denied) return denied;
 
   const submissionId = cleanString(
@@ -510,8 +583,8 @@ export async function handleFileList(request, deps) {
  * GET /api/files/<id> — streams one attachment as a download. Operator only.
  */
 export async function handleFileDownload(request, deps) {
-  const { store, attachments, token } = deps;
-  const denied = requireOperator(request, token);
+  const { store, attachments } = deps;
+  const denied = await authorizeOperator(request, deps);
   if (denied) return denied;
   if (!attachments || typeof store.findFile !== "function") {
     return json(503, { ok: false, error: "unavailable" });
@@ -541,6 +614,80 @@ export async function handleFileDownload(request, deps) {
       "cache-control": "no-store",
       "x-content-type-options": "nosniff",
       "referrer-policy": "no-referrer",
+      "cross-origin-resource-policy": "same-origin",
+      "strict-transport-security": "max-age=31536000; includeSubDomains",
+      // A stored file is data, never a document: opening it in a browser must
+      // not run anything it contains or let it reach the page that opened it.
+      "content-security-policy": "default-src 'none'; sandbox",
     },
+  });
+}
+
+const REFERENCE_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * DELETE /api/intake/<reference> — operator erasure.
+ *
+ * The published privacy notice promises that a submission and its attachments
+ * are deleted on request, so erasure has to be an implemented operation rather
+ * than a manual database edit. Objects are removed before rows: if an object
+ * cannot be removed the record is left intact and the call fails, so a retry
+ * still finds every attachment it is responsible for.
+ */
+export async function handleDeleteSubmission(request, deps) {
+  const { store, attachments } = deps;
+  const denied = await authorizeOperator(request, deps);
+  if (denied) return denied;
+
+  if (typeof store.deleteSubmission !== "function") {
+    return json(503, { ok: false, error: "unavailable" });
+  }
+
+  const reference =
+    new URL(request.url).pathname.split("/").filter(Boolean).pop() ?? "";
+  if (!REFERENCE_PATTERN.test(reference)) {
+    return json(400, { ok: false, error: "invalid" });
+  }
+
+  const files =
+    typeof store.listFiles === "function"
+      ? await store.listFiles(reference)
+      : [];
+
+  if (attachments) {
+    for (const file of files) {
+      try {
+        await attachments.delete(file.objectKey);
+      } catch {
+        return json(500, { ok: false, error: "unavailable" });
+      }
+    }
+  } else if (files.length > 0) {
+    // Without the bucket the attachments would survive an erasure request.
+    return json(503, { ok: false, error: "unavailable" });
+  }
+
+  const deleted = await store.deleteSubmission(reference);
+  if (!deleted) {
+    return json(404, { ok: false, error: "not_found" });
+  }
+
+  // An audit line without personal data: enough to prove the erasure happened.
+  console.log(
+    JSON.stringify({
+      level: "info",
+      event: "intake_submission_deleted",
+      requestId: deps.requestId ?? null,
+      reference,
+      attachments: files.length,
+    }),
+  );
+
+  return json(200, {
+    ok: true,
+    status: "deleted",
+    reference,
+    attachments: files.length,
   });
 }

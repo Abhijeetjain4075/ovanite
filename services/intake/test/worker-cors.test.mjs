@@ -48,9 +48,11 @@ describe("origin handling", () => {
       String(response.headers.get("access-control-allow-methods")),
       /GET, POST, OPTIONS/,
     );
-    assert.match(
-      String(response.headers.get("access-control-allow-headers")),
-      /authorization/,
+    // Only the public submission shape crosses origins. A bearer token is sent
+    // by scripts, never by a page, so `authorization` is deliberately absent.
+    assert.equal(
+      response.headers.get("access-control-allow-headers"),
+      "content-type",
     );
   });
 
