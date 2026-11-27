@@ -81,13 +81,19 @@ The public site never reads either. Both are reachable only with
 `INTAKE_ADMIN_TOKEN`, which is why that token is required for an operator to see
 anything at all.
 
-### Retrieve everything with the export script
+### See what arrived (no download)
 
 ```bash
-# The token is a secret: keep it in your password manager or an untracked file.
-INTAKE_ADMIN_TOKEN=... node services/intake/scripts/export-submissions.mjs --out ./intake-export
+node services/intake/scripts/export-submissions.mjs --list \
+  --token-file ~/.config/ovanite/intake-admin-token
+```
 
-# Or read it from a file instead of the environment:
+Prints one row per submission — reference, received time, kind, name, email,
+project — newest first. Nothing is written to disk.
+
+### Download everything
+
+```bash
 node services/intake/scripts/export-submissions.mjs \
   --token-file ~/.config/ovanite/intake-admin-token \
   --out ./intake-export
@@ -98,8 +104,42 @@ That writes:
 ```
 intake-export/
   submissions.json                     every stored record, newest first
-  attachments/<reference>/<name>       the files of each submission
+  attachments/<reference>/<name>       the files exactly as sent
 ```
+
+### Extract the archives
+
+```bash
+node services/intake/scripts/export-submissions.mjs --extract \
+  --token-file ~/.config/ovanite/intake-admin-token --out ./intake-export
+```
+
+Adds `attachments/<reference>/extracted/<archive>/…` for `.zip`, `.tar.gz`,
+`.tgz` and `.gz`. Extraction is treated as hostile input: an entry that would
+escape its folder is refused, links are never followed, encryption is refused
+rather than guessed at, and the entry count and sizes are capped (2,000 files,
+64 MB each, 256 MB total). A file that cannot be extracted leaves the original
+untouched and is reported next to it, so one odd attachment never aborts an
+export. The originals are always kept.
+
+### Share one submission with a reviewer
+
+```bash
+node services/intake/scripts/export-submissions.mjs --bundle \
+  --token-file ~/.config/ovanite/intake-admin-token --out ./intake-export
+```
+
+Writes `intake-export/share/<reference>.zip` for every submission: the record as
+`submission.json` plus `attachments/<name>`. It is a plain zip any machine opens,
+it contains no token, and it is the only thing you should ever send to another
+person. Send it over a channel you already trust, and delete it afterwards.
+
+**There is deliberately no share link.** A URL that serves a submission would be
+a second read path for personal data — exactly what the rest of this service is
+built to avoid — so sharing means handing over a file you control, not publishing
+an endpoint. If you ever need time-limited reviewer access, build it as a
+separate authenticated surface with an expiry and an audit trail; do not widen
+this one.
 
 Every file is written `0600` inside a `0700` folder because submissions are
 personal data; `intake-export/` is ignored by git. A stored attachment name is

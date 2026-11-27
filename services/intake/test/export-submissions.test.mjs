@@ -4,8 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
+import { createZip, extractZip } from "../scripts/archive.mjs";
 import {
+  assertSafeOutputDir,
   exportSubmissions,
+  listSubmissions,
   safeFileName,
 } from "../scripts/export-submissions.mjs";
 
@@ -118,6 +121,139 @@ describe("exportSubmissions", () => {
         }),
       /rejected the operator token/,
     );
+  });
+});
+
+function zipFetcher(calls, attachmentBytes) {
+  return async (url, init) => {
+    calls.push({ url, init });
+    if (url.includes("/api/intake?limit=")) {
+      return jsonResponse(200, { ok: true, count: ROWS.length, rows: ROWS });
+    }
+    if (url.includes("/api/files?submission=")) {
+      return jsonResponse(200, {
+        ok: true,
+        count: 1,
+        files: [
+          {
+            id: "file-1",
+            name: "demo.zip",
+            size: attachmentBytes.length,
+            contentType: "application/zip",
+          },
+        ],
+      });
+    }
+    if (url.endsWith("/api/files/file-1")) {
+      return {
+        status: 200,
+        ok: true,
+        json: async () => ({}),
+        arrayBuffer: async () =>
+          attachmentBytes.buffer.slice(
+            attachmentBytes.byteOffset,
+            attachmentBytes.byteOffset + attachmentBytes.byteLength,
+          ),
+      };
+    }
+    throw new Error(`unexpected request ${url}`);
+  };
+}
+
+describe("listSubmissions", () => {
+  it("prints the stored records and never fetches attachments", async () => {
+    const calls = [];
+    const rows = await listSubmissions({
+      origin: "https://intake.example.test",
+      token: TOKEN,
+      fetcher: routedFetcher(calls),
+    });
+    assert.equal(rows.length, 1);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].init.headers.authorization, `Bearer ${TOKEN}`);
+  });
+});
+
+describe("extraction and sharing", () => {
+  it("extracts an attached archive into its own folder", async () => {
+    const outDir = await mkdtemp(join(tmpdir(), "intake-export-"));
+    const attachment = createZip([
+      { path: "src/app.ts", data: Buffer.from("export const a = 1;\n") },
+    ]);
+    const result = await exportSubmissions({
+      origin: "https://intake.example.test",
+      token: TOKEN,
+      outDir,
+      extract: true,
+      fetcher: zipFetcher([], attachment),
+    });
+
+    const saved = result.submissions[0].attachments[0];
+    assert.equal(saved.extracted.format, "zip");
+    assert.equal(saved.extracted.files, 1);
+    assert.equal(
+      await readFile(join(outDir, saved.extracted.path, "src/app.ts"), "utf8"),
+      "export const a = 1;\n",
+    );
+    // The original attachment is kept alongside the extraction.
+    assert.ok((await stat(join(outDir, saved.path))).size > 0);
+  });
+
+  it("builds a share bundle containing the record and its files", async () => {
+    const outDir = await mkdtemp(join(tmpdir(), "intake-export-"));
+    const attachment = createZip([
+      { path: "a.txt", data: Buffer.from("hello") },
+    ]);
+    const result = await exportSubmissions({
+      origin: "https://intake.example.test",
+      token: TOKEN,
+      outDir,
+      bundle: true,
+      fetcher: zipFetcher([], attachment),
+    });
+
+    const bundlePath = join(outDir, result.submissions[0].bundle);
+    const entries = extractZip(await readFile(bundlePath));
+    assert.deepEqual(
+      entries.map((entry) => entry.path),
+      ["submission.json", "attachments/demo.zip"],
+    );
+    const record = JSON.parse(entries[0].data.toString());
+    assert.equal(record.id, ROWS[0].id);
+    // The operator token is never part of what is handed to a reviewer.
+    assert.equal(JSON.stringify(record).includes(TOKEN), false);
+  });
+
+  it("reports an unreadable archive without losing the original", async () => {
+    const outDir = await mkdtemp(join(tmpdir(), "intake-export-"));
+    const result = await exportSubmissions({
+      origin: "https://intake.example.test",
+      token: TOKEN,
+      outDir,
+      extract: true,
+      fetcher: zipFetcher([], Buffer.from("PK\u0003\u0004broken")),
+    });
+    const saved = result.submissions[0].attachments[0];
+    assert.ok(saved.extractionError);
+    assert.ok((await stat(join(outDir, saved.path))).size > 0);
+  });
+});
+
+describe("assertSafeOutputDir", () => {
+  it("refuses folders whose contents are published or generated", () => {
+    for (const path of [
+      "src/frontend/public/submissions",
+      "src/frontend/dist/intake-export",
+      ".git/leak",
+      "node_modules/x",
+    ]) {
+      assert.throws(() => assertSafeOutputDir(path), /Refusing to write/);
+    }
+  });
+
+  it("allows an ordinary export folder", () => {
+    assert.doesNotThrow(() => assertSafeOutputDir("./intake-export"));
+    assert.doesNotThrow(() => assertSafeOutputDir("/tmp/intake-export"));
   });
 });
 
