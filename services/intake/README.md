@@ -190,6 +190,13 @@ How those rules are enforced:
   `nosniff`, `referrer-policy: no-referrer` and HSTS; nothing is cacheable by an
   intermediary.
 
+This repository is publicly readable, so anything committed is world-readable
+forever. `pnpm scan:secrets --needle <value>` (or `--needles-file <path>`) refuses
+a tree that tracks a `.secrets/` or export path, that ever tracked one, that
+contains a credential-shaped string, or whose history contains a known value. It
+prints paths and commit ids only, never the matched text. Run it before a release
+and any time a token or a personal record is copied into the tree.
+
 Residual properties an operator should know:
 
 - **A duplicate answer is an oracle.** `200 duplicate` versus `201 received`
